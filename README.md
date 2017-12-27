@@ -1,2 +1,2 @@
 # SMChain
-SmartMesh Public Chain use new consensus for SmartMesh ecosystem devices. 
+SmartMesh Public Chain use new consensus and new block reward for SmartMesh ecosystem devices. 
