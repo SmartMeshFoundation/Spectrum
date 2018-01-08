@@ -67,7 +67,9 @@ func makealloc(g *core.Genesis) string {
 	return strconv.QuoteToASCII(string(data))
 }
 
+
 func main() {
+
 	if len(os.Args) != 2 {
 		fmt.Fprintln(os.Stderr, "Usage: mkalloc genesis.json")
 		os.Exit(1)

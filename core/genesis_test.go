@@ -159,3 +159,14 @@ func TestSetupGenesis(t *testing.T) {
 		}
 	}
 }
+
+func TestDecodePrealloc(t *testing.T){
+	mal := decodePrealloc(rinkebyAllocData)
+	c := big.NewInt(0)
+	for k,v := range mal {
+		e := new(big.Int).Div(v.Balance,big.NewInt(1e18))
+		c = new(big.Int).Add(e,c)
+		t.Log(k.Hex(),new(big.Int).Div(v.Balance,big.NewInt(1e18)))
+	}
+	t.Log("---->",len(mal),c)
+}

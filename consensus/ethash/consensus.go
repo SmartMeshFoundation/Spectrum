@@ -27,7 +27,7 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/common"
 	"github.com/SmartMeshFoundation/SMChain/common/math"
 	"github.com/SmartMeshFoundation/SMChain/consensus"
-	"github.com/SmartMeshFoundation/SMChain/consensus/misc"
+	//"github.com/SmartMeshFoundation/SMChain/consensus/misc"
 	"github.com/SmartMeshFoundation/SMChain/core/state"
 	"github.com/SmartMeshFoundation/SMChain/core/types"
 	"github.com/SmartMeshFoundation/SMChain/params"
@@ -276,12 +276,14 @@ func (ethash *Ethash) verifyHeader(chain consensus.ChainReader, header, parent *
 		}
 	}
 	// If all checks passed, validate any special fields for hard forks
+	/*
 	if err := misc.VerifyDAOHeaderExtraData(chain.Config(), header); err != nil {
 		return err
 	}
 	if err := misc.VerifyForkHashes(chain.Config(), header, uncle); err != nil {
 		return err
 	}
+	*/
 	return nil
 }
 

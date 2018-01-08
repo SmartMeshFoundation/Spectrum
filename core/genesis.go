@@ -164,6 +164,13 @@ func SetupGenesisBlock(db ethdb.Database, genesis *Genesis) (*params.ChainConfig
 			log.Info("Writing custom genesis block")
 		}
 		block, err := genesis.Commit(db)
+		fmt.Println(">>>>>>>>>> yyyy")
+		fmt.Println(">>>>>>>>>> yyyy")
+		fmt.Println("==> c:",block.Hash().Hex())
+		fmt.Println("==> m:",params.MainnetGenesisHash.Hex())
+		fmt.Println(">>>>>>>>>> yyyy")
+		fmt.Println(">>>>>>>>>> yyyy")
+
 		return genesis.Config, block.Hash(), err
 	}
 
@@ -208,14 +215,23 @@ func SetupGenesisBlock(db ethdb.Database, genesis *Genesis) (*params.ChainConfig
 }
 
 func (g *Genesis) configOrDefault(ghash common.Hash) *params.ChainConfig {
+	fmt.Println(">>>>>>>>>> xxxx",g)
+	fmt.Println(">>>>>>>>>> xxxx",g)
+	defer fmt.Println("<<<<<<<<<< xxxx")
+	defer fmt.Println("<<<<<<<<<< xxxx")
+
 	switch {
 	case g != nil:
+		fmt.Println(">>>>>>>>>> 1")
 		return g.Config
 	case ghash == params.MainnetGenesisHash:
+		fmt.Println(">>>>>>>>>> 2")
 		return params.MainnetChainConfig
 	case ghash == params.TestnetGenesisHash:
+		fmt.Println(">>>>>>>>>> 3")
 		return params.TestnetChainConfig
 	default:
+		fmt.Println(">>>>>>>>>> 4")
 		return params.AllEthashProtocolChanges
 	}
 }
@@ -310,10 +326,10 @@ func GenesisBlockForTesting(db ethdb.Database, addr common.Address, balance *big
 func DefaultGenesisBlock() *Genesis {
 	return &Genesis{
 		Config:     params.MainnetChainConfig,
-		Nonce:      66,
+		Nonce:      77, //66
 		ExtraData:  hexutil.MustDecode("0x11bbe8db4e347b4e8c937c1c8370e4b5ed33adb3db69cbdb7a38e1e50b1b82fa"),
-		GasLimit:   5000,
-		Difficulty: big.NewInt(17179869184),
+		GasLimit:   500000,//5000,
+		Difficulty: big.NewInt(300000),//17179869184
 		Alloc:      decodePrealloc(mainnetAllocData),
 	}
 }
