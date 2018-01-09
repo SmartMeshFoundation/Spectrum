@@ -119,22 +119,24 @@ func version(ctx *cli.Context) error {
 	fmt.Println("Operating System:", runtime.GOOS)
 	fmt.Printf("GOPATH=%s\n", os.Getenv("GOPATH"))
 	fmt.Printf("GOROOT=%s\n", runtime.GOROOT())
+	fmt.Println("Based On:", "go-ethereum/1.8.0-unstable")
+	fmt.Println("Email:", "cc14514@icloud.com")
 	return nil
 }
 
 func license(_ *cli.Context) error {
-	fmt.Println(`Geth is free software: you can redistribute it and/or modify
+	fmt.Println(`SmartmeshChain (Ethereum-based) is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-Geth is distributed in the hope that it will be useful,
+SmartmeshChain is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with geth. If not, see <http://www.gnu.org/licenses/>.
+along with SmartmeshChain. If not, see <http://www.gnu.org/licenses/>.
 `)
 	return nil
 }
