@@ -469,6 +469,19 @@ func (t *udp) send(toaddr *net.UDPAddr, ptype byte, req packet) error {
 	return err
 }
 
+/*
+unit byte
+
+
+//Keccak256 return [32]byte hash
+sig = Sign(Keccak256(|<-type(1)->|<-body->|),priv) // len 65
+hash = Keccak256(|<-sig->|<-type(1)->|<-body->|)
+packet = copy(packet, hash)
+
+|<-       head(97)     ->|<-type(1)->|<-body->|
+|<-hash(32)->|<-sig(65)->|<-type(1)->|<-body->|
+
+ */
 func encodePacket(priv *ecdsa.PrivateKey, ptype byte, req interface{}) ([]byte, error) {
 	b := new(bytes.Buffer)
 	b.Write(headSpace)

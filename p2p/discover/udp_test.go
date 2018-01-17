@@ -77,6 +77,7 @@ func newUDPTest(t *testing.T) *udpTest {
 // handles a packet as if it had been sent to the transport.
 func (test *udpTest) packetIn(wantError error, ptype byte, data packet) error {
 	enc, err := encodePacket(test.remotekey, ptype, data)
+	fmt.Println(ptype,enc)
 	if err != nil {
 		return test.errorf("packet (%d) encode error: %v", ptype, err)
 	}
