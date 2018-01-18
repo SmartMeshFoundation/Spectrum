@@ -59,7 +59,8 @@ const (
 
 // RPC packet types
 const (
-	pingPacket = iota + 1 // zero is 'reserved'
+	//pingPacket = iota + 1 // zero is 'reserved'
+	pingPacket = iota + 10 // modify RPC packet types , reject other eth node connect
 	pongPacket
 	findnodePacket
 	neighborsPacket

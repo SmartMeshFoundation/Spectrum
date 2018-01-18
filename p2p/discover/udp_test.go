@@ -77,7 +77,7 @@ func newUDPTest(t *testing.T) *udpTest {
 // handles a packet as if it had been sent to the transport.
 func (test *udpTest) packetIn(wantError error, ptype byte, data packet) error {
 	enc, err := encodePacket(test.remotekey, ptype, data)
-	fmt.Println(ptype,enc)
+	fmt.Println(ptype, len(enc), enc)
 	if err != nil {
 		return test.errorf("packet (%d) encode error: %v", ptype, err)
 	}
@@ -313,6 +313,10 @@ func TestUDP_findnodeMultiReply(t *testing.T) {
 	// check that the sent neighbors are all returned by findnode
 	select {
 	case result := <-resultc:
+		for i := range result {
+			t.Log(">>>>",i,result[i])
+		}
+		t.Log(">> ", len(result))
 		want := append(list[:2], list[3:]...)
 		if !reflect.DeepEqual(result, want) {
 			t.Errorf("neighbors mismatch:\n  got:  %v\n  want: %v", result, want)
@@ -357,7 +361,7 @@ func TestUDP_successfulPing(t *testing.T) {
 		}
 		wantTo := rpcEndpoint{
 			// The mirrored UDP address is the UDP packet sender.
-			IP: test.remoteaddr.IP, UDP: uint16(test.remoteaddr.Port),
+			IP:  test.remoteaddr.IP, UDP: uint16(test.remoteaddr.Port),
 			TCP: 0,
 		}
 		if !reflect.DeepEqual(p.To, wantTo) {
