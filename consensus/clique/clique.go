@@ -40,6 +40,7 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/rlp"
 	"github.com/SmartMeshFoundation/SMChain/rpc"
 	lru "github.com/hashicorp/golang-lru"
+	"fmt"
 )
 
 const (
@@ -212,6 +213,7 @@ type Clique struct {
 // signers set to the ones provided by the user.
 func New(config *params.CliqueConfig, db ethdb.Database) *Clique {
 	// Set any missing consensus parameters to their defaults
+	debug("New clique :",config.Period,config.Epoch)
 	conf := *config
 	if conf.Epoch == 0 {
 		conf.Epoch = epochLength
@@ -592,13 +594,14 @@ func (c *Clique) Authorize(signer common.Address, signFn SignerFn) {
 // the local signing credentials.
 func (c *Clique) Seal(chain consensus.ChainReader, block *types.Block, stop <-chan struct{}) (*types.Block, error) {
 	header := block.Header()
-
+	debug("seal 1",header)
 	// Sealing the genesis block is not supported
 	number := header.Number.Uint64()
 	if number == 0 {
 		return nil, errUnknownBlock
 	}
 	// For 0-period chains, refuse to seal empty blocks (no reward but would spin sealing)
+	debug("seal 2",c.config.Period,len(block.Transactions()))
 	if c.config.Period == 0 && len(block.Transactions()) == 0 {
 		return nil, errWaitTransactions
 	}
@@ -609,6 +612,7 @@ func (c *Clique) Seal(chain consensus.ChainReader, block *types.Block, stop <-ch
 
 	// Bail out if we're unauthorized to sign a block
 	snap, err := c.snapshot(chain, number-1, header.ParentHash, nil)
+	debug("seal 3",err)
 	if err != nil {
 		return nil, err
 	}
@@ -628,12 +632,14 @@ func (c *Clique) Seal(chain consensus.ChainReader, block *types.Block, stop <-ch
 	}
 	// Sweet, the protocol permits us to sign the block, wait for our time
 	delay := time.Unix(header.Time.Int64(), 0).Sub(time.Now()) // nolint: gosimple
+	debug("seal 4",delay)
 	if header.Difficulty.Cmp(diffNoTurn) == 0 {
 		// It's not our turn explicitly to sign, delay it a bit
 		wiggle := time.Duration(len(snap.Signers)/2+1) * wiggleTime
 		delay += time.Duration(rand.Int63n(int64(wiggle)))
 
 		log.Trace("Out-of-turn signing requested", "wiggle", common.PrettyDuration(wiggle))
+		debug("seal 5 out-of-turn",delay)
 	}
 	log.Trace("Waiting for slot to sign and propagate", "delay", common.PrettyDuration(delay))
 
@@ -644,11 +650,12 @@ func (c *Clique) Seal(chain consensus.ChainReader, block *types.Block, stop <-ch
 	}
 	// Sign all the things!
 	sighash, err := signFn(accounts.Account{Address: signer}, sigHash(header).Bytes())
+	debug("seal 6",sighash,err)
 	if err != nil {
 		return nil, err
 	}
 	copy(header.Extra[len(header.Extra)-extraSeal:], sighash)
-
+	debug("seal 7")
 	return block.WithSeal(header), nil
 }
 
@@ -682,4 +689,9 @@ func (c *Clique) APIs(chain consensus.ChainReader) []rpc.API {
 		Service:   &API{chain: chain, clique: c},
 		Public:    false,
 	}}
+}
+
+func debug(msg ... interface{})  {
+	msg = append([]interface{}{"<< liangc debug >> :"},msg...)
+	fmt.Println(msg ...)
 }

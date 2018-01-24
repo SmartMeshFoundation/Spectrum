@@ -323,6 +323,22 @@ func GenesisBlockForTesting(db ethdb.Database, addr common.Address, balance *big
 }
 
 // DefaultGenesisBlock returns the Ethereum main net genesis block.
+// https://github.com/ethereum/EIPs/issues/225
+func DefaultGenesisBlock() *Genesis {
+	//fmt.Println("---------> DefaultGenesisBlock()")
+	// TODO modify by liangc 在这里替换共识机制
+	genesisSigner := "0x00000000000000000000000000000000000000000000000000000000000000004110bd1ff0b73fa12c259acf39c950277f2667870000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+	return &Genesis{
+		Config:     params.MainnetChainConfig,
+		Nonce:      0,
+		ExtraData:  hexutil.MustDecode(genesisSigner),
+		//ExtraData:  hexutil.MustDecode("0x11bbe8db4e347b4e8c937c1c8370e4b5ed33adb3db69cbdb7a38e1e50b1b82fa"),
+		GasLimit:   500000,//5000,
+		Difficulty: big.NewInt(1),
+		Alloc:      decodePrealloc(mainnetAllocData),
+	}
+}
+/*
 func DefaultGenesisBlock() *Genesis {
 	return &Genesis{
 		Config:     params.MainnetChainConfig,
@@ -333,6 +349,7 @@ func DefaultGenesisBlock() *Genesis {
 		Alloc:      decodePrealloc(mainnetAllocData),
 	}
 }
+*/
 
 // DefaultTestnetGenesisBlock returns the Ropsten network genesis block.
 func DefaultTestnetGenesisBlock() *Genesis {
