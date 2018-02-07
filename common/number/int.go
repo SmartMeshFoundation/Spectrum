@@ -63,6 +63,11 @@ func Uint256(n int64) *Number {
 	return &Number{big.NewInt(n), limitUnsigned256}
 }
 
+// Return a Number with a UNSIGNED limiter up to 256 bits
+func BigToUint256(i *big.Int) *Number {
+	return &Number{i, limitUnsigned256}
+}
+
 // Return a Number with a SIGNED limiter up to 256 bits
 func Int256(n int64) *Number {
 	return &Number{big.NewInt(n), limitSigned256}

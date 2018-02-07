@@ -28,6 +28,7 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/common/hexutil"
 	"github.com/SmartMeshFoundation/SMChain/crypto"
 	"github.com/SmartMeshFoundation/SMChain/rlp"
+	"github.com/SmartMeshFoundation/SMChain/params"
 )
 
 //go:generate gencodec -type txdata -field-override txdataMarshaling -out gen_tx_json.go
@@ -361,9 +362,19 @@ func (s TxByNonce) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 // for all at once sorting as well as individually adding and removing elements.
 type TxByPrice Transactions
 
-func (s TxByPrice) Len() int           { return len(s) }
-func (s TxByPrice) Less(i, j int) bool { return s[i].data.Price.Cmp(s[j].data.Price) > 0 }
-func (s TxByPrice) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
+func (s TxByPrice) Len() int { return len(s) }
+func (s TxByPrice) Less(i, j int) bool {
+	//TODO add by liangc 把投票合约 在这里插队,把合约的执行塞入首
+	switch params.ChiefAddress {
+	case s[i].To().Hex():
+		return true
+	case s[j].To().Hex():
+		return false
+	default:
+		return s[i].data.Price.Cmp(s[j].data.Price) > 0
+	}
+}
+func (s TxByPrice) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
 
 func (s *TxByPrice) Push(x interface{}) {
 	*s = append(*s, x.(*Transaction))
@@ -373,7 +384,7 @@ func (s *TxByPrice) Pop() interface{} {
 	old := *s
 	n := len(old)
 	x := old[n-1]
-	*s = old[0 : n-1]
+	*s = old[0: n-1]
 	return x
 }
 

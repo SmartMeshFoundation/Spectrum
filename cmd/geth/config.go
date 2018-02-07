@@ -26,7 +26,7 @@ import (
 	"reflect"
 	"unicode"
 
-	cli "gopkg.in/urfave/cli.v1"
+	"gopkg.in/urfave/cli.v1"
 
 	"github.com/SmartMeshFoundation/SMChain/cmd/utils"
 	"github.com/SmartMeshFoundation/SMChain/contracts/release"
@@ -36,6 +36,7 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/params"
 	whisper "github.com/SmartMeshFoundation/SMChain/whisper/whisperv5"
 	"github.com/naoina/toml"
+	"github.com/SmartMeshFoundation/SMChain/contracts/chief"
 )
 
 var (
@@ -191,6 +192,12 @@ func makeFullNode(ctx *cli.Context) *node.Node {
 		return release.NewReleaseService(ctx, config)
 	}); err != nil {
 		utils.Fatalf("Failed to register the Geth release oracle service: %v", err)
+	}
+	// add by liangc : add tribe service
+	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
+		return chief.NewTribeService(ctx)
+	}); err != nil {
+		fmt.Println("error",err)
 	}
 	return stack
 }

@@ -48,8 +48,6 @@ var DefaultConfig = Config{
 	},
 }
 
-// DefaultDataDir is the default data directory to use for the databases and other
-// persistence requirements.
 func DefaultDataDir() string {
 	// Try to place the data folder in the user's home dir
 	home := homeDir()
@@ -63,6 +61,21 @@ func DefaultDataDir() string {
 		}
 	}
 	// As we cannot guess a stable location, return empty and handle later
+	return ""
+}
+//add by liangc : for testnet build ipc path
+func TestDataDir() string {
+	home := homeDir()
+	if home != "" {
+		testnet := "testnet"
+		if runtime.GOOS == "darwin" {
+			return filepath.Join(home, "Library", "SMChain", testnet)
+		} else if runtime.GOOS == "windows" {
+			return filepath.Join(home, "AppData", "Roaming", "SMChain", testnet)
+		} else {
+			return filepath.Join(home, ".smchain", testnet)
+		}
+	}
 	return ""
 }
 

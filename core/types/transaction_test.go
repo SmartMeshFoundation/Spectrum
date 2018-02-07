@@ -26,6 +26,7 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/common"
 	"github.com/SmartMeshFoundation/SMChain/crypto"
 	"github.com/SmartMeshFoundation/SMChain/rlp"
+	"container/heap"
 )
 
 // The values in those tests are from the Transaction Tests
@@ -232,4 +233,56 @@ func TestTransactionJSON(t *testing.T) {
 			t.Errorf("invalid chain id, want %d, got %d", tx.ChainId(), parsedTx.ChainId())
 		}
 	}
+}
+
+type IntHeap []int
+
+func (h IntHeap) Len() int { return len(h) }
+func (h IntHeap) Less(i, j int) bool {
+	if h[i] == 1 {
+		return true
+	} else if h[j] == 1 {
+		return false
+	}
+	return h[i] > h[j]
+}
+func (h IntHeap) Swap(i, j int) { h[i], h[j] = h[j], h[i] }
+
+func (h *IntHeap) Push(x interface{}) {
+	// Push and Pop use pointer receivers because they modify the slice's length,
+	// not just its contents.
+	*h = append(*h, x.(int))
+}
+
+func (h *IntHeap) Pop() interface{} {
+	old := *h
+	n := len(old)
+	x := old[n-1]
+	*h = old[0: n-1]
+	return x
+}
+
+func TestHeap(t *testing.T) {
+	//h := IntHeap{2, 1, 5, 100, 3, 6, 4, 5}
+	h := make(IntHeap, 0, 8)
+	h = append(h, 2)
+	h = append(h, 1)
+	h = append(h, 5)
+	h = append(h, 100)
+	h = append(h, 3)
+	h = append(h, 6)
+	h = append(h, 4)
+	h = append(h, 5)
+	heap.Init(&h)
+	/*
+	for h.Len() > 0 {
+		t.Logf("--> %d\n", heap.Pop(&h))
+	}
+	*/
+
+	for i := 0; i < 8; i++ {
+		t.Log(h[0])
+		heap.Pop(&h)
+	}
+
 }

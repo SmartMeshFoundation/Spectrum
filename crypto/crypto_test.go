@@ -26,6 +26,7 @@ import (
 	"testing"
 
 	"github.com/SmartMeshFoundation/SMChain/common"
+	"crypto/elliptic"
 )
 
 var testAddrHex = "970e8128ab834e8eac17ab8e3812f010678cf791"
@@ -220,3 +221,24 @@ func TestPythonIntegration(t *testing.T) {
 	t.Logf("msg: %x, privkey: %s sig: %x\n", msg0, kh, sig0)
 	t.Logf("msg: %x, privkey: %s sig: %x\n", msg1, kh, sig1)
 }
+
+func TestToECDSA(t *testing.T) {
+	target := "0adec74681c34173416ae564849e53e52034156e238084948b53cd1f7a753d6cc90763b5024f26998ee192d9662232d4c68abd588347626c2e8cd95e5c1ca38b"
+	nodekey := "b07f62f843adf1622811a79945944748fe5e59174d1ceffd14ca90a35c5813a7"
+	k,_ := hex.DecodeString(nodekey)
+	prv,_ := ToECDSA(k)
+	// TODO 将一个公钥变成一个 nodeid
+	pub := prv.PublicKey
+	// 变成一个 Address
+	address := PubkeyToAddress(pub)
+	t.Log("address =",address.Hex())
+
+	pbytes := elliptic.Marshal(pub.Curve,pub.X,pub.Y)
+	nodeid := pbytes[1:]
+	t.Log("---------------")
+	t.Log(target)
+	t.Log(hex.EncodeToString(nodeid))
+	t.Logf("%x\n",nodeid)
+	t.Log(hex.EncodeToString(nodeid)==target)
+}
+

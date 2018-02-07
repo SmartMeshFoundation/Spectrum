@@ -75,7 +75,7 @@ func NewDefaultConfig() (self *Config) {
 		ListenAddr:    DefaultHTTPListenAddr,
 		Port:          DefaultHTTPPort,
 		Path:          node.DefaultDataDir(),
-		EnsApi:        node.DefaultIPCEndpoint("geth"),
+		EnsApi:        node.DefaultIPCEndpoint("smc"),
 		EnsRoot:       ens.TestNetAddress,
 		NetworkId:     network.NetworkId,
 		SwapEnabled:   false,

@@ -23,7 +23,6 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
-
 	"github.com/SmartMeshFoundation/SMChain/common"
 	"github.com/SmartMeshFoundation/SMChain/core/types"
 	"github.com/SmartMeshFoundation/SMChain/ethdb"
@@ -507,6 +506,7 @@ func DeleteHeader(db DatabaseDeleter, hash common.Hash, number uint64) {
 // DeleteBody removes all block body data associated with a hash.
 func DeleteBody(db DatabaseDeleter, hash common.Hash, number uint64) {
 	db.Delete(append(append(bodyPrefix, encodeBlockNumber(number)...), hash.Bytes()...))
+	//TODO add by liangc : 在这里插入一个块到本地，那么需要执行一次 chief 合约的 get 方法，来刷新签名列表
 }
 
 // DeleteTd removes all block total difficulty data associated with a hash.

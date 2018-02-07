@@ -182,6 +182,15 @@ func init() {
 	app.Flags = append(app.Flags, whisperFlags...)
 
 	app.Before = func(ctx *cli.Context) error {
+		// add by liangc : append testnet flag
+		if tn := ctx.GlobalBool(utils.TestnetFlag.Name);tn {
+			fmt.Println(">>>> is_testnet :",tn)
+			os.Setenv("TESTNET","1")
+		}
+		ipc := node.DefaultIPCEndpoint(clientIdentifier)
+		fmt.Println(">>>> ipcpath :",ipc)
+		os.Setenv("IPCPATH",ipc)
+
 		runtime.GOMAXPROCS(runtime.NumCPU())
 		if err := debug.Setup(ctx); err != nil {
 			return err

@@ -39,8 +39,7 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/params"
 	"github.com/SmartMeshFoundation/SMChain/rlp"
 	"github.com/SmartMeshFoundation/SMChain/rpc"
-	lru "github.com/hashicorp/golang-lru"
-	"fmt"
+	"github.com/hashicorp/golang-lru"
 )
 
 const (
@@ -692,6 +691,6 @@ func (c *Clique) APIs(chain consensus.ChainReader) []rpc.API {
 }
 
 func debug(msg ... interface{})  {
-	msg = append([]interface{}{"<< liangc debug >> :"},msg...)
-	fmt.Println(msg ...)
+	//msg = append([]interface{}{"<< liangc debug >> :"},msg...)
+	//fmt.Println(msg ...)
 }

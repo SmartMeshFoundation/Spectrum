@@ -164,12 +164,9 @@ func SetupGenesisBlock(db ethdb.Database, genesis *Genesis) (*params.ChainConfig
 			log.Info("Writing custom genesis block")
 		}
 		block, err := genesis.Commit(db)
-		fmt.Println(">>>>>>>>>> yyyy")
-		fmt.Println(">>>>>>>>>> yyyy")
-		fmt.Println("==> c:",block.Hash().Hex())
-		fmt.Println("==> m:",params.MainnetGenesisHash.Hex())
-		fmt.Println(">>>>>>>>>> yyyy")
-		fmt.Println(">>>>>>>>>> yyyy")
+		fmt.Println("==genesis==> c:",block.Hash().Hex())
+		fmt.Println("==genesis==> m:",params.MainnetGenesisHash.Hex())
+		fmt.Println("==genesis==> t:",params.TestnetGenesisHash.Hex())
 
 		return genesis.Config, block.Hash(), err
 	}
@@ -353,12 +350,14 @@ func DefaultGenesisBlock() *Genesis {
 
 // DefaultTestnetGenesisBlock returns the Ropsten network genesis block.
 func DefaultTestnetGenesisBlock() *Genesis {
+	genesisSigner := "0x00000000000000000000000000000000000000000000000000000000000000004110bd1ff0b73fa12c259acf39c950277f2667870000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 	return &Genesis{
 		Config:     params.TestnetChainConfig,
-		Nonce:      66,
-		ExtraData:  hexutil.MustDecode("0x3535353535353535353535353535353535353535353535353535353535353535"),
+		Nonce:      0,
+		ExtraData:  hexutil.MustDecode(genesisSigner),
+		//ExtraData:  hexutil.MustDecode("0x3535353535353535353535353535353535353535353535353535353535353535"),
 		GasLimit:   16777216,
-		Difficulty: big.NewInt(1048576),
+		Difficulty: big.NewInt(1),
 		Alloc:      decodePrealloc(testnetAllocData),
 	}
 }

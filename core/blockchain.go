@@ -794,7 +794,15 @@ func (bc *BlockChain) WriteBlockAndState(block *types.Block, receipts []*types.R
 	}
 	// Make sure no inconsistent state is leaked during insertion
 	bc.mu.Lock()
-	defer bc.mu.Unlock()
+	defer func(){
+		bc.mu.Unlock()
+		fmt.Println("TODO : @@@@@@@@@@@@@@@@@@@@@ 222")
+		//TODO add by liangc : 在这里插入一个块到本地，那么需要执行一次 chief 合约的 get 方法，来刷新列表
+		rtn := make(chan interface{})
+		params.SendToMsgBox("GetStatus",rtn)
+		r := <- rtn
+		fmt.Println("🌿 ",r.(string))
+	}()
 
 	localTd := bc.GetTd(bc.currentBlock.Hash(), bc.currentBlock.NumberU64())
 	externTd := new(big.Int).Add(block.Difficulty(), ptd)
@@ -886,7 +894,15 @@ func (bc *BlockChain) insertChain(chain types.Blocks) (int, []interface{}, []*ty
 	defer bc.wg.Done()
 
 	bc.chainmu.Lock()
-	defer bc.chainmu.Unlock()
+	defer func(){
+		bc.chainmu.Unlock()
+		fmt.Println("TODO : @@@@@@@@@@@@@@@@@@@@@ 111")
+		//TODO add by liangc : 在这里插入一个块到本地，那么需要执行一次 chief 合约的 get 方法，来刷新列表
+		rtn := make(chan interface{})
+		params.SendToMsgBox("GetStatus",rtn)
+		r := <- rtn
+		fmt.Println("🌿 ",r.(string))
+	}()
 
 	// A queued approach to delivering events. This is generally
 	// faster than direct delivery and requires much less mutex
