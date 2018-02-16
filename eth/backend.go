@@ -48,6 +48,7 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/params"
 	"github.com/SmartMeshFoundation/SMChain/rlp"
 	"github.com/SmartMeshFoundation/SMChain/rpc"
+	"github.com/SmartMeshFoundation/SMChain/consensus/tribe"
 )
 
 type LesServer interface {
@@ -114,11 +115,11 @@ func New(ctx *node.ServiceContext, config *Config) (*Ethereum, error) {
 	}
 	stopDbUpgrade := upgradeDeduplicateData(chainDb)
 	chainConfig, genesisHash, genesisErr := core.SetupGenesisBlock(chainDb, config.Genesis)
+	chainConfig.String()
 	if _, ok := genesisErr.(*params.ConfigCompatError); genesisErr != nil && !ok {
 		return nil, genesisErr
 	}
 	log.Info("Initialised chain configuration", "config", chainConfig)
-
 	eth := &Ethereum{
 		config:         config,
 		chainDb:        chainDb,
@@ -144,7 +145,6 @@ func New(ctx *node.ServiceContext, config *Config) (*Ethereum, error) {
 		}
 		core.WriteBlockChainVersion(chainDb, core.BlockChainVersion)
 	}
-
 	vmConfig := vm.Config{EnablePreimageRecording: config.EnablePreimageRecording}
 	eth.blockchain, err = core.NewBlockChain(chainDb, eth.chainConfig, eth.engine, vmConfig)
 	if err != nil {
@@ -210,6 +210,10 @@ func CreateDB(ctx *node.ServiceContext, config *Config, name string) (ethdb.Data
 
 // CreateConsensusEngine creates the required type of consensus engine instance for an Ethereum service
 func CreateConsensusEngine(ctx *node.ServiceContext, config *ethash.Config, chainConfig *params.ChainConfig, db ethdb.Database) consensus.Engine {
+	// add by liangc : start tribe engine : DPOA ??
+	if chainConfig.Tribe != nil {
+		return tribe.New(chainConfig.Tribe,db)
+	}
 	// If proof-of-authority is requested, set it up
 	if chainConfig.Clique != nil {
 		return clique.New(chainConfig.Clique, db)
@@ -337,6 +341,18 @@ func (s *Ethereum) StartMining(local bool) error {
 	if err != nil {
 		log.Error("Cannot start mining without etherbase", "err", err)
 		return fmt.Errorf("etherbase missing: %v", err)
+	}
+	if tribe, ok := s.engine.(*tribe.Tribe); ok {
+		//TODO ***** 这个地方需要从 nodeid 中得到 eb 和 signFn
+		//TODO ***** 这个地方需要从 nodeid 中得到 eb 和 signFn
+		//TODO ***** 这个地方需要从 nodeid 中得到 eb 和 signFn
+		//TODO ***** 这个地方需要从 nodeid 中得到 eb 和 signFn
+		wallet, err := s.accountManager.Find(accounts.Account{Address: eb})
+		if wallet == nil || err != nil {
+			log.Error("Etherbase account unavailable locally", "err", err)
+			return fmt.Errorf("signer missing: %v", err)
+		}
+		tribe.Authorize(eb, wallet.SignHash)
 	}
 	if clique, ok := s.engine.(*clique.Clique); ok {
 		wallet, err := s.accountManager.Find(accounts.Account{Address: eb})

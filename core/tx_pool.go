@@ -202,6 +202,8 @@ type TxPool struct {
 	locals  *accountSet // Set of local transaction to exempt from eviction rules
 	journal *txJournal  // Journal of local transaction to back up to disk
 
+	chiefTx *types.Transaction// add by liangc : chief contract's tx index for remove when new block come in
+
 	pending map[common.Address]*txList         // All currently processable transactions
 	queue   map[common.Address]*txList         // Queued but non-processable transactions
 	beats   map[common.Address]time.Time       // Last heartbeat from each known account
@@ -253,7 +255,7 @@ func NewTxPool(config TxPoolConfig, chainconfig *params.ChainConfig, chain block
 	// Start the event loop and return
 	pool.wg.Add(1)
 	go pool.loop()
-
+	fmt.Println("new TxPool success >>>> ")
 	return pool
 }
 
@@ -593,6 +595,19 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	return nil
 }
 
+// add by liangc : chief contract's tx only be one , Keep up with the latest
+func (pool *TxPool) fixChief(tx *types.Transaction) {
+	if tx.To()!=nil && *tx.To() == common.HexToAddress(params.ChiefAddress) {
+		if pool.chiefTx != nil {
+			old := pool.chiefTx
+			fmt.Println("====fixchief===> delete old_tx : ",old.Hash().Hex())
+			pool.removeTx(old.Hash())
+		}
+		fmt.Println("====fixchief===> set_new_tx : ",tx.Hash().Hex())
+		pool.chiefTx = tx
+	}
+}
+
 // add validates a transaction and inserts it into the non-executable queue for
 // later pending promotion and execution. If the transaction is a replacement for
 // an already pending or queued one, it overwrites the previous and returns this
@@ -602,6 +617,7 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 // whitelisted, preventing any associated transaction from being dropped out of
 // the pool due to pricing constraints.
 func (pool *TxPool) add(tx *types.Transaction, local bool) (bool, error) {
+	pool.fixChief(tx)
 	// If the transaction is already known, discard it
 	hash := tx.Hash()
 	if pool.all[hash] != nil {
@@ -704,6 +720,11 @@ func (pool *TxPool) journalTx(from common.Address, tx *types.Transaction) {
 	if pool.journal == nil || !pool.locals.contains(from) {
 		return
 	}
+	// TODO add by liangc : only for dev and test
+	if tx.To()!=nil && common.HexToAddress(params.ChiefAddress) == *tx.To() {
+		fmt.Println("ZZZZZ : chief tx do not save to disk : ",tx.Hash().Hex())
+		return
+	}
 	if err := pool.journal.insert(tx); err != nil {
 		log.Warn("Failed to journal local transaction", "err", err)
 	}
@@ -751,6 +772,7 @@ func (pool *TxPool) promoteTx(addr common.Address, hash common.Hash, tx *types.T
 // the sender as a local one in the mean time, ensuring it goes around the local
 // pricing constraints.
 func (pool *TxPool) AddLocal(tx *types.Transaction) error {
+	//TODO liangc
 	return pool.addTx(tx, !pool.config.NoLocals)
 }
 

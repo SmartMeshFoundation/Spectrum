@@ -13,6 +13,8 @@ import (
 	"time"
 	"context"
 	"github.com/SmartMeshFoundation/SMChain/accounts/abi/bind"
+	"strings"
+	"encoding/json"
 )
 
 const (
@@ -67,15 +69,12 @@ func (self *TribeService) Start(server *p2p.Server) error {
 }
 func (self *TribeService) loop() {
 	for {
-		fmt.Println("+++++++++++++++++ 1")
 		select {
 		case <-self.quit:
 			break
 		case mbox := <-params.MboxChan:
-			fmt.Println("+++++++++++++++++ 2", mbox)
 			switch mbox.Method {
 			case "GetStatus":
-				fmt.Println("+++++++++++++++++ 3", mbox)
 				self.getstatus(mbox)
 			case "Update":
 				self.update(mbox)
@@ -93,19 +92,40 @@ func (self *TribeService) getstatus(mbox params.Mbox) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 	opts := &bind.CallOpts{Context: ctx}
-	fmt.Println("++++++++ 111")
-	Al, Sl, Bl, err := self.tribeChief.GetStatus(opts)
-	fmt.Println("++++++++ 222",err)
-	fmt.Println("-->", err)
-	if err == nil {
-		for i, a := range Al {
-			fmt.Println("> ", i, a.Hex(), Sl[i], Bl[i])
+	success := params.MBoxSuccess{Success:true}
+	chiefStatus , err := self.tribeChief.GetStatus(opts)
+	success.Entity = params.ChiefStatus(chiefStatus)
+	if err != nil {
+		fmt.Println("-- tribeService.getStatus.err2 --> ",err)
+		success.Success = false
+		success.Entity = err
+	} else {
+		if b,e := json.Marshal(&chiefStatus) ; e==nil {
+			fmt.Println("--XXXX-->",params.ChiefStatus(chiefStatus))
+			fmt.Println("chief.getstatus --> ",string(b))
+		}else{
+			fmt.Println("-- tribeService.getStatus.err1 --> ",e)
 		}
 	}
-	mbox.Rtn <- "getstatus_successed."
-	fmt.Println("service.mbox.rtn <- successed ")
+	mbox.Rtn <- success
+	fmt.Println("service.mbox.rtn: getstatus <- successed ")
 }
 
+
 func (self *TribeService) update(mbox params.Mbox) {
-	self.tribeChief.Update(nil)
+	//TODO change account
+	key := `{"address":"4792ff97fbc79d659b46c56d009d74e5caee850e","crypto":{"cipher":"aes-128-ctr","ciphertext":"d6cb5b2b3e2e648a046f00cf0018541d0a43b1ede1d09d2c0247f8b6e26cafbf","cipherparams":{"iv":"b9ebe0e5364bd9bb465e4a0f971a5f43"},"kdf":"scrypt","kdfparams":{"dklen":32,"n":262144,"p":1,"r":8,"salt":"17e870a3fbac58266843af921ba6c54bbc328a2ca9cabb0736f5c579bac73f42"},"mac":"e7622bb61948af35da78726bd6847827a4eb041a365bfb4daf5adf87d9de5558"},"id":"3c62b232-5c37-4e5c-a568-134ca6e3dc40","version":3}`
+	auth, _ := bind.NewTransactor(strings.NewReader(key), "123456")
+	auth.GasPrice = eth.DefaultConfig.GasPrice
+	auth.GasLimit = params.GenesisGasLimit
+	success := params.MBoxSuccess{Success:true}
+	t,e := self.tribeChief.Update(auth,common.Address{})
+	success.Entity = t.Hash().Hex()
+	fmt.Println("-- update -->",e,t)
+	if e != nil {
+		success.Success = false
+		success.Entity = e
+	}
+	mbox.Rtn <- success
+	fmt.Println("service.mbox.rtn: update <- successed ")
 }

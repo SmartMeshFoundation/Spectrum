@@ -25,7 +25,6 @@ import (
 	"reflect"
 	"strings"
 	"sync"
-
 	"github.com/SmartMeshFoundation/SMChain/accounts"
 	"github.com/SmartMeshFoundation/SMChain/ethdb"
 	"github.com/SmartMeshFoundation/SMChain/event"
@@ -193,6 +192,7 @@ func (n *Node) Start() error {
 	for _, service := range services {
 		running.Protocols = append(running.Protocols, service.Protocols()...)
 	}
+
 	if err := running.Start(); err != nil {
 		return convertFileLockError(err)
 	}

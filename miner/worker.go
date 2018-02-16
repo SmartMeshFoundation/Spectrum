@@ -151,10 +151,8 @@ func newWorker(config *params.ChainConfig, engine consensus.Engine, coinbase com
 	worker.chainHeadSub = eth.BlockChain().SubscribeChainHeadEvent(worker.chainHeadCh)
 	worker.chainSideSub = eth.BlockChain().SubscribeChainSideEvent(worker.chainSideCh)
 	go worker.update()
-
 	go worker.wait()
 	worker.commitNewWork()
-
 	return worker
 }
 
@@ -454,6 +452,7 @@ func (self *worker) commitNewWork() {
 		log.Error("Failed to fetch pending transactions", "err", err)
 		return
 	}
+
 	txs := types.NewTransactionsByPriceAndNonce(self.current.signer, pending)
 	work.commitTransactions(self.mux, txs, self.chain, self.coinbase)
 

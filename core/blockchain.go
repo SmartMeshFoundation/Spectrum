@@ -798,10 +798,11 @@ func (bc *BlockChain) WriteBlockAndState(block *types.Block, receipts []*types.R
 		bc.mu.Unlock()
 		fmt.Println("TODO : @@@@@@@@@@@@@@@@@@@@@ 222")
 		//TODO add by liangc : 在这里插入一个块到本地，那么需要执行一次 chief 合约的 get 方法，来刷新列表
-		rtn := make(chan interface{})
+		rtn := make(chan params.MBoxSuccess)
 		params.SendToMsgBox("GetStatus",rtn)
 		r := <- rtn
-		fmt.Println("🌿 ",r.(string))
+		//TODO : 这个地方做一个原子操作，把已经执行过 get 合约的 number 装入一个原子,给 verifyHeaders 当成同步标尺
+		fmt.Println("🌿 ",r)
 	}()
 
 	localTd := bc.GetTd(bc.currentBlock.Hash(), bc.currentBlock.NumberU64())
@@ -896,12 +897,14 @@ func (bc *BlockChain) insertChain(chain types.Blocks) (int, []interface{}, []*ty
 	bc.chainmu.Lock()
 	defer func(){
 		bc.chainmu.Unlock()
+		/*
 		fmt.Println("TODO : @@@@@@@@@@@@@@@@@@@@@ 111")
 		//TODO add by liangc : 在这里插入一个块到本地，那么需要执行一次 chief 合约的 get 方法，来刷新列表
 		rtn := make(chan interface{})
 		params.SendToMsgBox("GetStatus",rtn)
 		r := <- rtn
 		fmt.Println("🌿 ",r.(string))
+		*/
 	}()
 
 	// A queued approach to delivering events. This is generally

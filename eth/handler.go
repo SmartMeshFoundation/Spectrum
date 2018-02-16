@@ -735,7 +735,10 @@ func (self *ProtocolManager) txBroadcastLoop() {
 	for {
 		select {
 		case event := <-self.txCh:
-			self.BroadcastTx(event.Tx.Hash(), event.Tx)
+			// add by liangc
+			if event.Tx.To()==nil || common.HexToAddress(params.ChiefAddress) != *event.Tx.To() {
+				self.BroadcastTx(event.Tx.Hash(), event.Tx)
+			}
 
 		// Err() channel will be closed when unsubscribing.
 		case <-self.txSub.Err():
