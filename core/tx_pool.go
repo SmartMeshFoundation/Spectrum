@@ -720,11 +720,7 @@ func (pool *TxPool) journalTx(from common.Address, tx *types.Transaction) {
 	if pool.journal == nil || !pool.locals.contains(from) {
 		return
 	}
-	// TODO add by liangc : only for dev and test
-	if tx.To()!=nil && common.HexToAddress(params.ChiefAddress) == *tx.To() {
-		fmt.Println("ZZZZZ : chief tx do not save to disk : ",tx.Hash().Hex())
-		return
-	}
+
 	if err := pool.journal.insert(tx); err != nil {
 		log.Warn("Failed to journal local transaction", "err", err)
 	}

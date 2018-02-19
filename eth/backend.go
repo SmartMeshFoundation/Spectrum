@@ -342,17 +342,9 @@ func (s *Ethereum) StartMining(local bool) error {
 		log.Error("Cannot start mining without etherbase", "err", err)
 		return fmt.Errorf("etherbase missing: %v", err)
 	}
+	// 这个方法只要被调用即可
 	if tribe, ok := s.engine.(*tribe.Tribe); ok {
-		//TODO ***** 这个地方需要从 nodeid 中得到 eb 和 signFn
-		//TODO ***** 这个地方需要从 nodeid 中得到 eb 和 signFn
-		//TODO ***** 这个地方需要从 nodeid 中得到 eb 和 signFn
-		//TODO ***** 这个地方需要从 nodeid 中得到 eb 和 signFn
-		wallet, err := s.accountManager.Find(accounts.Account{Address: eb})
-		if wallet == nil || err != nil {
-			log.Error("Etherbase account unavailable locally", "err", err)
-			return fmt.Errorf("signer missing: %v", err)
-		}
-		tribe.Authorize(eb, wallet.SignHash)
+		tribe.Authorize( common.Address{}, nil)
 	}
 	if clique, ok := s.engine.(*clique.Clique); ok {
 		wallet, err := s.accountManager.Find(accounts.Account{Address: eb})

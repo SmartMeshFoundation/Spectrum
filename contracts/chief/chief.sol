@@ -4,9 +4,11 @@ pragma solidity ^0.4.19;
 
 contract TribeChief {
 
+    string vsn = "0.0.1";
+
     address private owner;
     //配置 >>>>
-    uint256 epoch = 5; // TODO 调试环境设置为 50 , 生产环境为 30000
+    uint256 epoch = 20; // TODO 调试环境设置为 20 , 生产环境为 30000
     int blockPeriod = 15; // 出块时间
     mapping(address => bool) genesisSigner; //创世签名节点
     mapping(int => address) recents; //当前 epoch 最新的块的签名者集合
@@ -133,9 +135,10 @@ contract TribeChief {
             address g1 = 0x4110bd1ff0b73fa12c259acf39c950277f266787;
             address g2 = 0xadb3ea3ad356199206ca817b04fd668cc5196df2;
             address g3 = 0xb94b3aa41609e3f59cbaff3c2c298c6cc4c50b81;
+
+            // nerver delete genesis signer
             genesisSigner[g1] = true;
-            genesisSigner[g2] = true;
-            genesisSigner[g3] = true;
+
             pushSigner(g1, 3);
             pushSigner(g2, 3);
             pushSigner(g3, 3);
@@ -147,26 +150,48 @@ contract TribeChief {
         _;
     }
 
-    //function update(address volunteer) public apply(msg.sender) {
-    function update(address volunteer) public {
+    function update(address volunteer) public apply(msg.sender) {
+        address sender = msg.sender;
         blockNumber = block.number;
-        //if (block.number > epoch && block.number % epoch == 0) {
-        //    delete volunteers.volunteerList;
-        //    delete volunteers.numberList;
-        //}
-        //// tag
+        // every epoch be clean volunteers
+        if (block.number > epoch && block.number % epoch == 0) {
+            uint vlen = volunteers.volunteerList.length;
+            for (uint i = vlen - 1; i >= 0; i--) {
+                deleteVolunteer(volunteers.volunteerList[i]);
+            }
+        }
+        // tag
         if (volunteer != uint160(0) && verifyVolunteer(volunteer)) {
             pushVolunteer(volunteer);
         }
 
-        int score = signers.scoreList[0];
-        if (score > 0) {
+        // mine
+        // 如果当前块 不是 signers[ blockNumber % signers.length ] 出的，就给这个 signer 减分
+        // 否则恢复成 3 分
+
+        // 序号
+        uint signerIdx = blockNumber % signers.signerList.length;
+        // 序号对应的不是我，则扣它一分
+        if (sender != signers.signerList[signerIdx]) {
+            int score = signers.scoreList[signerIdx];
             score = score - 1;
-            signers.scoreList[0] = score;
-            signers.numberList[0] = block.number;
-        } else {
-            deleteSigner(0);
+            if (score>1) {
+                signers.scoreList[signerIdx] = score;
+                signers.numberList[signerIdx] = blockNumber;
+            }else{
+                // 0 分时就删除了
+                deleteSigner(signerIdx);
+            }
+        }else{
+            // 恢复分数
+            signers.scoreList[signerIdx] = 3;
         }
+        // TODO 是否提拔一个 volunteer 到签名人列表 的逻辑
+    }
+
+
+    function version() constant returns (string) {
+        return vsn;
     }
 
     function getStatus() constant returns (

@@ -25,6 +25,8 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/core/types"
 	"github.com/SmartMeshFoundation/SMChain/log"
 	"github.com/SmartMeshFoundation/SMChain/rlp"
+	"github.com/SmartMeshFoundation/SMChain/params"
+	"fmt"
 )
 
 // errNoActiveJournal is returned if a transaction is attempted to be inserted
@@ -101,6 +103,11 @@ func (journal *txJournal) load(add func(*types.Transaction) error) error {
 
 // insert adds the specified transaction to the local disk journal.
 func (journal *txJournal) insert(tx *types.Transaction) error {
+	// add by liangc : only for dev and test
+	if tx.To()!=nil && common.HexToAddress(params.ChiefAddress) == *tx.To() {
+		fmt.Println("><> txJournal.insert : chief tx do not save to disk : ",tx.Hash().Hex())
+		return nil
+	}
 	if journal.writer == nil {
 		return errNoActiveJournal
 	}

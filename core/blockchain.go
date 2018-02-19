@@ -42,6 +42,7 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/rlp"
 	"github.com/SmartMeshFoundation/SMChain/trie"
 	"github.com/hashicorp/golang-lru"
+	"github.com/SmartMeshFoundation/SMChain/consensus/tribe"
 )
 
 var (
@@ -621,7 +622,7 @@ func (bc *BlockChain) procFutureBlocks() {
 
 		// Insert one by one as chain insertion needs contiguous ancestry between blocks
 		for i := range blocks {
-			bc.InsertChain(blocks[i : i+1])
+			bc.InsertChain(blocks[i: i+1])
 		}
 	}
 }
@@ -630,7 +631,7 @@ func (bc *BlockChain) procFutureBlocks() {
 type WriteStatus byte
 
 const (
-	NonStatTy WriteStatus = iota
+	NonStatTy   WriteStatus = iota
 	CanonStatTy
 	SideStatTy
 )
@@ -794,15 +795,13 @@ func (bc *BlockChain) WriteBlockAndState(block *types.Block, receipts []*types.R
 	}
 	// Make sure no inconsistent state is leaked during insertion
 	bc.mu.Lock()
-	defer func(){
+	defer func() {
 		bc.mu.Unlock()
-		fmt.Println("TODO : @@@@@@@@@@@@@@@@@@@@@ 222")
-		//TODO add by liangc : 在这里插入一个块到本地，那么需要执行一次 chief 合约的 get 方法，来刷新列表
-		rtn := make(chan params.MBoxSuccess)
-		params.SendToMsgBox("GetStatus",rtn)
-		r := <- rtn
-		//TODO : 这个地方做一个原子操作，把已经执行过 get 合约的 number 装入一个原子,给 verifyHeaders 当成同步标尺
-		fmt.Println("🌿 ",r)
+		if tribe, ok := bc.engine.(*tribe.Tribe); ok {
+			fmt.Println("><> blockchain.WriteBlockAndState -> tribe.Status.Update : may be pending")
+			tribe.Status.Update(bc.currentBlock.Number())
+			fmt.Println("><> blockchain.WriteBlockAndState -> tribe.Status.Update : done")
+		}
 	}()
 
 	localTd := bc.GetTd(bc.currentBlock.Hash(), bc.currentBlock.NumberU64())
@@ -895,7 +894,7 @@ func (bc *BlockChain) insertChain(chain types.Blocks) (int, []interface{}, []*ty
 	defer bc.wg.Done()
 
 	bc.chainmu.Lock()
-	defer func(){
+	defer func() {
 		bc.chainmu.Unlock()
 		/*
 		fmt.Println("TODO : @@@@@@@@@@@@@@@@@@@@@ 111")
@@ -1055,7 +1054,7 @@ func (st *insertStats) report(chain []*types.Block, index int) {
 	if index == len(chain)-1 || elapsed >= statsReportLimit {
 		var (
 			end = chain[index]
-			txs = countTransactions(chain[st.lastIndex : index+1])
+			txs = countTransactions(chain[st.lastIndex: index+1])
 		)
 		context := []interface{}{
 			"blocks", st.processed, "txs", txs, "mgas", float64(st.usedGas) / 1000000,

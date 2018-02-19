@@ -36,6 +36,7 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/log"
 	"github.com/SmartMeshFoundation/SMChain/params"
 	"gopkg.in/fatih/set.v0"
+	"github.com/SmartMeshFoundation/SMChain/consensus/tribe"
 )
 
 const (
@@ -201,9 +202,11 @@ func (self *worker) pendingBlock() *types.Block {
 func (self *worker) start() {
 	self.mu.Lock()
 	defer self.mu.Unlock()
-
 	atomic.StoreInt32(&self.mining, 1)
-
+	//add by liangc : sync mining status
+	if tribe,ok := self.engine.(*tribe.Tribe);ok {
+		tribe.SetMining(1,self.chain.CurrentBlock().Number())
+	}
 	// spin up agents
 	for agent := range self.agents {
 		agent.Start()
@@ -215,6 +218,10 @@ func (self *worker) stop() {
 
 	self.mu.Lock()
 	defer self.mu.Unlock()
+	//add by liangc : sync mining status
+	if tribe,ok := self.engine.(*tribe.Tribe);ok {
+		tribe.SetMining(0,self.chain.CurrentBlock().Number())
+	}
 	if atomic.LoadInt32(&self.mining) == 1 {
 		for agent := range self.agents {
 			agent.Stop()
@@ -448,6 +455,11 @@ func (self *worker) commitNewWork() {
 		misc.ApplyDAOHardFork(work.state)
 	}
 	pending, err := self.eth.TxPool().Pending()
+	fmt.Println(">>>>>>>>>>>>>>>>>>>>>>")
+	for k,v := range pending {
+		fmt.Println("----> worker.commitNewWork :",k.Hex(),v)
+	}
+	fmt.Println("<<<<<<<<<<<<<<<<<<<<<<")
 	if err != nil {
 		log.Error("Failed to fetch pending transactions", "err", err)
 		return

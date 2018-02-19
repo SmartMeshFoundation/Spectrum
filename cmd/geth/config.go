@@ -193,7 +193,7 @@ func makeFullNode(ctx *cli.Context) *node.Node {
 	}); err != nil {
 		utils.Fatalf("Failed to register the Geth release oracle service: %v", err)
 	}
-	// add by liangc : add tribe service
+	// add by liangc : add chief service
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
 		return chief.NewTribeService(ctx)
 	}); err != nil {

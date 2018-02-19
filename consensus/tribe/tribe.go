@@ -1,12 +1,5 @@
 // Copyright 2018 The SMChain Authors
 // Package tribe expand the proof-of-authority consensus engine.
-/*
-TODO list :
-	2018-02-14:
-		1、在 console 中增加 tribe API ，用来查看和调试 chief 状态
-		2、初始化签名人列表，找到那个更新 tribe.status 的节点 : 暗号 TODO 9999
-*/
-
 package tribe
 
 import (
@@ -33,14 +26,14 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/rpc"
 	"github.com/hashicorp/golang-lru"
 	"fmt"
+	"sync/atomic"
+	"crypto/ecdsa"
 )
 
 const (
 	historyLimit = 128 // Number of recent vote snapshots to keep in memory
-	// TODO 3w 并不多，放到内存是否妥当？
-	// TODO 30 for test , default 30000
-	signerLimit = 111
-	wiggleTime = 500 * time.Millisecond // Random delay (per signer) to allow concurrent signers
+	signerLimit  = 111
+	wiggleTime   = 500 * time.Millisecond // Random delay (per signer) to allow concurrent signers
 
 )
 
@@ -146,15 +139,14 @@ func sigHash(header *types.Header) (hash common.Hash) {
 
 // ecrecover extracts the Ethereum account address from a signed header.
 func ecrecover(header *types.Header, t *Tribe) (common.Address, error) {
-	sigcache := t.sigcache
 	// XXXX : 掐头去尾 ，约定创世区块只能指定一个签名人，因为第一个块要部署合约
 	if header.Number.Uint64() == 0 {
 		signer := common.Address{}
 		copy(signer[:], header.Extra[extraVanity:])
-		t.status.LoadSigners([]*Signer{{signer, 3}})
+		t.Status.LoadSigners([]*Signer{{signer, 3}})
 		return signer, nil
 	}
-
+	sigcache := t.sigcache
 	// If the signature's already cached, return that
 	hash := header.Hash()
 	if address, known := sigcache.Get(hash); known {
@@ -181,12 +173,11 @@ func ecrecover(header *types.Header, t *Tribe) (common.Address, error) {
 type Tribe struct {
 	config   *params.TribeConfig // Consensus engine configuration parameters
 	db       ethdb.Database      // Database to store and retrieve snapshot checkpoints
-	sigcache *lru.ARCCache       // 缓存 block.hash -> signer
+	sigcache *lru.ARCCache       // mapping block.hash -> signer
 	signer   common.Address      // Ethereum address of the signing key
 	signFn   SignerFn            // Signer function to authorize hashes with
 	lock     sync.RWMutex        // Protects the signer fields
-
-	status *TribeStatus // 签名者信息和当前的全部验证条件都装在这里
+	Status   *TribeStatus
 }
 
 // signers set to the ones provided by the user.
@@ -199,12 +190,42 @@ func New(config *params.TribeConfig, db ethdb.Database) *Tribe {
 	conf.Epoch = epochLength
 	conf.Period = blockPeriod
 
+	go func(s *TribeStatus) {
+		defer close(params.InitTribeStatus)
+		log.Info("init tribe.status when chiefservice start end.")
+		<-params.InitTribeStatus
+		s.LoadSignersFromChief()
+		rtn := params.SendToMsgBox("GetNodeKey")
+		success := <-rtn
+		s.nodeKey = success.Entity.(*ecdsa.PrivateKey)
+		log.Info("init tribe.status success.")
+	}(status)
+
 	return &Tribe{
 		config:   &conf,
 		db:       db,
-		status:   status,
+		Status:   status,
 		sigcache: sigcache,
 	}
+}
+
+// called by worker.start and worker.stop
+// 1 mining start
+// 0 mining stop
+func (t *Tribe) SetMining(i int32, currentNumber *big.Int) {
+	log.Info("tribe.setMining", "mining", i)
+	t.lock.Lock()
+	log.Debug("tribe.setMining_lock", "mining", i)
+	defer t.lock.Unlock()
+	atomic.StoreInt32(&t.Status.mining, i)
+	if i == 1 {
+		if currentNumber.Int64() > 1 {
+			fmt.Println("><> tribe.SetMining -> Status.Update : may be pending")
+			t.Status.Update(currentNumber)
+			fmt.Println("><> tribe.SetMining -> Status.Update : done")
+		}
+	}
+	log.Debug("tribe.setMining_unlock", "mining", i)
 }
 
 // Author implements consensus.Engine, returning the Ethereum address recovered
@@ -349,11 +370,11 @@ func (t *Tribe) verifySeal(chain consensus.ChainReader, header *types.Header, pa
 	}
 	log.Info("verifySeal", "number", number, "signer", signer.Hex())
 	// signer 必须在合法的签名人列表中
-	if !t.status.ValidateSigner(signer) {
+	if !t.Status.ValidateSigner(signer) {
 		return errUnauthorized
 	}
 	// 根据 signer 算出 Difficulty 并予以校验
-	difficulty := t.status.InTurn(header.Number.Int64(), signer)
+	difficulty := t.Status.InTurn(header.Number.Int64(), signer)
 	if difficulty != header.Difficulty {
 		return errInvalidDifficulty
 	}
@@ -368,12 +389,18 @@ func (t *Tribe) verifySeal(chain consensus.ChainReader, header *types.Header, pa
 func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error {
 	// TODO : 初始的签名人只为打包 1 块，并部署一个 chief 合约，用来做后续的共识 >>>>
 	// add by liangc : 满足出块条件时去调用 chief.update , 此任务先延后一些
-	if chain.CurrentHeader().Number.Int64() > 1000 {
+	/* 在这里操作会被死锁
+	if chain.CurrentHeader().Number.Int64() > 1 {
 		rtn := make(chan params.MBoxSuccess)
+		fmt.Println("--- worker_update_chainHeadCh : chief_update --request-->", )
 		params.SendToMsgBox("Update", rtn)
 		r := <-rtn
-		fmt.Println("--- worker_update_chainHeadCh : chief_update --->", r)
+		fmt.Println("--- worker_update_chainHeadCh : chief_update --response-->", r)
+		if !r.Success {
+			return r.Entity.(error)
+		}
 	}
+	*/
 	// TODO : 初始的签名人只为打包 1 块，并部署一个 chief 合约，用来做后续的共识 <<<<
 
 	number := header.Number.Uint64()
@@ -423,13 +450,14 @@ func (t *Tribe) Finalize(chain consensus.ChainReader, header *types.Header, stat
 
 // Authorize injects a private key into the consensus engine to mint new blocks
 // with.
-// TODO called by : func (s *Ethereum) StartMining(local bool) error
-// 在上面那个方法中 通过 Etherbase() 得到 signer ,就是 etherbase
 func (t *Tribe) Authorize(signer common.Address, signFn SignerFn) {
 	t.lock.Lock()
 	defer t.lock.Unlock()
-	t.signer = signer
-	t.signFn = signFn
+	prv := t.Status.nodeKey
+	t.signer = crypto.PubkeyToAddress(prv.PublicKey)
+	t.signFn = func(a accounts.Account, hex []byte) ([]byte, error) {
+		return crypto.Sign(hex, prv)
+	}
 }
 
 // Seal implements consensus.Engine, attempting to create a sealed block using
@@ -452,13 +480,13 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 	t.lock.RUnlock()
 
 	// 校验 signer 是否在最新的 signers 列表中
-	if !t.status.ValidateSigner(t.signer) {
+	if !t.Status.ValidateSigner(t.signer) {
 		return nil, errUnauthorized
 	}
 
 	delay := time.Unix(header.Time.Int64(), 0).Sub(time.Now())
 	if header.Difficulty.Cmp(diffNoTurn) == 0 {
-		wiggle := time.Duration(len(t.status.Signers)/2+1) * wiggleTime
+		wiggle := time.Duration(len(t.Status.Signers)/2+1) * wiggleTime
 		delay += time.Duration(rand.Int63n(int64(wiggle)))
 	}
 	select {
@@ -484,7 +512,7 @@ func (t *Tribe) CalcDifficulty(chain consensus.ChainReader, time uint64, parent 
 	// 并满足如下公式
 	// in-turn : signers[ block.number % len(signers) ] == t.signer
 	// no-turn : signers[ block.number % len(signers) ] != t.signer
-	return t.status.InTurn(parent.Number.Int64()+1, t.signer)
+	return t.Status.InTurn(parent.Number.Int64()+1, t.signer)
 }
 
 // APIs implements consensus.Engine, returning the user facing RPC API to allow

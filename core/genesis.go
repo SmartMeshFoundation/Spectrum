@@ -164,9 +164,9 @@ func SetupGenesisBlock(db ethdb.Database, genesis *Genesis) (*params.ChainConfig
 			log.Info("Writing custom genesis block")
 		}
 		block, err := genesis.Commit(db)
-		fmt.Println("==genesis==> c:",block.Hash().Hex())
-		fmt.Println("==genesis==> m:",params.MainnetGenesisHash.Hex())
-		fmt.Println("==genesis==> t:",params.TestnetGenesisHash.Hex())
+		fmt.Println("==genesis==> c:", block.Hash().Hex())
+		fmt.Println("==genesis==> m:", params.MainnetGenesisHash.Hex())
+		fmt.Println("==genesis==> t:", params.TestnetGenesisHash.Hex())
 
 		return genesis.Config, block.Hash(), err
 	}
@@ -212,23 +212,14 @@ func SetupGenesisBlock(db ethdb.Database, genesis *Genesis) (*params.ChainConfig
 }
 
 func (g *Genesis) configOrDefault(ghash common.Hash) *params.ChainConfig {
-	fmt.Println(">>>>>>>>>> xxxx",g)
-	fmt.Println(">>>>>>>>>> xxxx",g)
-	defer fmt.Println("<<<<<<<<<< xxxx")
-	defer fmt.Println("<<<<<<<<<< xxxx")
-
 	switch {
 	case g != nil:
-		fmt.Println(">>>>>>>>>> 1")
 		return g.Config
 	case ghash == params.MainnetGenesisHash:
-		fmt.Println(">>>>>>>>>> 2")
 		return params.MainnetChainConfig
 	case ghash == params.TestnetGenesisHash:
-		fmt.Println(">>>>>>>>>> 3")
 		return params.TestnetChainConfig
 	default:
-		fmt.Println(">>>>>>>>>> 4")
 		return params.AllEthashProtocolChanges
 	}
 }
@@ -326,15 +317,16 @@ func DefaultGenesisBlock() *Genesis {
 	// TODO modify by liangc 在这里替换共识机制
 	genesisSigner := "0x00000000000000000000000000000000000000000000000000000000000000004110bd1ff0b73fa12c259acf39c950277f2667870000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 	return &Genesis{
-		Config:     params.MainnetChainConfig,
-		Nonce:      0,
-		ExtraData:  hexutil.MustDecode(genesisSigner),
+		Config:    params.MainnetChainConfig,
+		Nonce:     0,
+		ExtraData: hexutil.MustDecode(genesisSigner),
 		//ExtraData:  hexutil.MustDecode("0x11bbe8db4e347b4e8c937c1c8370e4b5ed33adb3db69cbdb7a38e1e50b1b82fa"),
-		GasLimit:   500000,//5000,
+		GasLimit:   500000, //5000,
 		Difficulty: big.NewInt(1),
 		Alloc:      decodePrealloc(mainnetAllocData),
 	}
 }
+
 /*
 func DefaultGenesisBlock() *Genesis {
 	return &Genesis{
@@ -352,9 +344,9 @@ func DefaultGenesisBlock() *Genesis {
 func DefaultTestnetGenesisBlock() *Genesis {
 	genesisSigner := "0x00000000000000000000000000000000000000000000000000000000000000004110bd1ff0b73fa12c259acf39c950277f2667870000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 	return &Genesis{
-		Config:     params.TestnetChainConfig,
-		Nonce:      0,
-		ExtraData:  hexutil.MustDecode(genesisSigner),
+		Config:    params.TestnetChainConfig,
+		Nonce:     0,
+		ExtraData: hexutil.MustDecode(genesisSigner),
 		//ExtraData:  hexutil.MustDecode("0x3535353535353535353535353535353535353535353535353535353535353535"),
 		GasLimit:   16777216,
 		Difficulty: big.NewInt(1),

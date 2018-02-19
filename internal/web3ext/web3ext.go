@@ -126,6 +126,12 @@ web3._extend({
 			params: 1,
 			inputFormatter: [null]
 		}),
+		new web3._extend.Method({
+			name: 'getMiner',
+			call: 'tribe_getMiner',
+			params: 1,
+			inputFormatter: [null]
+		}),
 	],
 });
 `

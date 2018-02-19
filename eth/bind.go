@@ -133,7 +133,7 @@ func (b *ContractBackend) EstimateGas(ctx context.Context, msg ethereum.CallMsg)
 // SendTransaction implements bind.ContractTransactor injects the transaction
 // into the pending pool for execution.
 func (b *ContractBackend) SendTransaction(ctx context.Context, tx *types.Transaction) error {
-	fmt.Println("1 -- XXXXXXXXXXXXXXXXXXXXXXX --> ",tx.To().Hex())
+	fmt.Println("1 : ContractBackend.SendTransaction -- XXXXXXXXXXXXXXXXXXXXXXX --> ",tx.To().Hex())
 	raw, _ := rlp.EncodeToBytes(tx)
 	_, err := b.txapi.SendRawTransaction(ctx, raw)
 	return err

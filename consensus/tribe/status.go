@@ -6,60 +6,82 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/rpc"
 	"github.com/SmartMeshFoundation/SMChain/core/types"
 	"errors"
-	"fmt"
 	"github.com/SmartMeshFoundation/SMChain/params"
+	"encoding/json"
+	"sync/atomic"
+	"github.com/SmartMeshFoundation/SMChain/crypto"
+	"github.com/SmartMeshFoundation/SMChain/ethclient"
+	"time"
+	"context"
+	"os"
+	"fmt"
 )
+
+func (api *API) GetMiner(number *rpc.BlockNumber) (*TribeMiner, error) {
+	add := api.tribe.Status.GetMinerAddress()
+	ipcpath := os.Getenv("IPCPATH")
+	c, e := ethclient.Dial(ipcpath)
+	if e != nil {
+		return nil, e
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+	defer cancel()
+	b, e := c.BalanceAt(ctx, add, nil)
+	if e != nil {
+		return nil, e
+	}
+	//TODO level from status
+	level := "None"
+	return &TribeMiner{add, b, level}, nil
+}
 
 func (api *API) GetSigners(number *rpc.BlockNumber) ([]*Signer, error) {
 	header := api.chain.CurrentHeader()
 	if header.Number.Int64() == 0 {
-		api.tribe.status.genesisSigner(header)
+		api.tribe.Status.genesisSigner(header)
 	} else {
-		//TODO 9999 : 在 chief 合约中获取
-
+		api.tribe.Status.LoadSignersFromChief()
 	}
-	return api.tribe.status.Signers,nil
+	return api.tribe.Status.Signers, nil
 }
 
 func (api *API) GetStatus(number *rpc.BlockNumber) (*TribeStatus, error) {
 	header := api.chain.CurrentHeader()
 	if header.Number.Int64() == 0 {
-		fmt.Println("<><> genesis_signer_for_block1",header.Number.Int64())
-		api.tribe.status.genesisSigner(header)
+		api.tribe.Status.genesisSigner(header)
 	} else {
-		//在 chief 合约中获取
-		api.tribe.status.LoadSignersFromChief()
+		api.tribe.Status.LoadSignersFromChief()
 	}
-	return api.tribe.status,nil
+	return api.tribe.Status, nil
 }
-
 
 func NewTribeStatus() *TribeStatus {
 	ts := &TribeStatus{
 		Signers: make([]*Signer, 0, signerLimit),
 	}
-	/* 在这调用合约，会阻塞呀
-	if err := ts.LoadSignersFromChief(); err!=nil {
-		fmt.Println("--> tribeStatus.LoadSignersFromChief_error:",err)
-	}
-	*/
 	return ts
 }
 
+func (self *TribeStatus) GetMinerAddress() common.Address {
+	pub := self.nodeKey.PublicKey
+	add := crypto.PubkeyToAddress(pub)
+	return add
+}
+
+// 在 加载完所有 node.service 后，需要主动调用一次
 func (self *TribeStatus) LoadSignersFromChief() error {
-	rtn := make(chan params.MBoxSuccess)
-	params.SendToMsgBox("GetStatus",rtn)
-	r := <- rtn
+	rtn := params.SendToMsgBox("GetStatus")
+	r := <-rtn
 	if !r.Success {
 		return r.Entity.(error)
 	}
 	cs := r.Entity.(params.ChiefStatus)
 	signers := cs.SignerList
 	scores := cs.ScoreList
-	sl := make([]*Signer,0,len(signers))
-	for i,signer := range signers {
+	sl := make([]*Signer, 0, len(signers))
+	for i, signer := range signers {
 		score := scores[i]
-		sl = append(sl,&Signer{signer,score.Int64()})
+		sl = append(sl, &Signer{signer, score.Int64()})
 	}
 	self.Volunteers = cs.VolunteerList
 	self.Number = cs.Number.Int64()
@@ -95,7 +117,7 @@ func (self *TribeStatus) ValidateSigner(signer common.Address) bool {
 	return false
 }
 
-func (self *TribeStatus) genesisSigner(header *types.Header) (common.Address,error) {
+func (self *TribeStatus) genesisSigner(header *types.Header) (common.Address, error) {
 	signer := common.Address{}
 	copy(signer[:], header.Extra[extraVanity:])
 	self.LoadSigners([]*Signer{{signer, 3}})
@@ -111,4 +133,25 @@ func (self *TribeStatus) fetchOnSigners(address common.Address) (*big.Int, *Sign
 		}
 	}
 	return nil, nil, errors.New("not_found")
+}
+
+// called by end of WriteBlockAndState
+// if miner then execute chief.update and chief.getStatus
+// else execute chief.getStatus only
+func (self *TribeStatus) Update(currentNumber *big.Int) {
+	if currentNumber.Int64() > 1 && atomic.LoadInt32(&self.mining) == 1 {
+		// mining start
+		success := <-params.SendToMsgBox("Update")
+		fmt.Println("<><><><> TribeStatus.Update :", success)
+	}
+	self.LoadSignersFromChief()
+	return
+}
+
+func (self *TribeStatus) String() string {
+	if b, e := json.Marshal(self); e != nil {
+		return "error: " + e.Error()
+	} else {
+		return "status: " + string(b)
+	}
 }

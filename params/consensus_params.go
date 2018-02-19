@@ -6,9 +6,11 @@ import (
 )
 
 const (
-	ChiefAddress string = "0x9ec55c1dafd4a487e41da33e344aef86da41ab82" //chief contract address for consensus of tribe
+	// at same account and block number to deploy this contract can be get the same address
+	ChiefAddress = "0x9ec55c1dafd4a487e41da33e344aef86da41ab82" //chief contract address for consensus of tribe
 )
 
+// chief service message box obj
 type Mbox struct {
 	Method string
 	Rtn    chan MBoxSuccess
@@ -21,17 +23,24 @@ type MBoxSuccess struct {
 }
 
 // for chief
-var MboxChan chan Mbox = make(chan Mbox, 32)
+var (
+	MboxChan = make(chan Mbox, 32)
+	InitTribeStatus = make(chan struct{},1)
+)
 
-func SendToMsgBox(method string, rtn chan MBoxSuccess) {
+
+func SendToMsgBox(method string) chan MBoxSuccess {
+	rtn := make(chan MBoxSuccess)
 	m := Mbox{
 		Method: method,
 		Rtn:    rtn,
 	}
 	MboxChan <- m
+	return rtn
 }
 
-// chief 合约中 GetStatus 的返回值
+// clone from chief.getStatus return struct
+// for return to tribe by channel
 type ChiefStatus struct {
 	VolunteerList []common.Address
 	SignerList    []common.Address
