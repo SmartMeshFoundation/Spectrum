@@ -34,7 +34,7 @@ const (
 	historyLimit = 128 // Number of recent vote snapshots to keep in memory
 	signerLimit  = 111
 	wiggleTime   = 500 * time.Millisecond // Random delay (per signer) to allow concurrent signers
-
+	CHIEF_NUMBER = int64(1)
 )
 
 var (
@@ -91,7 +91,7 @@ var (
 
 	// errInvalidDifficulty is returned if the difficulty of a block is not either
 	// of 1 or 2, or if the value does not match the turn of the signer.
-	errInvalidDifficulty = errors.New("invalid difficulty")
+	errInvalidDifficulty = errors.New("invalid__difficulty")
 
 	// ErrInvalidTimestamp is returned if the timestamp of a block is lower than
 	// the previous block's timestamp + the minimum block period.
@@ -143,7 +143,7 @@ func ecrecover(header *types.Header, t *Tribe) (common.Address, error) {
 	if header.Number.Uint64() == 0 {
 		signer := common.Address{}
 		copy(signer[:], header.Extra[extraVanity:])
-		t.Status.LoadSigners([]*Signer{{signer, 3}})
+		t.Status.loadSigners([]*Signer{{signer, 3}})
 		return signer, nil
 	}
 	sigcache := t.sigcache
@@ -182,7 +182,6 @@ type Tribe struct {
 
 // signers set to the ones provided by the user.
 func New(config *params.TribeConfig, db ethdb.Database) *Tribe {
-	debug("New TribeConfig:", config)
 	//TODO 启动时初始化 tribeStatus
 	status := NewTribeStatus()
 	sigcache, _ := lru.NewARC(historyLimit)
@@ -194,7 +193,7 @@ func New(config *params.TribeConfig, db ethdb.Database) *Tribe {
 		defer close(params.InitTribeStatus)
 		log.Info("init tribe.status when chiefservice start end.")
 		<-params.InitTribeStatus
-		s.LoadSignersFromChief()
+		s.LoadSignersFromChief(nil)
 		rtn := params.SendToMsgBox("GetNodeKey")
 		success := <-rtn
 		s.nodeKey = success.Entity.(*ecdsa.PrivateKey)
@@ -219,10 +218,10 @@ func (t *Tribe) SetMining(i int32, currentNumber *big.Int) {
 	defer t.lock.Unlock()
 	atomic.StoreInt32(&t.Status.mining, i)
 	if i == 1 {
-		if currentNumber.Int64() > 1 {
-			fmt.Println("><> tribe.SetMining -> Status.Update : may be pending")
+		if currentNumber.Int64() >= CHIEF_NUMBER {
+			fmt.Println(currentNumber.Int64(),"><> tribe.SetMining -> Status.Update : may be pending")
 			t.Status.Update(currentNumber)
-			fmt.Println("><> tribe.SetMining -> Status.Update : done")
+			fmt.Println(currentNumber.Int64(),"><> tribe.SetMining -> Status.Update : done")
 		}
 	}
 	log.Debug("tribe.setMining_unlock", "mining", i)
@@ -297,6 +296,10 @@ func (t *Tribe) verifyHeader(chain consensus.ChainReader, header *types.Header, 
 	// Ensure that the block's difficulty is meaningful (may not be correct at this point)
 	if number > 0 {
 		if header.Difficulty == nil || (header.Difficulty.Cmp(diffInTurn) != 0 && header.Difficulty.Cmp(diffNoTurn) != 0) {
+			fmt.Println("******", header.Difficulty.String())
+			fmt.Println("******", header.Difficulty.String())
+			fmt.Println("******", header.Difficulty.String())
+			fmt.Println("******", header.Difficulty.String())
 			return errInvalidDifficulty
 		}
 	}
@@ -312,7 +315,7 @@ func (t *Tribe) verifyHeader(chain consensus.ChainReader, header *types.Header, 
 // rather depend on a batch of previous headers. The caller may optionally pass
 // in a batch of parents (ascending order) to avoid looking those up from the
 // database. This is useful for concurrently verifying a batch of new headers.
-func (t *Tribe) verifyCascadingFields(chain consensus.ChainReader, header *types.Header, parents []*types.Header) error {
+func (t *Tribe) verifyCascadingFields(chain consensus.ChainReader, header *types.Header, parents []*types.Header) (err error) {
 	// The genesis block is the always valid dead-end
 	number := header.Number.Uint64()
 	if number == 0 {
@@ -331,11 +334,24 @@ func (t *Tribe) verifyCascadingFields(chain consensus.ChainReader, header *types
 	if parent.Time.Uint64()+t.config.Period > header.Time.Uint64() {
 		return ErrInvalidTimestamp
 	}
+	/* TODO timestamp unit second , how to do this logic ?
 	if header.Difficulty.Cmp(diffNoTurn) == 0 && parent.Time.Uint64()+t.config.Period == header.Time.Uint64() {
 		return ErrInvalidTimestamp
 	}
+	*/
 	// All basic checks passed, verify the seal and return
-	return t.verifySeal(chain, header, parents)
+	for {
+		err = t.verifySeal(chain, header, parents)
+		if err == nil {
+			return
+		}
+		if chain.CurrentHeader().Hash() == header.ParentHash {
+			return
+		}
+		fmt.Println(" -()-()-()-()-> ",chain.CurrentHeader().Number.Int64(),header.Number.Int64(),err)
+		<- time.After(time.Duration(time.Second))
+	}
+	return
 }
 
 // VerifyUncles implements consensus.Engine, always returning an error for any
@@ -350,7 +366,12 @@ func (t *Tribe) VerifyUncles(chain consensus.ChainReader, block *types.Block) er
 // VerifySeal implements consensus.Engine, checking whether the signature contained
 // in the header satisfies the consensus protocol requirements.
 func (t *Tribe) VerifySeal(chain consensus.ChainReader, header *types.Header) error {
-	return t.verifySeal(chain, header, nil)
+	e := t.verifySeal(chain, header, nil)
+	if e != nil {
+		fmt.Println("******", e)
+		fmt.Println("******", e)
+	}
+	return e
 }
 
 // verifySeal checks whether the signature contained in the header satisfies the
@@ -358,8 +379,9 @@ func (t *Tribe) VerifySeal(chain consensus.ChainReader, header *types.Header) er
 // headers that aren't yet part of the local blockchain to generate the snapshots
 // from.
 func (t *Tribe) verifySeal(chain consensus.ChainReader, header *types.Header, parents []*types.Header) error {
+	fmt.Println("<<<< ############ >>>>")
 	// Verifying the genesis block is not supported
-	number := header.Number.Uint64()
+	number := header.Number.Int64()
 	if number == 0 {
 		return errUnknownBlock
 	}
@@ -370,14 +392,17 @@ func (t *Tribe) verifySeal(chain consensus.ChainReader, header *types.Header, pa
 	}
 	log.Info("verifySeal", "number", number, "signer", signer.Hex())
 	// signer 必须在合法的签名人列表中
-	if !t.Status.ValidateSigner(signer) {
+	if !t.Status.ValidateSigner(number,signer) {
 		return errUnauthorized
 	}
 	// 根据 signer 算出 Difficulty 并予以校验
-	difficulty := t.Status.InTurn(header.Number.Int64(), signer)
-	if difficulty != header.Difficulty {
-		return errInvalidDifficulty
+	if number > 3 {
+		difficulty := t.Status.InTurnForVerify(number, signer)
+		if difficulty.Cmp(header.Difficulty) != 0 {
+			return errInvalidDifficulty
+		}
 	}
+
 	// XXXX : 这些应该是在 verifyHeader 中校验
 	// XXXXXXXX : time 不能小于规定时间间隔，而且 Difficulty == no-turn 时时间必须大于规定时间 500ms 以上
 	// XXXXXXXX : 同一个 signer 不能连续出块
@@ -387,22 +412,6 @@ func (t *Tribe) verifySeal(chain consensus.ChainReader, header *types.Header, pa
 // Prepare implements consensus.Engine, preparing all the consensus fields of the
 // header for running the transactions on top.
 func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error {
-	// TODO : 初始的签名人只为打包 1 块，并部署一个 chief 合约，用来做后续的共识 >>>>
-	// add by liangc : 满足出块条件时去调用 chief.update , 此任务先延后一些
-	/* 在这里操作会被死锁
-	if chain.CurrentHeader().Number.Int64() > 1 {
-		rtn := make(chan params.MBoxSuccess)
-		fmt.Println("--- worker_update_chainHeadCh : chief_update --request-->", )
-		params.SendToMsgBox("Update", rtn)
-		r := <-rtn
-		fmt.Println("--- worker_update_chainHeadCh : chief_update --response-->", r)
-		if !r.Success {
-			return r.Entity.(error)
-		}
-	}
-	*/
-	// TODO : 初始的签名人只为打包 1 块，并部署一个 chief 合约，用来做后续的共识 <<<<
-
 	number := header.Number.Uint64()
 	//TODO tribe : 提名一个符合要求的邻居节点到候选人列表
 	header.Coinbase = common.Address{}
@@ -441,6 +450,7 @@ func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error
 // Finalize implements consensus.Engine, ensuring no uncles are set, nor block
 // rewards given, and returns the final block.
 func (t *Tribe) Finalize(chain consensus.ChainReader, header *types.Header, state *state.StateDB, txs []*types.Transaction, uncles []*types.Header, receipts []*types.Receipt) (*types.Block, error) {
+	//fmt.Println("-- Tribe.Finalize --> txs :",txs)
 	// No block rewards in Tribe, so the state remains as is and uncles are dropped
 	header.Root = state.IntermediateRoot(chain.Config().IsEIP158(header.Number))
 	header.UncleHash = types.CalcUncleHash(nil)
@@ -465,7 +475,7 @@ func (t *Tribe) Authorize(signer common.Address, signFn SignerFn) {
 func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-chan struct{}) (*types.Block, error) {
 	header := block.Header()
 	// Sealing the genesis block is not supported
-	number := header.Number.Uint64()
+	number := header.Number.Int64()
 	if number == 0 {
 		return nil, errUnknownBlock
 	}
@@ -480,7 +490,7 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 	t.lock.RUnlock()
 
 	// 校验 signer 是否在最新的 signers 列表中
-	if !t.Status.ValidateSigner(t.signer) {
+	if !t.Status.ValidateSigner(number,t.signer) {
 		return nil, errUnauthorized
 	}
 
@@ -508,11 +518,12 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 // that a new block should have based on the previous blocks in the chain and the
 // current signer.
 func (t *Tribe) CalcDifficulty(chain consensus.ChainReader, time uint64, parent *types.Header) *big.Int {
+	chain.CurrentHeader().Number.Int64()
 	//TODO 通过 parent 块获取最新的 signers 并计算 difficulty
 	// 并满足如下公式
 	// in-turn : signers[ block.number % len(signers) ] == t.signer
 	// no-turn : signers[ block.number % len(signers) ] != t.signer
-	return t.Status.InTurn(parent.Number.Int64()+1, t.signer)
+	return t.Status.InTurnForCalc(chain , t.signer)
 }
 
 // APIs implements consensus.Engine, returning the user facing RPC API to allow
@@ -524,9 +535,4 @@ func (t *Tribe) APIs(chain consensus.ChainReader) []rpc.API {
 		Service:   &API{chain: chain, tribe: t},
 		Public:    false,
 	}}
-}
-
-func debug(msg ... interface{}) {
-	msg = append([]interface{}{"<< tribe : liangc debug >> :"}, msg...)
-	fmt.Println(msg ...)
 }

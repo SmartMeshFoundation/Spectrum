@@ -28,6 +28,8 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/common/compiler"
 )
 
+const VSN = "0.0.2"
+
 var (
 	abiFlag = flag.String("abi", "", "Path to the Ethereum contract ABI json to bind")
 	binFlag = flag.String("bin", "", "Path to the Ethereum contract bytecode (generate deploy method)")
@@ -40,12 +42,17 @@ var (
 	pkgFlag  = flag.String("pkg", "", "Package name to generate the binding into")
 	outFlag  = flag.String("out", "", "Output file for the generated binding (default = stdout)")
 	langFlag = flag.String("lang", "go", "Destination language for the bindings (go, java, objc)")
+	versionFlag  = flag.Bool("version", false, "show version")
 )
 
 func main() {
 	// Parse and ensure all needed inputs are specified
 	flag.Parse()
-
+	if *versionFlag {
+		fmt.Println("Version :",VSN)
+		fmt.Println("Copyright 2017-2018 The SmartmeshChain Author (Ethereum-based)")
+		os.Exit(-1)
+	}
 	if *abiFlag == "" && *solFlag == "" {
 		fmt.Printf("No contract ABI (--abi) or Solidity source (--sol) specified\n")
 		os.Exit(-1)

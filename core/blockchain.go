@@ -798,6 +798,9 @@ func (bc *BlockChain) WriteBlockAndState(block *types.Block, receipts []*types.R
 	defer func() {
 		bc.mu.Unlock()
 		if tribe, ok := bc.engine.(*tribe.Tribe); ok {
+			for _, t := range block.Transactions() {
+				params.FixChiefTxNonce(types.GetFromByTx(t), t.To(), t.Nonce())
+			}
 			fmt.Println("><> blockchain.WriteBlockAndState -> tribe.Status.Update : may be pending")
 			tribe.Status.Update(bc.currentBlock.Number())
 			fmt.Println("><> blockchain.WriteBlockAndState -> tribe.Status.Update : done")
@@ -896,14 +899,6 @@ func (bc *BlockChain) insertChain(chain types.Blocks) (int, []interface{}, []*ty
 	bc.chainmu.Lock()
 	defer func() {
 		bc.chainmu.Unlock()
-		/*
-		fmt.Println("TODO : @@@@@@@@@@@@@@@@@@@@@ 111")
-		//TODO add by liangc : 在这里插入一个块到本地，那么需要执行一次 chief 合约的 get 方法，来刷新列表
-		rtn := make(chan interface{})
-		params.SendToMsgBox("GetStatus",rtn)
-		r := <- rtn
-		fmt.Println("🌿 ",r.(string))
-		*/
 	}()
 
 	// A queued approach to delivering events. This is generally
@@ -1280,6 +1275,7 @@ Error: %v
 func (bc *BlockChain) InsertHeaderChain(chain []*types.Header, checkFreq int) (int, error) {
 	start := time.Now()
 	if i, err := bc.hc.ValidateHeaderChain(chain, checkFreq); err != nil {
+		fmt.Println(1, "TODO FFFFFFFFFFFFFF", err)
 		return i, err
 	}
 
@@ -1298,7 +1294,9 @@ func (bc *BlockChain) InsertHeaderChain(chain []*types.Header, checkFreq int) (i
 		return err
 	}
 
-	return bc.hc.InsertHeaderChain(chain, whFunc, start)
+	i, e := bc.hc.InsertHeaderChain(chain, whFunc, start)
+	fmt.Println(2, "TODO FFFFFFFFFFFFFF", e)
+	return i, e
 }
 
 // writeHeader writes a header into the local chain, given that its parent is

@@ -204,8 +204,8 @@ func (self *worker) start() {
 	defer self.mu.Unlock()
 	atomic.StoreInt32(&self.mining, 1)
 	//add by liangc : sync mining status
-	if tribe,ok := self.engine.(*tribe.Tribe);ok {
-		tribe.SetMining(1,self.chain.CurrentBlock().Number())
+	if tribe, ok := self.engine.(*tribe.Tribe); ok {
+		tribe.SetMining(1, self.chain.CurrentBlock().Number())
 	}
 	// spin up agents
 	for agent := range self.agents {
@@ -219,8 +219,8 @@ func (self *worker) stop() {
 	self.mu.Lock()
 	defer self.mu.Unlock()
 	//add by liangc : sync mining status
-	if tribe,ok := self.engine.(*tribe.Tribe);ok {
-		tribe.SetMining(0,self.chain.CurrentBlock().Number())
+	if tribe, ok := self.engine.(*tribe.Tribe); ok {
+		tribe.SetMining(0, self.chain.CurrentBlock().Number())
 	}
 	if atomic.LoadInt32(&self.mining) == 1 {
 		for agent := range self.agents {
@@ -257,13 +257,13 @@ func (self *worker) update() {
 		case <-self.chainHeadCh:
 			self.commitNewWork()
 
-		// Handle ChainSideEvent
+			// Handle ChainSideEvent
 		case ev := <-self.chainSideCh:
 			self.uncleMu.Lock()
 			self.possibleUncles[ev.Block.Hash()] = ev.Block
 			self.uncleMu.Unlock()
 
-		// Handle TxPreEvent
+			// Handle TxPreEvent
 		case ev := <-self.txCh:
 			// Apply transaction to the pending state if we're not mining
 			if atomic.LoadInt32(&self.mining) == 0 {
@@ -281,7 +281,7 @@ func (self *worker) update() {
 				}
 			}
 
-		// System stopped
+			// System stopped
 		case <-self.txSub.Err():
 			return
 		case <-self.chainHeadSub.Err():
@@ -455,19 +455,22 @@ func (self *worker) commitNewWork() {
 		misc.ApplyDAOHardFork(work.state)
 	}
 	pending, err := self.eth.TxPool().Pending()
-	fmt.Println(">>>>>>>>>>>>>>>>>>>>>>")
-	for k,v := range pending {
-		fmt.Println("----> worker.commitNewWork :",k.Hex(),v)
-	}
-	fmt.Println("<<<<<<<<<<<<<<<<<<<<<<")
+	fmt.Println(header.Number.Int64(), "====== commitNewWork =======>", pending)
 	if err != nil {
 		log.Error("Failed to fetch pending transactions", "err", err)
 		return
 	}
-
+	/*
+	for k, v := range pending {
+		fmt.Println(header.Number.Int64(), "--> commitNewWork from :", k.Hex(), len(v))
+		for i, tt := range v {
+			fmt.Println(header.Number.Int64(), i, "----> tx :", tt.Nonce(), tt.Hash().Hex())
+		}
+	}
+	*/
 	txs := types.NewTransactionsByPriceAndNonce(self.current.signer, pending)
 	work.commitTransactions(self.mux, txs, self.chain, self.coinbase)
-
+	//<- time.After(time.Second)
 	// compute uncles for the new block.
 	var (
 		uncles    []*types.Header
@@ -500,6 +503,7 @@ func (self *worker) commitNewWork() {
 		log.Info("Commit new mining work", "number", work.Block.Number(), "txs", work.tcount, "uncles", len(uncles), "elapsed", common.PrettyDuration(time.Since(tstart)))
 		self.unconfirmed.Shift(work.Block.NumberU64() - 1)
 	}
+	fmt.Println("---- commitNewWork.Transactions ---->",work.Block.Transactions())
 	self.push(work)
 }
 
@@ -529,6 +533,7 @@ func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsB
 		if tx == nil {
 			break
 		}
+		fmt.Println(bc.CurrentBlock().Number().Int64(),"---- work.commitTransactions ---->",1,tx)
 		// Error may be ignored here. The error has already been checked
 		// during transaction acceptance is the transaction pool.
 		//
@@ -542,10 +547,11 @@ func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsB
 			txs.Pop()
 			continue
 		}
+		fmt.Println(bc.CurrentBlock().Number().Int64(),"---- work.commitTransactions ---->",2)
 		// Start executing the transaction
 		env.state.Prepare(tx.Hash(), common.Hash{}, env.tcount)
-
 		err, logs := env.commitTransaction(tx, bc, coinbase, gp)
+		fmt.Println(bc.CurrentBlock().Number().Int64(),"---- work.commitTransactions ---->",3,err)
 		switch err {
 		case core.ErrGasLimitReached:
 			// Pop the current out-of-gas transaction without shifting in the next from the account
@@ -567,7 +573,6 @@ func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsB
 			coalescedLogs = append(coalescedLogs, logs...)
 			env.tcount++
 			txs.Shift()
-
 		default:
 			// Strange error, discard the transaction and get the next in line (note, the
 			// nonce-too-high clause will prevent us from executing in vain).

@@ -33,6 +33,7 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/log"
 	"github.com/SmartMeshFoundation/SMChain/params"
 	"github.com/SmartMeshFoundation/SMChain/consensus/tribe"
+	"time"
 )
 
 // Backend wraps all methods required for mining.
@@ -68,7 +69,6 @@ func New(eth Backend, config *params.ChainConfig, mux *event.TypeMux, engine con
 	}
 	miner.Register(NewCpuAgent(eth.BlockChain(), engine))
 	go miner.update()
-
 	return miner
 }
 
@@ -106,21 +106,22 @@ out:
 
 func (self *Miner) Start(coinbase common.Address) {
 	atomic.StoreInt32(&self.shouldStart, 1)
-	self.worker.setEtherbase(coinbase)
-	self.coinbase = coinbase
-	if tribe,ok := self.engine.(*tribe.Tribe);ok {
+	if tribe, ok := self.engine.(*tribe.Tribe); ok {
 		//初始化一下
 		coinbase = tribe.Status.GetMinerAddress()
-		self.worker.setEtherbase(coinbase)
-		self.coinbase = coinbase
 	}
+	self.worker.setEtherbase(coinbase)
+	self.coinbase = coinbase
 	if atomic.LoadInt32(&self.canStart) == 0 {
 		log.Info("Network syncing, will start miner afterwards")
 		return
 	}
 	atomic.StoreInt32(&self.mining, 1)
 	log.Info("Starting mining operation")
+	fmt.Println(">>>>>>>>>>> miner.start wait 1 sec for chief.update ",coinbase.Hex())
 	self.worker.start()
+	<-time.After(time.Duration(time.Second * 1))
+	fmt.Println("<<<<<<<<<<< miner.start wait 1 sec for chief.update ",coinbase.Hex())
 	self.worker.commitNewWork()
 }
 

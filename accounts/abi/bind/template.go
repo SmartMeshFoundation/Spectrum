@@ -99,7 +99,7 @@ package {{.Package}}
 	// with pre-set call and transact options.
 	type {{.Type}}Session struct {
 	  Contract     *{{.Type}}        // Generic contract binding to set the session for
-	  CallOpts     bind.CallOpts     // Call options to use throughout this session
+	  CallOpts     bind.CallOptsWithNumber     // Call options to use throughout this session
 	  TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
 	}
 
@@ -107,7 +107,7 @@ package {{.Package}}
 	// with pre-set call options.
 	type {{.Type}}CallerSession struct {
 	  Contract *{{.Type}}Caller // Generic contract caller binding to set the session for
-	  CallOpts bind.CallOpts    // Call options to use throughout this session
+	  CallOpts bind.CallOptsWithNumber    // Call options to use throughout this session
 	}
 
 	// {{.Type}}TransactorSession is an auto generated write-only Go binding around an Ethereum contract,
@@ -172,8 +172,8 @@ package {{.Package}}
 	// sets the output to result. The result type might be a single field for simple
 	// returns, a slice of interfaces for anonymous returns and a struct for named
 	// returns.
-	func (_{{$contract.Type}} *{{$contract.Type}}Raw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
-		return _{{$contract.Type}}.Contract.{{$contract.Type}}Caller.contract.Call(opts, result, method, params...)
+	func (_{{$contract.Type}} *{{$contract.Type}}Raw) CallWithNumber(opts *bind.CallOptsWithNumber, result interface{}, method string, params ...interface{}) error {
+		return _{{$contract.Type}}.Contract.{{$contract.Type}}Caller.contract.CallWithNumber(opts, result, method, params...)
 	}
 
 	// Transfer initiates a plain transaction to move funds to the contract, calling
@@ -191,8 +191,8 @@ package {{.Package}}
 	// sets the output to result. The result type might be a single field for simple
 	// returns, a slice of interfaces for anonymous returns and a struct for named
 	// returns.
-	func (_{{$contract.Type}} *{{$contract.Type}}CallerRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
-		return _{{$contract.Type}}.Contract.contract.Call(opts, result, method, params...)
+	func (_{{$contract.Type}} *{{$contract.Type}}CallerRaw) CallWithNumber(opts *bind.CallOptsWithNumber, result interface{}, method string, params ...interface{}) error {
+		return _{{$contract.Type}}.Contract.contract.CallWithNumber(opts, result, method, params...)
 	}
 
 	// Transfer initiates a plain transaction to move funds to the contract, calling
@@ -210,7 +210,7 @@ package {{.Package}}
 		// {{.Normalized.Name}} is a free data retrieval call binding the contract method 0x{{printf "%x" .Original.Id}}.
 		//
 		// Solidity: {{.Original.String}}
-		func (_{{$contract.Type}} *{{$contract.Type}}Caller) {{.Normalized.Name}}(opts *bind.CallOpts {{range .Normalized.Inputs}}, {{.Name}} {{bindtype .Type}} {{end}}) ({{if .Structured}}struct{ {{range .Normalized.Outputs}}{{.Name}} {{bindtype .Type}};{{end}} },{{else}}{{range .Normalized.Outputs}}{{bindtype .Type}},{{end}}{{end}} error) {
+		func (_{{$contract.Type}} *{{$contract.Type}}Caller) {{.Normalized.Name}}(opts *bind.CallOptsWithNumber {{range .Normalized.Inputs}}, {{.Name}} {{bindtype .Type}} {{end}}) ({{if .Structured}}struct{ {{range .Normalized.Outputs}}{{.Name}} {{bindtype .Type}};{{end}} },{{else}}{{range .Normalized.Outputs}}{{bindtype .Type}},{{end}}{{end}} error) {
 			{{if .Structured}}ret := new(struct{
 				{{range .Normalized.Outputs}}{{.Name}} {{bindtype .Type}}
 				{{end}}
@@ -222,7 +222,7 @@ package {{.Package}}
 				{{range $i, $_ := .Normalized.Outputs}}ret{{$i}},
 				{{end}}
 			}{{end}}{{end}}
-			err := _{{$contract.Type}}.contract.Call(opts, out, "{{.Original.Name}}" {{range .Normalized.Inputs}}, {{.Name}}{{end}})
+			err := _{{$contract.Type}}.contract.CallWithNumber(opts, out, "{{.Original.Name}}" {{range .Normalized.Inputs}}, {{.Name}}{{end}})
 			return {{if .Structured}}*ret,{{else}}{{range $i, $_ := .Normalized.Outputs}}*ret{{$i}},{{end}}{{end}} err
 		}
 
@@ -341,7 +341,7 @@ import org.ethereum.geth.internal.*;
 				if (opts == null) {
 					opts = Geth.newCallOpts();
 				}
-				this.Contract.call(opts, results, "{{.Original.Name}}", args);
+				this.contract.CallWithNumber(opts, results, "{{.Original.Name}}", args);
 				{{if gt (len .Normalized.Outputs) 1}}
 					{{capitalise .Normalized.Name}}Results result = new {{capitalise .Normalized.Name}}Results();
 					{{range $index, $item := .Normalized.Outputs}}result.{{if ne .Name ""}}{{.Name}}{{else}}Return{{$index}}{{end}} = results.get({{$index}}).get{{namedtype (bindtype .Type) .Type}}();

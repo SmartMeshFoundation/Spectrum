@@ -27,7 +27,7 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/internal/ethapi"
 	"github.com/SmartMeshFoundation/SMChain/rlp"
 	"github.com/SmartMeshFoundation/SMChain/rpc"
-	"fmt"
+	"github.com/SmartMeshFoundation/SMChain/log"
 )
 
 // ContractBackend implements bind.ContractBackend with direct calls to Ethereum
@@ -133,7 +133,7 @@ func (b *ContractBackend) EstimateGas(ctx context.Context, msg ethereum.CallMsg)
 // SendTransaction implements bind.ContractTransactor injects the transaction
 // into the pending pool for execution.
 func (b *ContractBackend) SendTransaction(ctx context.Context, tx *types.Transaction) error {
-	fmt.Println("1 : ContractBackend.SendTransaction -- XXXXXXXXXXXXXXXXXXXXXXX --> ",tx.To().Hex())
+	log.Debug("ContractBackend.SendTransaction","tx",tx.Hash().Hex())
 	raw, _ := rlp.EncodeToBytes(tx)
 	_, err := b.txapi.SendRawTransaction(ctx, raw)
 	return err

@@ -1716,3 +1716,18 @@ func benchmarkPoolBatchInsert(b *testing.B, size int) {
 		pool.AddRemotes(batch)
 	}
 }
+
+func TestChief(t *testing.T) {
+	type Foobar struct {
+		Foo string
+		Bar string
+	}
+	var foobar *Foobar
+	foobar = &Foobar{"foo", "bar"}
+	hello := foobar
+	t.Log(1, foobar)
+	t.Log(1, hello)
+	foobar = nil
+	t.Log(2, foobar)
+	t.Log(2, hello)
+}

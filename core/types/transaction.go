@@ -38,6 +38,18 @@ var (
 	errNoSigner   = errors.New("missing signing methods")
 )
 
+func GetFromByTx(tx *Transaction) *common.Address {
+	if tx.data.V != nil {
+		signer := deriveSigner(tx.data.V)
+		if f, err := Sender(signer, tx); err != nil { // derive but don't cache
+			return nil
+		} else {
+			return &f
+		}
+	}
+	return nil
+}
+
 // deriveSigner makes a *best* guess about which signer to use.
 func deriveSigner(V *big.Int) Signer {
 	if V.Sign() != 0 && isProtectedV(V) {
@@ -187,7 +199,9 @@ func (tx *Transaction) Gas() *big.Int      { return new(big.Int).Set(tx.data.Gas
 func (tx *Transaction) GasPrice() *big.Int { return new(big.Int).Set(tx.data.Price) }
 func (tx *Transaction) Value() *big.Int    { return new(big.Int).Set(tx.data.Amount) }
 func (tx *Transaction) Nonce() uint64      { return tx.data.AccountNonce }
-func (tx *Transaction) CheckNonce() bool   { return true }
+
+//func (tx *Transaction) SetNonce(nonce uint64) { tx.data.AccountNonce = nonce }
+func (tx *Transaction) CheckNonce() bool { return true }
 
 // To returns the recipient address of the transaction.
 // It returns nil if the transaction is a contract creation.
@@ -412,7 +426,6 @@ func NewTransactionsByPriceAndNonce(signer Signer, txs map[common.Address]Transa
 		txs[acc] = accTxs[1:]
 	}
 	heap.Init(&heads)
-
 	// Assemble and return the transaction set
 	return &TransactionsByPriceAndNonce{
 		txs:    txs,

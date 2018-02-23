@@ -309,9 +309,5 @@ func (ec *EthereumClient) EstimateGas(ctx *Context, msg *CallMsg) (gas *BigInt, 
 // If the transaction was a contract creation use the TransactionReceipt method to get the
 // contract address after the transaction has been mined.
 func (ec *EthereumClient) SendTransaction(ctx *Context, tx *Transaction) error {
-	fmt.Println("3 -- XXXXXXXXXXXXXXXXXXXXXXX --> ",tx.GetTo().GetHex())
-	fmt.Println("3 -- XXXXXXXXXXXXXXXXXXXXXXX --> ",tx.GetTo().GetHex())
-	fmt.Println("3 -- XXXXXXXXXXXXXXXXXXXXXXX --> ",tx.GetTo().GetHex())
-	fmt.Println("3 -- XXXXXXXXXXXXXXXXXXXXXXX --> ",tx.GetTo().GetHex())
 	return ec.client.SendTransaction(ctx.context, tx.tx)
 }

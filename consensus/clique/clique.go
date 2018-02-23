@@ -113,7 +113,7 @@ var (
 
 	// errInvalidDifficulty is returned if the difficulty of a block is not either
 	// of 1 or 2, or if the value does not match the turn of the signer.
-	errInvalidDifficulty = errors.New("invalid difficulty")
+	errInvalidDifficulty = errors.New("invalid+difficulty")
 
 	// ErrInvalidTimestamp is returned if the timestamp of a block is lower than
 	// the previous block's timestamp + the minimum block period.

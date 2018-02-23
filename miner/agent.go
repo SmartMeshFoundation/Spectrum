@@ -23,6 +23,7 @@ import (
 
 	"github.com/SmartMeshFoundation/SMChain/consensus"
 	"github.com/SmartMeshFoundation/SMChain/log"
+	"fmt"
 )
 
 type CpuAgent struct {
@@ -100,8 +101,10 @@ out:
 }
 
 func (self *CpuAgent) mine(work *Work, stop <-chan struct{}) {
+	fmt.Println("---- mine.block.Transactions --->",work.Block.Transactions())
 	if result, err := self.engine.Seal(self.chain, work.Block, stop); result != nil {
 		log.Info("Successfully sealed new block", "number", result.Number(), "hash", result.Hash())
+		fmt.Println("---- mine.result.Transactions --->",result.Transactions())
 		self.returnCh <- &Result{work, result}
 	} else {
 		if err != nil {

@@ -33,6 +33,11 @@ import (
 // sign the transaction before submission.
 type SignerFn func(types.Signer, common.Address, *types.Transaction) (*types.Transaction, error)
 
+type CallOptsWithNumber struct {
+	CallOpts
+	Number *big.Int
+}
+
 // CallOpts is the collection of options to fine tune a contract call request.
 type CallOpts struct {
 	Pending bool           // Whether to operate on the pending state or the last known one
@@ -92,6 +97,54 @@ func DeployContract(opts *TransactOpts, abi abi.ABI, bytecode []byte, backend Co
 	}
 	c.address = crypto.CreateAddress(opts.From, tx.Nonce())
 	return c.address, tx, c, nil
+}
+
+
+func (c *BoundContract) CallWithNumber(opts *CallOptsWithNumber, result interface{}, method string, params ...interface{}) error {
+	// Don't crash on a lazy user
+	if opts == nil {
+		opts = new(CallOptsWithNumber)
+	}
+	// Pack the input, call and unpack the results
+	input, err := c.abi.Pack(method, params...)
+	if err != nil {
+		return err
+	}
+	var (
+		msg    = ethereum.CallMsg{From: opts.From, To: &c.address, Data: input}
+		ctx    = ensureContext(opts.Context)
+		code   []byte
+		output []byte
+	)
+	if opts.Pending {
+		pb, ok := c.caller.(PendingContractCaller)
+		if !ok {
+			return ErrNoPendingState
+		}
+		output, err = pb.PendingCallContract(ctx, msg)
+		if err == nil && len(output) == 0 {
+			// Make sure we have a contract to operate on, and bail out otherwise.
+			if code, err = pb.PendingCodeAt(ctx, c.address); err != nil {
+				return err
+			} else if len(code) == 0 {
+				return ErrNoCode
+			}
+		}
+	} else {
+		output, err = c.caller.CallContract(ctx, msg, opts.Number)
+		if err == nil && len(output) == 0 {
+			// Make sure we have a contract to operate on, and bail out otherwise.
+			if code, err = c.caller.CodeAt(ctx, c.address, opts.Number); err != nil {
+				return err
+			} else if len(code) == 0 {
+				return ErrNoCode
+			}
+		}
+	}
+	if err != nil {
+		return err
+	}
+	return c.abi.Unpack(result, method, output)
 }
 
 // Call invokes the (constant) contract method with params as input values and

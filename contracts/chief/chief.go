@@ -11,7 +11,6 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/accounts/abi/bind"
 	"github.com/SmartMeshFoundation/SMChain/common"
 	"github.com/SmartMeshFoundation/SMChain/core/types"
-	"fmt"
 )
 
 // TribeChiefABI is the input ABI used to generate the binding from.
@@ -22,7 +21,6 @@ const TribeChiefBin = `0x606060405260408051908101604052600581527f302e302e3100000
 
 // DeployTribeChief deploys a new Ethereum contract, binding an instance of TribeChief to it.
 func DeployTribeChief(auth *bind.TransactOpts, backend bind.ContractBackend, genesisSigners []common.Address) (common.Address, *types.Transaction, *TribeChief, error) {
-	fmt.Println("<><><><><><><><><><>",auth)
 	parsed, err := abi.JSON(strings.NewReader(TribeChiefABI))
 	if err != nil {
 		return common.Address{}, nil, nil, err
@@ -53,16 +51,16 @@ type TribeChiefTransactor struct {
 // TribeChiefSession is an auto generated Go binding around an Ethereum contract,
 // with pre-set call and transact options.
 type TribeChiefSession struct {
-	Contract     *TribeChief       // Generic contract binding to set the session for
-	CallOpts     bind.CallOpts     // Call options to use throughout this session
-	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
+	Contract     *TribeChief             // Generic contract binding to set the session for
+	CallOpts     bind.CallOptsWithNumber // Call options to use throughout this session
+	TransactOpts bind.TransactOpts       // Transaction auth options to use throughout this session
 }
 
 // TribeChiefCallerSession is an auto generated read-only Go binding around an Ethereum contract,
 // with pre-set call options.
 type TribeChiefCallerSession struct {
-	Contract *TribeChiefCaller // Generic contract caller binding to set the session for
-	CallOpts bind.CallOpts     // Call options to use throughout this session
+	Contract *TribeChiefCaller       // Generic contract caller binding to set the session for
+	CallOpts bind.CallOptsWithNumber // Call options to use throughout this session
 }
 
 // TribeChiefTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
@@ -127,8 +125,8 @@ func bindTribeChief(address common.Address, caller bind.ContractCaller, transact
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_TribeChief *TribeChiefRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
-	return _TribeChief.Contract.TribeChiefCaller.contract.Call(opts, result, method, params...)
+func (_TribeChief *TribeChiefRaw) CallWithNumber(opts *bind.CallOptsWithNumber, result interface{}, method string, params ...interface{}) error {
+	return _TribeChief.Contract.TribeChiefCaller.contract.CallWithNumber(opts, result, method, params...)
 }
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
@@ -146,8 +144,8 @@ func (_TribeChief *TribeChiefRaw) Transact(opts *bind.TransactOpts, method strin
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_TribeChief *TribeChiefCallerRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
-	return _TribeChief.Contract.contract.Call(opts, result, method, params...)
+func (_TribeChief *TribeChiefCallerRaw) CallWithNumber(opts *bind.CallOptsWithNumber, result interface{}, method string, params ...interface{}) error {
+	return _TribeChief.Contract.contract.CallWithNumber(opts, result, method, params...)
 }
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
@@ -164,7 +162,7 @@ func (_TribeChief *TribeChiefTransactorRaw) Transact(opts *bind.TransactOpts, me
 // GetStatus is a free data retrieval call binding the contract method 0x4e69d560.
 //
 // Solidity: function getStatus() constant returns(volunteerList address[], signerList address[], scoreList int256[], numberList uint256[], number uint256)
-func (_TribeChief *TribeChiefCaller) GetStatus(opts *bind.CallOpts) (struct {
+func (_TribeChief *TribeChiefCaller) GetStatus(opts *bind.CallOptsWithNumber) (struct {
 	VolunteerList []common.Address
 	SignerList    []common.Address
 	ScoreList     []*big.Int
@@ -179,7 +177,7 @@ func (_TribeChief *TribeChiefCaller) GetStatus(opts *bind.CallOpts) (struct {
 		Number        *big.Int
 	})
 	out := ret
-	err := _TribeChief.contract.Call(opts, out, "getStatus")
+	err := _TribeChief.contract.CallWithNumber(opts, out, "getStatus")
 	return *ret, err
 }
 
@@ -212,12 +210,12 @@ func (_TribeChief *TribeChiefCallerSession) GetStatus() (struct {
 // Version is a free data retrieval call binding the contract method 0x54fd4d50.
 //
 // Solidity: function version() constant returns(string)
-func (_TribeChief *TribeChiefCaller) Version(opts *bind.CallOpts) (string, error) {
+func (_TribeChief *TribeChiefCaller) Version(opts *bind.CallOptsWithNumber) (string, error) {
 	var (
 		ret0 = new(string)
 	)
 	out := ret0
-	err := _TribeChief.contract.Call(opts, out, "version")
+	err := _TribeChief.contract.CallWithNumber(opts, out, "version")
 	return *ret0, err
 }
 

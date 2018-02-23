@@ -13,6 +13,8 @@ import (
 	"context"
 	"github.com/SmartMeshFoundation/SMChain/accounts/abi/bind"
 	"github.com/SmartMeshFoundation/SMChain/log"
+	"math/big"
+	"fmt"
 )
 
 /*
@@ -92,9 +94,17 @@ func (self *TribeService) getnodekey(mbox params.Mbox) {
 }
 
 func (self *TribeService) getstatus(mbox params.Mbox) {
+	var blockNumber *big.Int = nil
+	if n,ok := mbox.Params["number"];ok {
+		fmt.Println("--> TribeService.getstatus : blockNumber =",n)
+		blockNumber = n.(*big.Int)
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 	defer cancel()
-	opts := &bind.CallOpts{Context: ctx}
+	//opts := &bind.CallOpts{Context: ctx}
+	opts := new(bind.CallOptsWithNumber)
+	opts.Context = ctx
+	opts.Number = blockNumber
 	success := params.MBoxSuccess{Success: true}
 	chiefStatus, err := self.tribeChief.GetStatus(opts)
 	if err != nil {
@@ -113,11 +123,19 @@ func (self *TribeService) update(mbox params.Mbox) {
 	auth.GasPrice = eth.DefaultConfig.GasPrice
 	auth.GasLimit = params.GenesisGasLimit
 	success := params.MBoxSuccess{Success: true}
+
+	if params.ChiefTxNonce > 0 {
+		nonce := params.ChiefTxNonce+1
+		auth.Nonce = new(big.Int).SetUint64(nonce)
+		fmt.Println("YYYYYYYYYYYYYY>> ",auth.Nonce.Uint64())
+	}
 	t, e := self.tribeChief.Update(auth, common.Address{})
-	success.Entity = t.Hash().Hex()
 	if e != nil {
 		success.Success = false
 		success.Entity = e
+		//log.Error("TribeService.update",e)
+	} else {
+		success.Entity = t.Hash().Hex()
 	}
 	mbox.Rtn <- success
 	log.Debug("chief.mbox.rtn: update <-", "success", success)

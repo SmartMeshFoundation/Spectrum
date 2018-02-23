@@ -197,6 +197,20 @@ func (st *StateTransition) preCheck() error {
 	// Make sure this transaction's nonce is correct
 	if msg.CheckNonce() {
 		nonce := st.state.GetNonce(sender.Address())
+		/*
+		checker := func(err error) error {
+			isChiefTx := msg.To() != nil && *msg.To() == common.HexToAddress(params.ChiefAddress)
+			if isChiefTx && msg.Nonce() == params.ChiefTxNonce + 1 {
+				return nil
+			}
+			return err
+		}
+		if nonce < msg.Nonce() {
+			return checker(ErrNonceTooHigh)
+		} else if nonce > msg.Nonce() {
+			return checker(ErrNonceTooLow)
+		}
+		*/
 		if nonce < msg.Nonce() {
 			return ErrNonceTooHigh
 		} else if nonce > msg.Nonce() {

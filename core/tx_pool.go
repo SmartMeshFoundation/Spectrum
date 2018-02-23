@@ -107,7 +107,7 @@ var (
 type TxStatus uint
 
 const (
-	TxStatusUnknown TxStatus = iota
+	TxStatusUnknown  TxStatus = iota
 	TxStatusQueued
 	TxStatusPending
 	TxStatusIncluded
@@ -202,7 +202,7 @@ type TxPool struct {
 	locals  *accountSet // Set of local transaction to exempt from eviction rules
 	journal *txJournal  // Journal of local transaction to back up to disk
 
-	chiefTx *types.Transaction// add by liangc : chief contract's tx index for remove when new block come in
+	chiefTx *types.Transaction // add by liangc : chief contract's tx index for remove when new block come in
 
 	pending map[common.Address]*txList         // All currently processable transactions
 	queue   map[common.Address]*txList         // Queued but non-processable transactions
@@ -295,11 +295,11 @@ func (pool *TxPool) loop() {
 
 				pool.mu.Unlock()
 			}
-		// Be unsubscribed due to system stopped
+			// Be unsubscribed due to system stopped
 		case <-pool.chainHeadSub.Err():
 			return
 
-		// Handle stats reporting ticks
+			// Handle stats reporting ticks
 		case <-report.C:
 			pool.mu.RLock()
 			pending, queued := pool.stats()
@@ -311,7 +311,7 @@ func (pool *TxPool) loop() {
 				prevPending, prevQueued, prevStales = pending, queued, stales
 			}
 
-		// Handle inactive account transaction eviction
+			// Handle inactive account transaction eviction
 		case <-evict.C:
 			pool.mu.Lock()
 			for addr := range pool.queue {
@@ -328,7 +328,7 @@ func (pool *TxPool) loop() {
 			}
 			pool.mu.Unlock()
 
-		// Handle local transaction journal rotation
+			// Handle local transaction journal rotation
 		case <-journal.C:
 			if pool.journal != nil {
 				pool.mu.Lock()
@@ -529,11 +529,19 @@ func (pool *TxPool) Content() (map[common.Address]types.Transactions, map[common
 func (pool *TxPool) Pending() (map[common.Address]types.Transactions, error) {
 	pool.mu.Lock()
 	defer pool.mu.Unlock()
-
 	pending := make(map[common.Address]types.Transactions)
+	var mid common.Address
+	//add by liangc : append chiefTx and delete
+	if pool.chiefTx != nil {
+		chiefTx := pool.chiefTx
+		pool.chiefTx = nil
+		mid, _ = types.Sender(pool.signer, chiefTx)
+		pending[mid] = types.Transactions{chiefTx}
+	}
 	for addr, list := range pool.pending {
 		pending[addr] = list.Flatten()
 	}
+	fmt.Println("---- TxPool.Pending() ---->", mid, pending[mid])
 	return pending, nil
 }
 
@@ -596,7 +604,38 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 }
 
 // add by liangc : chief contract's tx only be one , Keep up with the latest
-func (pool *TxPool) fixChief(tx *types.Transaction) {
+func (pool *TxPool) addChief(tx *types.Transaction) bool {
+	if tx.To() != nil && *tx.To() == common.HexToAddress(params.ChiefAddress) {
+		pool.chiefTx = tx
+		fmt.Println(pool.chain.CurrentBlock().Number().Int64(), "---- TxPool.addChief ---->", pool.chiefTx)
+		return true
+	}
+	return false
+}
+func (pool *TxPool) fixChief(tx *types.Transaction) error {
+	if tx.To() != nil && *tx.To() == common.HexToAddress(params.ChiefAddress) {
+		fmt.Println(pool.chain.CurrentBlock().Number().Int64(), "--> TxPool.add : fixChief :", tx.Nonce(), tx.Hash().Hex())
+		from, _ := types.Sender(pool.signer, tx) // already validated
+		//pool.promoteExecutables([]common.Address{from})
+		if pool.pending[from] == nil {
+			pool.pending[from] = newTxList(true)
+		}
+		list := pool.pending[from]
+		/*
+		for _, ttt := range list.txs.items {
+			if ttt.To() != nil && *ttt.To() == *tx.To() {
+				//fmt.Println("<-- fixChief.remove : ",ttt.Nonce(),ttt.Hash().Hex())
+				//list.Remove(ttt)
+				//return nil
+				err_txt := fmt.Sprintf("chief_tx_redundant : %d : %s", tx.Nonce(), tx.Hash().Hex())
+				return errors.New(err_txt)
+			}
+		}
+		*/
+		list.Add(tx, pool.config.PriceBump)
+	}
+	return nil
+	/*
 	if tx.To()!=nil && *tx.To() == common.HexToAddress(params.ChiefAddress) {
 		if pool.chiefTx != nil {
 			old := pool.chiefTx
@@ -606,6 +645,7 @@ func (pool *TxPool) fixChief(tx *types.Transaction) {
 		fmt.Println("====fixchief===> set_new_tx : ",tx.Hash().Hex())
 		pool.chiefTx = tx
 	}
+	*/
 }
 
 // add validates a transaction and inserts it into the non-executable queue for
@@ -617,7 +657,10 @@ func (pool *TxPool) fixChief(tx *types.Transaction) {
 // whitelisted, preventing any associated transaction from being dropped out of
 // the pool due to pricing constraints.
 func (pool *TxPool) add(tx *types.Transaction, local bool) (bool, error) {
-	pool.fixChief(tx)
+	if pool.addChief(tx) {
+		return true, nil
+	}
+
 	// If the transaction is already known, discard it
 	hash := tx.Hash()
 	if pool.all[hash] != nil {
@@ -669,11 +712,24 @@ func (pool *TxPool) add(tx *types.Transaction, local bool) (bool, error) {
 
 		// We've directly injected a replacement transaction, notify subsystems
 		go pool.txFeed.Send(TxPreEvent{tx})
-
+		fmt.Println("--> TxPool.add : already pending", tx.Nonce(), tx.Hash().Hex())
 		return old != nil, nil
 	}
 	// New transaction isn't replacing a pending one, push into queue
 	replace, err := pool.enqueueTx(hash, tx)
+	/*
+	// TODO add by liangc : 观察行为，其实只是为了第一次启动时
+	if tx.To() != nil && *tx.To() == common.HexToAddress(params.ChiefAddress) {
+		//pool.promoteExecutables([]common.Address{from})
+		if pool.pending[from] == nil {
+			pool.pending[from] = newTxList(true)
+		}
+		list := pool.pending[from]
+		list.Add(tx, pool.config.PriceBump)
+		fmt.Println("--> TxPool.add : pending.add : ", tx.Nonce(), tx.Hash().Hex())
+	}
+	*/
+
 	if err != nil {
 		return false, err
 	}
@@ -735,7 +791,6 @@ func (pool *TxPool) promoteTx(addr common.Address, hash common.Hash, tx *types.T
 		pool.pending[addr] = newTxList(true)
 	}
 	list := pool.pending[addr]
-
 	inserted, old := list.Add(tx, pool.config.PriceBump)
 	if !inserted {
 		// An older transaction was better, discard this

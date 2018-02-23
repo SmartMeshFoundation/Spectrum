@@ -27,7 +27,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	ethereum "github.com/SmartMeshFoundation/SMChain"
+	"github.com/SmartMeshFoundation/SMChain"
 	"github.com/SmartMeshFoundation/SMChain/common"
 	"github.com/SmartMeshFoundation/SMChain/core/types"
 	"github.com/SmartMeshFoundation/SMChain/ethdb"
@@ -471,14 +471,36 @@ func (d *Downloader) syncWithPeer(p *peerConnection, hash common.Hash, td *big.I
 	}
 
 	fetchers := []func() error{
-		func() error { return d.fetchHeaders(p, origin+1) }, // Headers are always retrieved
-		func() error { return d.fetchBodies(origin + 1) },   // Bodies are retrieved during normal and fast sync
-		func() error { return d.fetchReceipts(origin + 1) }, // Receipts are retrieved during fast sync
-		func() error { return d.processHeaders(origin+1, td) },
+		func() error {
+			e := d.fetchHeaders(p, origin+1)
+			fmt.Println(1, "XXXXXXX", e)
+			return e
+		}, // Headers are always retrieved
+		func() error {
+			e := d.fetchBodies(origin + 1)
+			fmt.Println(2, "XXXXXXX", e)
+			return e
+		}, // Bodies are retrieved during normal and fast sync
+		func() error {
+			e := d.fetchReceipts(origin + 1)
+			fmt.Println(3, "XXXXXXX", e)
+			return e
+		}, // Receipts are retrieved during fast sync
+		func() error {
+			e := d.processHeaders(origin+1, td)
+			fmt.Println(4, "XXXXXXX TODO get error ", e)
+			return e
+		},
 	}
 	if d.mode == FastSync {
-		fetchers = append(fetchers, func() error { return d.processFastSyncContent(latest) })
+		fmt.Println("---- FastSync ---->")
+		fetchers = append(fetchers, func() error {
+			e := d.processFastSyncContent(latest)
+			fmt.Println(5, "XXXXXXX", e)
+			return e
+		})
 	} else if d.mode == FullSync {
+		fmt.Println("---- FullSync ---->")
 		fetchers = append(fetchers, d.processFullSyncContent)
 	}
 	err = d.spawnSync(fetchers)
@@ -486,6 +508,7 @@ func (d *Downloader) syncWithPeer(p *peerConnection, hash common.Hash, td *big.I
 		// If sync failed in the critical section, bump the fail counter.
 		atomic.AddUint32(&d.fsPivotFails, 1)
 	}
+	fmt.Println("downloader.syncWithPeer:", err, hash.Hex())
 	return err
 }
 
