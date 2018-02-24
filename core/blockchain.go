@@ -43,6 +43,7 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/trie"
 	"github.com/hashicorp/golang-lru"
 	"github.com/SmartMeshFoundation/SMChain/consensus/tribe"
+	"crypto/ecdsa"
 )
 
 var (
@@ -115,6 +116,8 @@ type BlockChain struct {
 	vmConfig  vm.Config
 
 	badBlocks *lru.Cache // Bad block cache
+
+	nodeKey *ecdsa.PrivateKey
 }
 
 // NewBlockChain returns a fully initialised block chain using information
@@ -170,6 +173,13 @@ func NewBlockChain(chainDb ethdb.Database, config *params.ChainConfig, engine co
 	}
 	// Take ownership of this particular state
 	go bc.update()
+	// add by liangc : set nodekey
+	go func(){
+		<- params.InitTribeStatus
+		rtn := params.SendToMsgBox("GetNodeKey")
+		success := <-rtn
+		bc.nodeKey = success.Entity.(*ecdsa.PrivateKey)
+	}()
 	return bc, nil
 }
 
@@ -799,7 +809,11 @@ func (bc *BlockChain) WriteBlockAndState(block *types.Block, receipts []*types.R
 		bc.mu.Unlock()
 		if tribe, ok := bc.engine.(*tribe.Tribe); ok {
 			for _, t := range block.Transactions() {
-				params.FixChiefTxNonce(types.GetFromByTx(t), t.To(), t.Nonce())
+				f := types.GetFromByTx(t)
+				tf := crypto.PubkeyToAddress(bc.nodeKey.PublicKey)
+				if f!=nil && tf == *f {
+					params.FixChiefTxNonce(t.To(), 0)
+				}
 			}
 			fmt.Println("><> blockchain.WriteBlockAndState -> tribe.Status.Update : may be pending")
 			tribe.Status.Update(bc.currentBlock.Number())

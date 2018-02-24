@@ -1731,3 +1731,24 @@ func TestChief(t *testing.T) {
 	t.Log(2, foobar)
 	t.Log(2, hello)
 }
+
+
+func TestChan(t *testing.T) {
+	var c chan struct{}
+	c = make(chan struct{})
+	go func(){
+		t.Log("X> :",time.Now().Unix())
+		a := <- c
+		t.Log("XXXX",time.Now().Unix(),a)
+		t.Log("XXXX",time.Now().Unix(),a)
+	}()
+	go func(){
+		t.Log("Y> :",time.Now().Unix())
+		a := <- c
+		t.Log("YYYY",time.Now().Unix(),a)
+		t.Log("YYYY",time.Now().Unix(),a)
+	}()
+	<- time.After(time.Second)
+	//close(c)
+	<- time.After(time.Duration(time.Second*2))
+}

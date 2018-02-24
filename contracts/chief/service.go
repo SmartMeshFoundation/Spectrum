@@ -61,7 +61,7 @@ func (self *TribeService) APIs() []rpc.API           { return nil }
 func (self *TribeService) Start(server *p2p.Server) error {
 	self.server = server
 	go self.loop()
-	params.InitTribeStatus <- struct{}{}
+	close(params.InitTribeStatus)
 	return nil
 }
 func (self *TribeService) loop() {
@@ -125,9 +125,9 @@ func (self *TribeService) update(mbox params.Mbox) {
 	success := params.MBoxSuccess{Success: true}
 
 	if params.ChiefTxNonce > 0 {
-		nonce := params.ChiefTxNonce+1
+		nonce := params.ChiefTxNonce
 		auth.Nonce = new(big.Int).SetUint64(nonce)
-		fmt.Println("YYYYYYYYYYYYYY>> ",auth.Nonce.Uint64())
+		//fmt.Println("YYYYYYYYYYYYYY>> ",auth.Nonce.Uint64())
 	}
 	t, e := self.tribeChief.Update(auth, common.Address{})
 	if e != nil {

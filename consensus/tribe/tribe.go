@@ -190,7 +190,6 @@ func New(config *params.TribeConfig, db ethdb.Database) *Tribe {
 	conf.Period = blockPeriod
 
 	go func(s *TribeStatus) {
-		defer close(params.InitTribeStatus)
 		log.Info("init tribe.status when chiefservice start end.")
 		<-params.InitTribeStatus
 		s.LoadSignersFromChief(nil)

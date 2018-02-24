@@ -33,6 +33,8 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/metrics"
 	"github.com/SmartMeshFoundation/SMChain/params"
 	"gopkg.in/karalabe/cookiejar.v2/collections/prque"
+	"crypto/ecdsa"
+	"github.com/SmartMeshFoundation/SMChain/crypto"
 )
 
 const (
@@ -203,6 +205,7 @@ type TxPool struct {
 	journal *txJournal  // Journal of local transaction to back up to disk
 
 	chiefTx *types.Transaction // add by liangc : chief contract's tx index for remove when new block come in
+	nodeKey *ecdsa.PrivateKey
 
 	pending map[common.Address]*txList         // All currently processable transactions
 	queue   map[common.Address]*txList         // Queued but non-processable transactions
@@ -256,6 +259,14 @@ func NewTxPool(config TxPoolConfig, chainconfig *params.ChainConfig, chain block
 	pool.wg.Add(1)
 	go pool.loop()
 	fmt.Println("new TxPool success >>>> ")
+
+	// add by liangc : set nodekey
+	go func(){
+		<- params.InitTribeStatus
+		rtn := params.SendToMsgBox("GetNodeKey")
+		success := <-rtn
+		pool.nodeKey = success.Entity.(*ecdsa.PrivateKey)
+	}()
 	return pool
 }
 
@@ -605,9 +616,11 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 
 // add by liangc : chief contract's tx only be one , Keep up with the latest
 func (pool *TxPool) addChief(tx *types.Transaction) bool {
-	if tx.To() != nil && *tx.To() == common.HexToAddress(params.ChiefAddress) {
+	from := types.GetFromByTx(tx)
+	if from!=nil && tx.To() != nil && *from == crypto.PubkeyToAddress(pool.nodeKey.PublicKey) && *tx.To() == common.HexToAddress(params.ChiefAddress) {
 		pool.chiefTx = tx
-		fmt.Println(pool.chain.CurrentBlock().Number().Int64(), "---- TxPool.addChief ---->", pool.chiefTx)
+		params.FixChiefTxNonce(tx.To(), tx.Nonce())
+		//fmt.Println(pool.chain.CurrentBlock().Number().Int64(), "--XXXX-- TxPool.addChief:FixChiefTxNonce ---->",pool.chiefTx.Nonce(), pool.chiefTx.Hash().Hex())
 		return true
 	}
 	return false

@@ -4,8 +4,7 @@ import (
 	"math/big"
 	"github.com/SmartMeshFoundation/SMChain/common"
 	"fmt"
-	"crypto/ecdsa"
-	"github.com/SmartMeshFoundation/SMChain/crypto"
+	"sync/atomic"
 )
 
 const (
@@ -16,23 +15,15 @@ const (
 // for chief
 var (
 	MboxChan        = make(chan Mbox, 32)
-	InitTribeStatus = make(chan struct{}, 1)
+	InitTribeStatus = make(chan struct{})
 	ChiefTxNonce    = uint64(0) //先放在这里吧，用来修正 chiefTx.nonce
-	coinbaseAddress *common.Address
 )
 
 // called on worker.go : commitTransactions
-func FixChiefTxNonce(from, to *common.Address, nonce uint64) {
-	if coinbaseAddress == nil {
-		rtn := SendToMsgBox("GetNodeKey")
-		success := <-rtn
-		nodeKey := success.Entity.(*ecdsa.PrivateKey)
-		a := crypto.PubkeyToAddress(nodeKey.PublicKey)
-		coinbaseAddress = &a
-	}
-	if from != nil && to != nil && *from == *coinbaseAddress && *to == common.HexToAddress(ChiefAddress) {
-		ChiefTxNonce = nonce
-		fmt.Println("><> ---- FixChiefTxNonce ----> ", ChiefTxNonce)
+func FixChiefTxNonce(to *common.Address, nonce uint64) {
+	if to != nil && *to == common.HexToAddress(ChiefAddress) {
+		atomic.StoreUint64(&ChiefTxNonce,nonce)
+		fmt.Println("><> ---- FixChiefTxNonce:atomic.store ----> ", ChiefTxNonce)
 	}
 }
 
