@@ -23,7 +23,6 @@ import (
 
 	"github.com/SmartMeshFoundation/SMChain/core/types"
 	"github.com/SmartMeshFoundation/SMChain/ethclient"
-	"fmt"
 )
 
 // EthereumClient provides access to the Ethereum APIs.
