@@ -295,10 +295,7 @@ func (t *Tribe) verifyHeader(chain consensus.ChainReader, header *types.Header, 
 	// Ensure that the block's difficulty is meaningful (may not be correct at this point)
 	if number > 0 {
 		if header.Difficulty == nil || (header.Difficulty.Cmp(diffInTurn) != 0 && header.Difficulty.Cmp(diffNoTurn) != 0) {
-			fmt.Println("******", header.Difficulty.String())
-			fmt.Println("******", header.Difficulty.String())
-			fmt.Println("******", header.Difficulty.String())
-			fmt.Println("******", header.Difficulty.String())
+			fmt.Println("***** ERROR ******", header.Difficulty.String(),errInvalidDifficulty)
 			return errInvalidDifficulty
 		}
 	}

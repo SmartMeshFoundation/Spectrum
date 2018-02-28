@@ -617,7 +617,7 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 // add by liangc : chief contract's tx only be one , Keep up with the latest
 func (pool *TxPool) addChief(tx *types.Transaction) bool {
 	from := types.GetFromByTx(tx)
-	if from!=nil && tx.To() != nil && *from == crypto.PubkeyToAddress(pool.nodeKey.PublicKey) && *tx.To() == common.HexToAddress(params.ChiefAddress) {
+	if pool.nodeKey!=nil && from!=nil && tx.To() != nil && *from == crypto.PubkeyToAddress(pool.nodeKey.PublicKey) && *tx.To() == common.HexToAddress(params.ChiefAddress) {
 		pool.chiefTx = tx
 		params.FixChiefTxNonce(tx.To(), tx.Nonce())
 		//fmt.Println(pool.chain.CurrentBlock().Number().Int64(), "--XXXX-- TxPool.addChief:FixChiefTxNonce ---->",pool.chiefTx.Nonce(), pool.chiefTx.Hash().Hex())
