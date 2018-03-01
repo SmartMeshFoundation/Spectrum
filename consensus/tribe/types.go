@@ -22,6 +22,10 @@ type Signer struct {
 	Score   int64          `json:"score"`   // 分数
 }
 
+func (self *Signer) String() string {
+	return ""
+}
+
 type TribeStatus struct {
 	Signers    []*Signer        `json:"signers"`    // 签名人
 	Volunteers []common.Address `json:"volunteers"` //候选人

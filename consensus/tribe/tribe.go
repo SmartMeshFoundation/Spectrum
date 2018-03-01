@@ -321,6 +321,16 @@ func (t *Tribe) verifyCascadingFields(chain consensus.ChainReader, header *types
 	var parent *types.Header
 	if len(parents) > 0 {
 		parent = parents[len(parents)-1]
+		//TODO : ****** 这个地方是临时解决方案，后续需要做很大调整
+		//TODO : ****** 这个地方是临时解决方案，后续需要做很大调整
+		//TODO : ****** 这个地方是临时解决方案，后续需要做很大调整
+		//TODO : ****** 这个地方是临时解决方案，后续需要做很大调整
+		//如果 header.parent != currentBlockNumber , 则等一下，让 blockBody 追赶 header
+		cn := chain.CurrentHeader().Number.Uint64()
+		for cn < number && chain.CurrentHeader().Hash() != header.ParentHash {
+			fmt.Println(len(parents),"--> current:",chain.CurrentHeader().Number.Int64(),"header.parent:",parent.Number.Int64(),"header:",header.Number.Int64())
+			<- time.After(time.Second)
+		}
 	} else {
 		parent = chain.GetHeader(header.ParentHash, number-1)
 	}
@@ -375,6 +385,8 @@ func (t *Tribe) VerifySeal(chain consensus.ChainReader, header *types.Header) er
 // headers that aren't yet part of the local blockchain to generate the snapshots
 // from.
 func (t *Tribe) verifySeal(chain consensus.ChainReader, header *types.Header, parents []*types.Header) error {
+
+
 	fmt.Println("<<<< ############ >>>>")
 	// Verifying the genesis block is not supported
 	number := header.Number.Int64()
@@ -402,6 +414,7 @@ func (t *Tribe) verifySeal(chain consensus.ChainReader, header *types.Header, pa
 	// XXXX : 这些应该是在 verifyHeader 中校验
 	// XXXXXXXX : time 不能小于规定时间间隔，而且 Difficulty == no-turn 时时间必须大于规定时间 500ms 以上
 	// XXXXXXXX : 同一个 signer 不能连续出块
+
 	return nil
 }
 
@@ -514,12 +527,12 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 // that a new block should have based on the previous blocks in the chain and the
 // current signer.
 func (t *Tribe) CalcDifficulty(chain consensus.ChainReader, time uint64, parent *types.Header) *big.Int {
-	chain.CurrentHeader().Number.Int64()
+	fmt.Println("--CalcDifficulty--> ParentNumber:",parent.Number.Int64(),"CurrentNumber:",chain.CurrentHeader().Number.Int64())
 	//TODO 通过 parent 块获取最新的 signers 并计算 difficulty
 	// 并满足如下公式
 	// in-turn : signers[ block.number % len(signers) ] == t.signer
 	// no-turn : signers[ block.number % len(signers) ] != t.signer
-	return t.Status.InTurnForCalc(chain , t.signer)
+	return t.Status.InTurnForCalc(t.signer,parent)
 }
 
 // APIs implements consensus.Engine, returning the user facing RPC API to allow

@@ -16,7 +16,6 @@ import (
 	"os"
 	"fmt"
 	"github.com/SmartMeshFoundation/SMChain/log"
-	"github.com/SmartMeshFoundation/SMChain/consensus"
 )
 
 func (api *API) GetMiner(number *rpc.BlockNumber) (*TribeMiner, error) {
@@ -128,9 +127,11 @@ func (self *TribeStatus) GetSigners() []*Signer {
 	return self.Signers
 }
 
-func (self *TribeStatus) InTurnForCalc(chain consensus.ChainReader, signer common.Address) *big.Int {
-	number := chain.CurrentHeader().Number.Int64()
-	if idx, _, err := self.fetchOnSigners(signer,nil); err == nil {
+func (self *TribeStatus) InTurnForCalc(signer common.Address,parent *types.Header) *big.Int {
+	number := parent.Number.Int64()+1
+	signers := self.GetSigners()
+	fmt.Println("-- tribe.InTurnForCalc::signers -->",signers)
+	if idx, _, err := self.fetchOnSigners(signer,signers); err == nil {
 		if number%int64(len(self.Signers)) == idx.Int64() {
 			return diffInTurn
 		}
@@ -140,11 +141,12 @@ func (self *TribeStatus) InTurnForCalc(chain consensus.ChainReader, signer commo
 func (self *TribeStatus) InTurnForVerify(number int64, signer common.Address) *big.Int {
 	parentNumber := number-1
 	var signers []*Signer
-	if number > 1 && self.Number != parentNumber {
+	//if number > 1 & self.Number != parentNumber {
+	if number > 1 {
 		var err error
 		signers, err = self.GetSignersFromChiefByNumber(big.NewInt(parentNumber))
 		if err != nil {
-			log.Warn("TribeStatus.InTurn : GetSignersFromChiefByNumber :","err",err)
+			log.Warn("InTurn:GetSignersFromChiefByNumber:", "parentNumber",parentNumber,"err",err)
 		}
 	}
 
@@ -160,7 +162,8 @@ func (self *TribeStatus) InTurnForVerify(number int64, signer common.Address) *b
 func (self *TribeStatus) ValidateSigner(number int64,signer common.Address) bool {
 	parentNumber := number-1
 	var signers []*Signer
-	if number > 1 && self.Number != parentNumber {
+	//if number > 1 && self.Number != parentNumber {
+	if number > 1 {
 		var err error
 		signers, err = self.GetSignersFromChiefByNumber(big.NewInt(parentNumber))
 		if err != nil {

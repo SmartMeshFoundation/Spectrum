@@ -455,7 +455,7 @@ func (self *worker) commitNewWork() {
 		misc.ApplyDAOHardFork(work.state)
 	}
 	pending, err := self.eth.TxPool().Pending()
-	fmt.Println(header.Number.Int64(), "====== commitNewWork =======>", pending)
+	//fmt.Println(header.Number.Int64(), "====== commitNewWork =======>", pending)
 	if err != nil {
 		log.Error("Failed to fetch pending transactions", "err", err)
 		return
@@ -503,7 +503,7 @@ func (self *worker) commitNewWork() {
 		log.Info("Commit new mining work", "number", work.Block.Number(), "txs", work.tcount, "uncles", len(uncles), "elapsed", common.PrettyDuration(time.Since(tstart)))
 		self.unconfirmed.Shift(work.Block.NumberU64() - 1)
 	}
-	fmt.Println("---- commitNewWork.Transactions ---->",work.Block.Transactions())
+	//fmt.Println("---- commitNewWork.Transactions ---->",work.Block.Transactions())
 	self.push(work)
 }
 
@@ -533,7 +533,7 @@ func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsB
 		if tx == nil {
 			break
 		}
-		fmt.Println(bc.CurrentBlock().Number().Int64(),"---- work.commitTransactions ---->",1,tx)
+		//fmt.Println(bc.CurrentBlock().Number().Int64(),"---- work.commitTransactions ---->",1,tx)
 		// Error may be ignored here. The error has already been checked
 		// during transaction acceptance is the transaction pool.
 		//
@@ -547,11 +547,11 @@ func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsB
 			txs.Pop()
 			continue
 		}
-		fmt.Println(bc.CurrentBlock().Number().Int64(),"---- work.commitTransactions ---->",2)
+		//fmt.Println(bc.CurrentBlock().Number().Int64(),"---- work.commitTransactions ---->",2)
 		// Start executing the transaction
 		env.state.Prepare(tx.Hash(), common.Hash{}, env.tcount)
 		err, logs := env.commitTransaction(tx, bc, coinbase, gp)
-		fmt.Println(bc.CurrentBlock().Number().Int64(),"---- work.commitTransactions ---->",3,err)
+		//fmt.Println(bc.CurrentBlock().Number().Int64(),"---- work.commitTransactions ---->",3,err)
 		switch err {
 		case core.ErrGasLimitReached:
 			// Pop the current out-of-gas transaction without shifting in the next from the account
