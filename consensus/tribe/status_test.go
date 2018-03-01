@@ -21,8 +21,3 @@ var (
 
 func TestSigners(t *testing.T) {
 }
-
-func TestTribeStatus_InTurn(t *testing.T) {
-	diff := tribe.InTurn(1,address1)
-	t.Log(diff)
-}

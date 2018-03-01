@@ -41,9 +41,9 @@ func (api *API) GetSigners(number *rpc.BlockNumber) ([]*Signer, error) {
 	if header.Number.Int64() == 0 {
 		api.tribe.Status.genesisSigner(header)
 	} else {
-		if number!=nil {
+		if number != nil {
 			api.tribe.Status.LoadSignersFromChief(big.NewInt(number.Int64()))
-		}else{
+		} else {
 			api.tribe.Status.LoadSignersFromChief(nil)
 		}
 	}
@@ -55,9 +55,9 @@ func (api *API) GetStatus(number *rpc.BlockNumber) (*TribeStatus, error) {
 	if header.Number.Int64() == 0 {
 		api.tribe.Status.genesisSigner(header)
 	} else {
-		if number!=nil {
+		if number != nil {
 			api.tribe.Status.LoadSignersFromChief(big.NewInt(number.Int64()))
-		}else{
+		} else {
 			api.tribe.Status.LoadSignersFromChief(nil)
 		}
 	}
@@ -77,11 +77,11 @@ func (self *TribeStatus) GetMinerAddress() common.Address {
 	return add
 }
 
-func (self *TribeStatus) GetSignersFromChiefByNumber(number *big.Int) ([]*Signer,error) {
-	rtn := params.SendToMsgBoxWithNumber("GetStatus",number)
+func (self *TribeStatus) GetSignersFromChiefByNumber(number *big.Int) ([]*Signer, error) {
+	rtn := params.SendToMsgBoxWithNumber("GetStatus", number)
 	r := <-rtn
 	if !r.Success {
-		return nil,r.Entity.(error)
+		return nil, r.Entity.(error)
 	}
 	cs := r.Entity.(params.ChiefStatus)
 	signers := cs.SignerList
@@ -91,12 +91,12 @@ func (self *TribeStatus) GetSignersFromChiefByNumber(number *big.Int) ([]*Signer
 		score := scores[i]
 		sl = append(sl, &Signer{signer, score.Int64()})
 	}
-	return sl,nil
+	return sl, nil
 }
 
 // 在 加载完所有 node.service 后，需要主动调用一次
 func (self *TribeStatus) LoadSignersFromChief(number *big.Int) error {
-	rtn := params.SendToMsgBoxWithNumber("GetStatus",number)
+	rtn := params.SendToMsgBoxWithNumber("GetStatus", number)
 	r := <-rtn
 	if !r.Success {
 		return r.Entity.(error)
@@ -127,11 +127,11 @@ func (self *TribeStatus) GetSigners() []*Signer {
 	return self.Signers
 }
 
-func (self *TribeStatus) InTurnForCalc(signer common.Address,parent *types.Header) *big.Int {
-	number := parent.Number.Int64()+1
+func (self *TribeStatus) InTurnForCalc(signer common.Address, parent *types.Header) *big.Int {
+	number := parent.Number.Int64() + 1
 	signers := self.GetSigners()
-	fmt.Println("-- tribe.InTurnForCalc::signers -->",signers)
-	if idx, _, err := self.fetchOnSigners(signer,signers); err == nil {
+	fmt.Println("-- tribe.InTurnForCalc::signers -->", signers)
+	if idx, _, err := self.fetchOnSigners(signer, signers); err == nil {
 		if number%int64(len(self.Signers)) == idx.Int64() {
 			return diffInTurn
 		}
@@ -139,19 +139,21 @@ func (self *TribeStatus) InTurnForCalc(signer common.Address,parent *types.Heade
 	return diffNoTurn
 }
 func (self *TribeStatus) InTurnForVerify(number int64, signer common.Address) *big.Int {
-	parentNumber := number-1
+	parentNumber := number - 1
 	var signers []*Signer
 	//if number > 1 & self.Number != parentNumber {
 	if number > 1 {
 		var err error
 		signers, err = self.GetSignersFromChiefByNumber(big.NewInt(parentNumber))
 		if err != nil {
-			log.Warn("InTurn:GetSignersFromChiefByNumber:", "parentNumber",parentNumber,"err",err)
+			log.Warn("InTurn:GetSignersFromChiefByNumber:", "parentNumber", parentNumber, "err", err)
 		}
+	} else {
+		return diffInTurn
 	}
-
-	if idx, _, err := self.fetchOnSigners(signer,signers); err == nil {
-		if number%int64(len(self.Signers)) == idx.Int64() {
+	if idx, _, err := self.fetchOnSigners(signer, signers); err == nil {
+		log.Debug("-- InTurnForVerify -->", "parent", parentNumber, "idx", idx.Int64(), "signers", signers)
+		if number%int64(len(signers)) == idx.Int64() {
 			return diffInTurn
 		}
 	}
@@ -159,18 +161,18 @@ func (self *TribeStatus) InTurnForVerify(number int64, signer common.Address) *b
 }
 
 // 签名人是否在授权列表中
-func (self *TribeStatus) ValidateSigner(number int64,signer common.Address) bool {
-	parentNumber := number-1
+func (self *TribeStatus) ValidateSigner(number int64, signer common.Address) bool {
+	parentNumber := number - 1
 	var signers []*Signer
 	//if number > 1 && self.Number != parentNumber {
 	if number > 1 {
 		var err error
 		signers, err = self.GetSignersFromChiefByNumber(big.NewInt(parentNumber))
 		if err != nil {
-			log.Warn("TribeStatus.ValidateSigner : GetSignersFromChiefByNumber :","err",err)
+			log.Warn("TribeStatus.ValidateSigner : GetSignersFromChiefByNumber :", "err", err)
 		}
 	}
-	if _, _, e := self.fetchOnSigners(signer,signers); e == nil {
+	if _, _, e := self.fetchOnSigners(signer, signers); e == nil {
 		return true
 	}
 	return false
@@ -204,7 +206,7 @@ func (self *TribeStatus) Update(currentNumber *big.Int) {
 	if currentNumber.Int64() >= CHIEF_NUMBER && atomic.LoadInt32(&self.mining) == 1 {
 		// mining start
 		success := <-params.SendToMsgBox("Update")
-		fmt.Println(currentNumber.Int64(),"TribeStatus.Update :", success)
+		fmt.Println(currentNumber.Int64(), "TribeStatus.Update :", success)
 	}
 	self.LoadSignersFromChief(currentNumber)
 	return

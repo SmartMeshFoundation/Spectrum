@@ -385,9 +385,6 @@ func (t *Tribe) VerifySeal(chain consensus.ChainReader, header *types.Header) er
 // headers that aren't yet part of the local blockchain to generate the snapshots
 // from.
 func (t *Tribe) verifySeal(chain consensus.ChainReader, header *types.Header, parents []*types.Header) error {
-
-
-	fmt.Println("<<<< ############ >>>>")
 	// Verifying the genesis block is not supported
 	number := header.Number.Int64()
 	if number == 0 {

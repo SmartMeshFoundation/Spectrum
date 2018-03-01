@@ -429,13 +429,16 @@ func (d *Downloader) syncWithPeer(p *peerConnection, hash common.Hash, td *big.I
 	if err != nil {
 		return err
 	}
+	fmt.Println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+	fmt.Println("::: ORIGIN ::: origin=",origin,"height=",height)
 	d.syncStatsLock.Lock()
 	if d.syncStatsChainHeight <= origin || d.syncStatsChainOrigin > origin {
 		d.syncStatsChainOrigin = origin
 	}
 	d.syncStatsChainHeight = height
 	d.syncStatsLock.Unlock()
-
+	fmt.Println("::: ORIGIN ::: d.syncStatsChainHeight=",d.syncStatsChainHeight,"d.syncStatsChainHeight=",d.syncStatsChainHeight)
+	fmt.Println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 	// Initiate the sync using a concurrent header and content retrieval algorithm
 	pivot := uint64(0)
 	switch d.mode {
@@ -496,7 +499,6 @@ func (d *Downloader) syncWithPeer(p *peerConnection, hash common.Hash, td *big.I
 		fmt.Println("---- FastSync ---->")
 		fetchers = append(fetchers, func() error {
 			e := d.processFastSyncContent(latest)
-			fmt.Println(5, "XXXXXXX", e)
 			return e
 		})
 	} else if d.mode == FullSync {

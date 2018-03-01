@@ -6,6 +6,7 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/consensus"
 	"crypto/ecdsa"
 	"math/big"
+	"fmt"
 )
 
 type API struct {
@@ -23,7 +24,7 @@ type Signer struct {
 }
 
 func (self *Signer) String() string {
-	return ""
+	return fmt.Sprintf("%s:%d",self.Address.Hex(),self.Score)
 }
 
 type TribeStatus struct {

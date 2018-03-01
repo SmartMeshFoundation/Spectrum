@@ -10,6 +10,7 @@ import (
 	"time"
 	"encoding/hex"
 	"github.com/SmartMeshFoundation/SMChain/accounts/keystore"
+	"fmt"
 )
 
 func TestNormal(t *testing.T) {

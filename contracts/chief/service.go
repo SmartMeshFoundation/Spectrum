@@ -110,11 +110,13 @@ func (self *TribeService) getstatus(mbox params.Mbox) {
 	if err != nil {
 		success.Success = false
 		success.Entity = err
+		log.Debug("chief.mbox.rtn: getstatus <-", "success", success.Success,err)
 	} else {
-		success.Entity = params.ChiefStatus(chiefStatus)
+		entity := params.ChiefStatus(chiefStatus)
+		success.Entity = entity
+		log.Debug("chief.mbox.rtn: getstatus <-", "success", success.Success,entity)
 	}
 	mbox.Rtn <- success
-	log.Debug("chief.mbox.rtn: getstatus <-", "success", success)
 }
 
 func (self *TribeService) update(mbox params.Mbox) {
