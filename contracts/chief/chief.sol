@@ -175,18 +175,19 @@ contract TribeChief {
         if (sender != signers.signerList[signerIdx]) {
             int score = signers.scoreList[signerIdx];
             score = score - 1;
-            if (score>1) {
+            if (score > 0) {
                 signers.scoreList[signerIdx] = score;
                 signers.numberList[signerIdx] = blockNumber;
-            }else{
+            } else {
                 // 0 分时就删除了
                 deleteSigner(signerIdx);
             }
-        }else{
+        } else {
             // 恢复分数
             signers.scoreList[signerIdx] = 3;
         }
-        // TODO 是否提拔一个 volunteer 到签名人列表 的逻辑
+        // TODO : 是否提拔一个 volunteer 到签名人列表 的逻辑
+
     }
 
 
