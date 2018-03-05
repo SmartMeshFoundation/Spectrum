@@ -24,10 +24,10 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/params"
 	"github.com/SmartMeshFoundation/SMChain/rlp"
 	"github.com/SmartMeshFoundation/SMChain/rpc"
-	"github.com/hashicorp/golang-lru"
 	"fmt"
 	"sync/atomic"
 	"crypto/ecdsa"
+	"github.com/hashicorp/golang-lru"
 )
 
 const (
@@ -243,8 +243,12 @@ func (t *Tribe) VerifyHeader(chain consensus.ChainReader, header *types.Header, 
 // retrieve the async verifications (the order is that of the input slice).
 func (t *Tribe) VerifyHeaders(chain consensus.ChainReader, headers []*types.Header, seals []bool) (chan<- struct{}, <-chan error) {
 	abort := make(chan struct{})
-	results := make(chan error, len(headers))
-
+	// TODO ********** 一个临时方案，此处需要优化，最终目标是 async / sync 通过 header.nonce 来同步
+	// TODO ********** 一个临时方案，此处需要优化，最终目标是 async / sync 通过 header.nonce 来同步
+	// TODO ********** 一个临时方案，此处需要优化，最终目标是 async / sync 通过 header.nonce 来同步
+	// TODO ********** 一个临时方案，此处需要优化，最终目标是 async / sync 通过 header.nonce 来同步
+	results := make(chan error)
+	fmt.Println("==> VerifyHeaders currentNum =",chain.CurrentHeader().Number.Int64(),"headers.len =",len(headers))
 	go func() {
 		for i, header := range headers {
 			err := t.verifyHeader(chain, header, headers[:i])
@@ -327,10 +331,12 @@ func (t *Tribe) verifyCascadingFields(chain consensus.ChainReader, header *types
 		//TODO : ****** 这个地方是临时解决方案，后续需要做很大调整
 		//如果 header.parent != currentBlockNumber , 则等一下，让 blockBody 追赶 header
 		cn := chain.CurrentHeader().Number.Uint64()
+		fmt.Println(len(parents),"--> current:",chain.CurrentHeader().Number.Int64(),"header.parent:",parent.Number.Int64(),"header:",header.Number.Int64())
 		for cn < number && chain.CurrentHeader().Hash() != header.ParentHash {
-			fmt.Println(len(parents),"--> current:",chain.CurrentHeader().Number.Int64(),"header.parent:",parent.Number.Int64(),"header:",header.Number.Int64())
-			<- time.After(time.Second)
+			//<- time.After(time.Second)
+			fmt.Print(".")
 		}
+
 	} else {
 		parent = chain.GetHeader(header.ParentHash, number-1)
 	}
