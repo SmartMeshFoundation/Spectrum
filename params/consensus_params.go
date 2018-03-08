@@ -14,15 +14,16 @@ const (
 
 // for chief
 var (
-	MboxChan        = make(chan Mbox, 32)
-	InitTribeStatus = make(chan struct{})
-	ChiefTxNonce    = uint64(0) //先放在这里吧，用来修正 chiefTx.nonce
+	ChiefBaseBalance = new(big.Int).Mul(big.NewInt(1), big.NewInt(Finney))
+	MboxChan              = make(chan Mbox, 32)
+	InitTribeStatus       = make(chan struct{})
+	ChiefTxNonce          = uint64(0) //先放在这里吧，用来修正 chiefTx.nonce
 )
 
 // called on worker.go : commitTransactions
 func FixChiefTxNonce(to *common.Address, nonce uint64) {
 	if to != nil && *to == common.HexToAddress(ChiefAddress) {
-		atomic.StoreUint64(&ChiefTxNonce,nonce)
+		atomic.StoreUint64(&ChiefTxNonce, nonce)
 		fmt.Println("><> ---- FixChiefTxNonce:atomic.store ----> ", ChiefTxNonce)
 	}
 }

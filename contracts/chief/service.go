@@ -15,6 +15,9 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/log"
 	"math/big"
 	"fmt"
+	"github.com/SmartMeshFoundation/SMChain/crypto"
+	"github.com/SmartMeshFoundation/SMChain/ethclient"
+	"os"
 )
 
 /*
@@ -30,6 +33,8 @@ type TribeService struct {
 	tribeChief *TribeChief
 	quit       chan int
 	server     *p2p.Server // peers and nodekey ...
+	ipcpath    string
+	client     *ethclient.Client
 }
 
 func NewTribeService(ctx *node.ServiceContext) (node.Service, error) {
@@ -49,9 +54,11 @@ func NewTribeService(ctx *node.ServiceContext) (node.Service, error) {
 	if err != nil {
 		return nil, err
 	}
+	ipcpath := os.Getenv("IPCPATH")
 	return &TribeService{
 		tribeChief: contract,
 		quit:       make(chan int),
+		ipcpath:    ipcpath,
 	}, nil
 }
 
@@ -95,50 +102,116 @@ func (self *TribeService) getnodekey(mbox params.Mbox) {
 
 func (self *TribeService) getstatus(mbox params.Mbox) {
 	var blockNumber *big.Int = nil
-	if n,ok := mbox.Params["number"];ok {
-		fmt.Println("--> TribeService.getstatus : blockNumber =",n)
+	if n, ok := mbox.Params["number"]; ok {
+		fmt.Println("--> TribeService.getstatus : blockNumber =", n)
 		blockNumber = n.(*big.Int)
 	}
+	chiefStatus, err := self.getChiefStatus(blockNumber)
+	success := params.MBoxSuccess{Success: true}
+	if err != nil {
+		success.Success = false
+		success.Entity = err
+		log.Debug("chief.mbox.rtn: getstatus <-", "success", success.Success, err)
+	} else {
+		entity := chiefStatus
+		success.Entity = entity
+		log.Debug("chief.mbox.rtn: getstatus <-", "success", success.Success, entity)
+	}
+	mbox.Rtn <- success
+}
+
+func (self *TribeService) update(mbox params.Mbox) {
+
+	prv := self.server.PrivateKey
+	auth := bind.NewKeyedTransactor(prv)
+	auth.GasPrice = eth.DefaultConfig.GasPrice
+	auth.GasLimit = params.GenesisGasLimit
+	success := params.MBoxSuccess{Success: false}
+
+	if err := self.initEthclient(); err != nil {
+		success.Entity = err
+		mbox.Rtn <- success
+		return
+	}
+	if params.ChiefTxNonce > 0 {
+		nonce := params.ChiefTxNonce
+		auth.Nonce = new(big.Int).SetUint64(nonce)
+	}
+	t, e := self.tribeChief.Update(auth, self.fetchVolunteer())
+	if e != nil {
+		success.Entity = e
+	} else {
+		success.Success = true
+		success.Entity = t.Hash().Hex()
+	}
+	mbox.Rtn <- success
+	log.Debug("chief.mbox.rtn: update <-", "success", success)
+}
+
+// --------------------------------------------------------------------------------------------------
+// inner private
+// --------------------------------------------------------------------------------------------------
+func (self *TribeService) getChiefStatus(blockNumber *big.Int) (params.ChiefStatus, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 	defer cancel()
 	//opts := &bind.CallOpts{Context: ctx}
 	opts := new(bind.CallOptsWithNumber)
 	opts.Context = ctx
 	opts.Number = blockNumber
-	success := params.MBoxSuccess{Success: true}
 	chiefStatus, err := self.tribeChief.GetStatus(opts)
 	if err != nil {
-		success.Success = false
-		success.Entity = err
-		log.Debug("chief.mbox.rtn: getstatus <-", "success", success.Success,err)
-	} else {
-		entity := params.ChiefStatus(chiefStatus)
-		success.Entity = entity
-		log.Debug("chief.mbox.rtn: getstatus <-", "success", success.Success,entity)
+		return params.ChiefStatus{}, err
 	}
-	mbox.Rtn <- success
+	return params.ChiefStatus(chiefStatus), nil
 }
 
-func (self *TribeService) update(mbox params.Mbox) {
-	prv := self.server.PrivateKey
-	auth := bind.NewKeyedTransactor(prv)
-	auth.GasPrice = eth.DefaultConfig.GasPrice
-	auth.GasLimit = params.GenesisGasLimit
-	success := params.MBoxSuccess{Success: true}
+func (self *TribeService) isVolunteer(dict map[common.Address]interface{}, add common.Address) bool {
+	//TODO ****** 关于选拔的各种规则
+	// Rule.1 : Do not repeat the selection
+	if _, ok := dict[add]; ok {
+		return false
+	}
+	return true
+}
+func (self *TribeService) fetchVolunteer() common.Address {
+	peers := self.server.Peers()
+	if len(peers) > 0 {
+		chiefStatus, err := self.getChiefStatus(nil)
+		if err != nil {
+			log.Error("getChiefStatus fail", "err", err)
+		}
+		vl := append(chiefStatus.VolunteerList[:], chiefStatus.SignerList...)
+		vmap := make(map[common.Address]interface{})
+		for _, v := range vl {
+			vmap[v] = struct{}{}
+		}
+		fmt.Println("TODO #########################################################################")
+		for i, peer := range peers {
+			pub, _ := peer.ID().Pubkey()
+			add := crypto.PubkeyToAddress(*pub)
+			fmt.Println(i, "id:", peer.ID().String())
+			fmt.Println(i, "hex:", add.Hex())
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+			defer cancel()
+			b, e := self.client.BalanceAt(ctx, add, nil)
+			if e == nil && b.Cmp(params.ChiefBaseBalance) >= 0 && self.isVolunteer(vmap, add) {
+				return add
+			}
+			fmt.Println(i, "balance:", e, b.Int64())
+		}
+		fmt.Println("TODO #########################################################################")
+	}
+	return common.Address{}
+}
 
-	if params.ChiefTxNonce > 0 {
-		nonce := params.ChiefTxNonce
-		auth.Nonce = new(big.Int).SetUint64(nonce)
-		//fmt.Println("YYYYYYYYYYYYYY>> ",auth.Nonce.Uint64())
+func (self *TribeService) initEthclient() error {
+	if self.client == nil {
+		ethclient, err := ethclient.Dial(self.ipcpath)
+		if err != nil {
+			log.Error("ipc error at tribeservice.update", "err", err)
+			return err
+		}
+		self.client = ethclient
 	}
-	t, e := self.tribeChief.Update(auth, common.Address{})
-	if e != nil {
-		success.Success = false
-		success.Entity = e
-		//log.Error("TribeService.update",e)
-	} else {
-		success.Entity = t.Hash().Hex()
-	}
-	mbox.Rtn <- success
-	log.Debug("chief.mbox.rtn: update <-", "success", success)
+	return nil
 }

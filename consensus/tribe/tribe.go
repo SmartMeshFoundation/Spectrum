@@ -178,6 +178,7 @@ type Tribe struct {
 	signFn   SignerFn            // Signer function to authorize hashes with
 	lock     sync.RWMutex        // Protects the signer fields
 	Status   *TribeStatus
+
 }
 
 // signers set to the ones provided by the user.
@@ -218,9 +219,9 @@ func (t *Tribe) SetMining(i int32, currentNumber *big.Int) {
 	atomic.StoreInt32(&t.Status.mining, i)
 	if i == 1 {
 		if currentNumber.Int64() >= CHIEF_NUMBER {
-			fmt.Println(currentNumber.Int64(),"><> tribe.SetMining -> Status.Update : may be pending")
+			//fmt.Println(currentNumber.Int64(),"><> tribe.SetMining -> Status.Update : may be pending")
 			t.Status.Update(currentNumber)
-			fmt.Println(currentNumber.Int64(),"><> tribe.SetMining -> Status.Update : done")
+			//fmt.Println(currentNumber.Int64(),"><> tribe.SetMining -> Status.Update : done")
 		}
 	}
 	log.Debug("tribe.setMining_unlock", "mining", i)
@@ -243,9 +244,6 @@ func (t *Tribe) VerifyHeader(chain consensus.ChainReader, header *types.Header, 
 // retrieve the async verifications (the order is that of the input slice).
 func (t *Tribe) VerifyHeaders(chain consensus.ChainReader, headers []*types.Header, seals []bool) (chan<- struct{}, <-chan error) {
 	abort := make(chan struct{})
-	// TODO ********** 一个临时方案，此处需要优化，最终目标是 async / sync 通过 header.nonce 来同步
-	// TODO ********** 一个临时方案，此处需要优化，最终目标是 async / sync 通过 header.nonce 来同步
-	// TODO ********** 一个临时方案，此处需要优化，最终目标是 async / sync 通过 header.nonce 来同步
 	// TODO ********** 一个临时方案，此处需要优化，最终目标是 async / sync 通过 header.nonce 来同步
 	results := make(chan error)
 	fmt.Println("==> VerifyHeaders currentNum =",chain.CurrentHeader().Number.Int64(),"headers.len =",len(headers))
@@ -327,16 +325,14 @@ func (t *Tribe) verifyCascadingFields(chain consensus.ChainReader, header *types
 		parent = parents[len(parents)-1]
 		//TODO : ****** 这个地方是临时解决方案，后续需要做很大调整
 		//TODO : ****** 这个地方是临时解决方案，后续需要做很大调整
-		//TODO : ****** 这个地方是临时解决方案，后续需要做很大调整
-		//TODO : ****** 这个地方是临时解决方案，后续需要做很大调整
 		//如果 header.parent != currentBlockNumber , 则等一下，让 blockBody 追赶 header
 		cn := chain.CurrentHeader().Number.Uint64()
 		fmt.Println(len(parents),"--> current:",chain.CurrentHeader().Number.Int64(),"header.parent:",parent.Number.Int64(),"header:",header.Number.Int64())
 		for cn < number && chain.CurrentHeader().Hash() != header.ParentHash {
-			//<- time.After(time.Second)
+			<- time.After(time.Microsecond*200)
 			fmt.Print(".")
 		}
-
+		fmt.Println("")
 	} else {
 		parent = chain.GetHeader(header.ParentHash, number-1)
 	}
@@ -425,7 +421,6 @@ func (t *Tribe) verifySeal(chain consensus.ChainReader, header *types.Header, pa
 // header for running the transactions on top.
 func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error {
 	number := header.Number.Uint64()
-	//TODO tribe : 提名一个符合要求的邻居节点到候选人列表
 	header.Coinbase = common.Address{}
 	//TODO tribe : **** 是否需要同步，要看签名人列表有没有变化，这里是个难题，如何提前预测？
 	// 按照当前得分看，如果这个块不是我的，那么应该出块的人如果等于1分，则预言此处为 SYNC

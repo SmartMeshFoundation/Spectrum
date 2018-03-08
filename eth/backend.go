@@ -310,6 +310,9 @@ func (s *Ethereum) Etherbase() (eb common.Address, err error) {
 	etherbase := s.etherbase
 	s.lock.RUnlock()
 
+	if tribe, ok := s.engine.(*tribe.Tribe); ok {
+		return tribe.Status.GetMinerAddress() , nil
+	}
 	if etherbase != (common.Address{}) {
 		return etherbase, nil
 	}
@@ -343,7 +346,7 @@ func (s *Ethereum) StartMining(local bool) error {
 		log.Error("Cannot start mining without etherbase", "err", err)
 		return fmt.Errorf("etherbase missing: %v", err)
 	}
-	// 这个方法只要被调用即可
+
 	if tribe, ok := s.engine.(*tribe.Tribe); ok {
 		tribe.Authorize( common.Address{}, nil)
 	}

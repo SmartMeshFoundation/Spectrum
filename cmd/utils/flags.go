@@ -166,7 +166,7 @@ var (
 	defaultSyncMode = eth.DefaultConfig.SyncMode
 	SyncModeFlag    = TextMarshalerFlag{
 		Name:  "syncmode",
-		Usage: `Blockchain sync mode ("fast", "full", or "light")`,
+		Usage: `Blockchain sync mode ("full" or "light(TODO:not yet)")`,
 		Value: &defaultSyncMode,
 	}
 
