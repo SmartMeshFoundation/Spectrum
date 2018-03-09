@@ -89,9 +89,9 @@ contract TribeChief {
             }
         } else {
             // normal default for testing
-            address g1 = 0x14723a09acff6d2a60dcdf7aa4aff308fddc160c;
-            address g2 = 0xadb3ea3ad356199206ca817b04fd668cc5196df2;
-            address g3 = 0xca35b7d915458ef540ade6068dfe2f44e8fa733c;
+            address g1 = 0x4110bd1ff0b73fa12c259acf39c950277f266787;
+            address g2 = 0xca012e2facf405885293d8d3ba3f14fae1e58b71;
+            address g3 = 0xadb3ea3ad356199206ca817b04fd668cc5196df2;
 
             // nerver delete genesis signer
             genesisSigner[g1] = true;
