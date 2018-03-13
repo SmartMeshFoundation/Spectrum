@@ -14,7 +14,6 @@ import (
 	"time"
 	"context"
 	"os"
-	"fmt"
 	"github.com/SmartMeshFoundation/SMChain/log"
 )
 
@@ -66,7 +65,7 @@ func (api *API) GetStatus(number *rpc.BlockNumber) (*TribeStatus, error) {
 
 func NewTribeStatus() *TribeStatus {
 	ts := &TribeStatus{
-		Signers: make([]*Signer, 0, signerLimit),
+		Signers: make([]*Signer,0),
 	}
 	return ts
 }
@@ -116,9 +115,6 @@ func (self *TribeStatus) LoadSignersFromChief(number *big.Int) error {
 }
 
 func (self *TribeStatus) loadSigners(sl []*Signer) error {
-	if len(sl) > signerLimit {
-		return errors.New("size_not_allow")
-	}
 	self.Signers = append(self.Signers[:0], sl...)
 	return nil
 }
@@ -130,7 +126,7 @@ func (self *TribeStatus) GetSigners() []*Signer {
 func (self *TribeStatus) InTurnForCalc(signer common.Address, parent *types.Header) *big.Int {
 	number := parent.Number.Int64() + 1
 	signers := self.GetSigners()
-	fmt.Println("-- tribe.InTurnForCalc::signers -->", signers)
+	log.Debug("-- tribe.InTurnForCalc -->", "signers",signers)
 	if idx, _, err := self.fetchOnSigners(signer, signers); err == nil {
 		if number%int64(len(self.Signers)) == idx.Int64() {
 			return diffInTurn
@@ -206,7 +202,7 @@ func (self *TribeStatus) Update(currentNumber *big.Int) {
 	if currentNumber.Int64() >= CHIEF_NUMBER && atomic.LoadInt32(&self.mining) == 1 {
 		// mining start
 		success := <-params.SendToMsgBox("Update")
-		fmt.Println(currentNumber.Int64(), "TribeStatus.Update :", success)
+		log.Debug("TribeStatus.Update :", "num",currentNumber.Int64(),"success",success)
 	}
 	self.LoadSignersFromChief(currentNumber)
 	return

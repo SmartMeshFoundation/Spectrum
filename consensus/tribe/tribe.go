@@ -1,5 +1,4 @@
 // Copyright 2018 The SMChain Authors
-// Package tribe expand the proof-of-authority consensus engine.
 package tribe
 
 import (
@@ -31,27 +30,20 @@ import (
 )
 
 const (
-	historyLimit = 128 // Number of recent vote snapshots to keep in memory
-	signerLimit  = 111
+	historyLimit = 2048
 	wiggleTime   = 500 * time.Millisecond // Random delay (per signer) to allow concurrent signers
 	CHIEF_NUMBER = int64(1)
 )
 
 var (
-	// TODO 是否应该缩短选举周期呢?
-	epochLength = uint64(signerLimit) // Default number of blocks after which to checkpoint and reset the pending votes
-	blockPeriod = uint64(15)          // Default minimum difference between two consecutive block's timestamps
-
-	extraVanity = 32 // Fixed number of extra-data prefix bytes reserved for signer vanity
-	extraSeal   = 65 // Fixed number of extra-data suffix bytes reserved for signer seal
-
-	nonceSync  = hexutil.MustDecode("0xffffffffffffffff") // Magic nonce number to vote on adding a new signer
-	nonceAsync = hexutil.MustDecode("0x0000000000000000") // Magic nonce number to vote on removing a signer.
-
-	uncleHash = types.CalcUncleHash(nil) // Always Keccak256(RLP([])) as uncles are meaningless outside of PoW.
-
-	diffInTurn = big.NewInt(2) // Block difficulty for in-turn signatures
-	diffNoTurn = big.NewInt(1) // Block difficulty for out-of-turn signatures
+	blockPeriod = uint64(15)                               // Default minimum difference between two consecutive block's timestamps
+	extraVanity = 32                                       // Fixed number of extra-data prefix bytes reserved for signer vanity
+	extraSeal   = 65                                       // Fixed number of extra-data suffix bytes reserved for signer seal
+	nonceSync   = hexutil.MustDecode("0xffffffffffffffff") // Magic nonce number to vote on adding a new signer
+	nonceAsync  = hexutil.MustDecode("0x0000000000000000") // Magic nonce number to vote on removing a signer.
+	uncleHash   = types.CalcUncleHash(nil)                 // Always Keccak256(RLP([])) as uncles are meaningless outside of PoW.
+	diffInTurn  = big.NewInt(2)                            // Block difficulty for in-turn signatures
+	diffNoTurn  = big.NewInt(1)                            // Block difficulty for out-of-turn signatures
 )
 
 // Various error messages to mark blocks invalid. These should be private to
@@ -178,17 +170,16 @@ type Tribe struct {
 	signFn   SignerFn            // Signer function to authorize hashes with
 	lock     sync.RWMutex        // Protects the signer fields
 	Status   *TribeStatus
-
 }
 
 // signers set to the ones provided by the user.
 func New(config *params.TribeConfig, db ethdb.Database) *Tribe {
-	//TODO 启动时初始化 tribeStatus
 	status := NewTribeStatus()
 	sigcache, _ := lru.NewARC(historyLimit)
 	conf := *config
-	conf.Epoch = epochLength
-	conf.Period = blockPeriod
+	if conf.Period <= 0 {
+		conf.Period = blockPeriod
+	}
 
 	go func(s *TribeStatus) {
 		log.Info("init tribe.status when chiefservice start end.")
@@ -246,7 +237,7 @@ func (t *Tribe) VerifyHeaders(chain consensus.ChainReader, headers []*types.Head
 	abort := make(chan struct{})
 	// TODO ********** 一个临时方案，此处需要优化，最终目标是 async / sync 通过 header.nonce 来同步
 	results := make(chan error)
-	fmt.Println("==> VerifyHeaders currentNum =",chain.CurrentHeader().Number.Int64(),"headers.len =",len(headers))
+	log.Debug("==> VerifyHeaders ", "currentNum", chain.CurrentHeader().Number.Int64(), "headers.len", len(headers))
 	go func() {
 		for i, header := range headers {
 			err := t.verifyHeader(chain, header, headers[:i])
@@ -297,7 +288,7 @@ func (t *Tribe) verifyHeader(chain consensus.ChainReader, header *types.Header, 
 	// Ensure that the block's difficulty is meaningful (may not be correct at this point)
 	if number > 0 {
 		if header.Difficulty == nil || (header.Difficulty.Cmp(diffInTurn) != 0 && header.Difficulty.Cmp(diffNoTurn) != 0) {
-			fmt.Println("***** ERROR ******", header.Difficulty.String(),errInvalidDifficulty)
+			log.Error("** verifyHeader ERROR **", "diff", header.Difficulty.String(), "err", errInvalidDifficulty)
 			return errInvalidDifficulty
 		}
 	}
@@ -327,12 +318,11 @@ func (t *Tribe) verifyCascadingFields(chain consensus.ChainReader, header *types
 		//TODO : ****** 这个地方是临时解决方案，后续需要做很大调整
 		//如果 header.parent != currentBlockNumber , 则等一下，让 blockBody 追赶 header
 		cn := chain.CurrentHeader().Number.Uint64()
-		fmt.Println(len(parents),"--> current:",chain.CurrentHeader().Number.Int64(),"header.parent:",parent.Number.Int64(),"header:",header.Number.Int64())
 		for cn < number && chain.CurrentHeader().Hash() != header.ParentHash {
-			<- time.After(time.Microsecond*200)
+			<-time.After(time.Microsecond * 200)
 			fmt.Print(".")
 		}
-		fmt.Println("")
+		fmt.Println("parents.len:",len(parents), "current:", chain.CurrentHeader().Number.Int64(), "header.parent:", parent.Number.Int64(), "header:", header.Number.Int64())
 	} else {
 		parent = chain.GetHeader(header.ParentHash, number-1)
 	}
@@ -353,11 +343,12 @@ func (t *Tribe) verifyCascadingFields(chain consensus.ChainReader, header *types
 		if err == nil {
 			return
 		}
-		if chain.CurrentHeader().Hash() == header.ParentHash {
+		ch := chain.CurrentHeader()
+		if ch.Hash() == header.ParentHash {
 			return
 		}
-		fmt.Println(" -()-()-()-()-> ",chain.CurrentHeader().Number.Int64(),header.Number.Int64(),err)
-		<- time.After(time.Duration(time.Second))
+		log.Debug("loop_verifySeal", "currentNumber", ch.Number.Int64(), "number", number, "err", err)
+		<-time.After(time.Microsecond * 200)
 	}
 	return
 }
@@ -376,16 +367,11 @@ func (t *Tribe) VerifyUncles(chain consensus.ChainReader, block *types.Block) er
 func (t *Tribe) VerifySeal(chain consensus.ChainReader, header *types.Header) error {
 	e := t.verifySeal(chain, header, nil)
 	if e != nil {
-		fmt.Println("******", e)
-		fmt.Println("******", e)
+		log.Error("Tribe.VerifySeal", "err", e)
 	}
 	return e
 }
 
-// verifySeal checks whether the signature contained in the header satisfies the
-// consensus protocol requirements. The method accepts an optional list of parent
-// headers that aren't yet part of the local blockchain to generate the snapshots
-// from.
 func (t *Tribe) verifySeal(chain consensus.ChainReader, header *types.Header, parents []*types.Header) error {
 	// Verifying the genesis block is not supported
 	number := header.Number.Int64()
@@ -399,7 +385,7 @@ func (t *Tribe) verifySeal(chain consensus.ChainReader, header *types.Header, pa
 	}
 	log.Info("verifySeal", "number", number, "signer", signer.Hex())
 	// signer 必须在合法的签名人列表中
-	if !t.Status.ValidateSigner(number,signer) {
+	if !t.Status.ValidateSigner(number, signer) {
 		return errUnauthorized
 	}
 	// 根据 signer 算出 Difficulty 并予以校验
@@ -409,11 +395,9 @@ func (t *Tribe) verifySeal(chain consensus.ChainReader, header *types.Header, pa
 			return errInvalidDifficulty
 		}
 	}
-
 	// XXXX : 这些应该是在 verifyHeader 中校验
 	// XXXXXXXX : time 不能小于规定时间间隔，而且 Difficulty == no-turn 时时间必须大于规定时间 500ms 以上
-	// XXXXXXXX : 同一个 signer 不能连续出块
-
+	// XXXXXXXX : 某些条件下同一个 signer 不能连续出块
 	return nil
 }
 
@@ -497,7 +481,7 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 	t.lock.RUnlock()
 
 	// 校验 signer 是否在最新的 signers 列表中
-	if !t.Status.ValidateSigner(number,t.signer) {
+	if !t.Status.ValidateSigner(number, t.signer) {
 		return nil, errUnauthorized
 	}
 
@@ -525,12 +509,12 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 // that a new block should have based on the previous blocks in the chain and the
 // current signer.
 func (t *Tribe) CalcDifficulty(chain consensus.ChainReader, time uint64, parent *types.Header) *big.Int {
-	fmt.Println("--CalcDifficulty--> ParentNumber:",parent.Number.Int64(),"CurrentNumber:",chain.CurrentHeader().Number.Int64())
+	log.Debug("CalcDifficulty", "ParentNumber", parent.Number.Int64(), "CurrentNumber:", chain.CurrentHeader().Number.Int64())
 	//TODO 通过 parent 块获取最新的 signers 并计算 difficulty
 	// 并满足如下公式
 	// in-turn : signers[ block.number % len(signers) ] == t.signer
 	// no-turn : signers[ block.number % len(signers) ] != t.signer
-	return t.Status.InTurnForCalc(t.signer,parent)
+	return t.Status.InTurnForCalc(t.signer, parent)
 }
 
 // APIs implements consensus.Engine, returning the user facing RPC API to allow
@@ -538,7 +522,7 @@ func (t *Tribe) CalcDifficulty(chain consensus.ChainReader, time uint64, parent 
 func (t *Tribe) APIs(chain consensus.ChainReader) []rpc.API {
 	return []rpc.API{{
 		Namespace: "tribe",
-		Version:   "1.0",
+		Version:   "0.0.1",
 		Service:   &API{chain: chain, tribe: t},
 		Public:    false,
 	}}

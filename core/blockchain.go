@@ -815,9 +815,8 @@ func (bc *BlockChain) WriteBlockAndState(block *types.Block, receipts []*types.R
 					params.FixChiefTxNonce(t.To(), 0)
 				}
 			}
-			fmt.Println("><> blockchain.WriteBlockAndState -> tribe.Status.Update : may be pending")
 			tribe.Status.Update(bc.currentBlock.Number())
-			fmt.Println("><> blockchain.WriteBlockAndState -> tribe.Status.Update : done")
+			log.Debug("WriteBlockAndState::tribe.Update -> : done","num",block.Number().Int64())
 		}
 	}()
 
@@ -982,6 +981,7 @@ func (bc *BlockChain) insertChain(chain types.Blocks) (int, []interface{}, []*ty
 			bc.reportBlock(block, nil, err)
 			return i, events, coalescedLogs, err
 		}
+
 		// Create a new statedb using the parent block and report an
 		// error if it fails.
 		var parent *types.Block

@@ -261,8 +261,8 @@ func NewTxPool(config TxPoolConfig, chainconfig *params.ChainConfig, chain block
 	fmt.Println("new TxPool success >>>> ")
 
 	// add by liangc : set nodekey
-	go func(){
-		<- params.InitTribeStatus
+	go func() {
+		<-params.InitTribeStatus
 		rtn := params.SendToMsgBox("GetNodeKey")
 		success := <-rtn
 		pool.nodeKey = success.Entity.(*ecdsa.PrivateKey)
@@ -552,7 +552,6 @@ func (pool *TxPool) Pending() (map[common.Address]types.Transactions, error) {
 	for addr, list := range pool.pending {
 		pending[addr] = list.Flatten()
 	}
-	//fmt.Println("---- TxPool.Pending() ---->", mid, pending[mid])
 	return pending, nil
 }
 
@@ -617,14 +616,22 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 // add by liangc : chief contract's tx only be one , Keep up with the latest
 func (pool *TxPool) addChief(tx *types.Transaction) bool {
 	from := types.GetFromByTx(tx)
-	if pool.nodeKey!=nil && from!=nil && tx.To() != nil && *from == crypto.PubkeyToAddress(pool.nodeKey.PublicKey) && *tx.To() == common.HexToAddress(params.ChiefAddress) {
-		pool.chiefTx = tx
-		params.FixChiefTxNonce(tx.To(), tx.Nonce())
-		//fmt.Println(pool.chain.CurrentBlock().Number().Int64(), "--XXXX-- TxPool.addChief:FixChiefTxNonce ---->",pool.chiefTx.Nonce(), pool.chiefTx.Hash().Hex())
-		return true
+	if pool.nodeKey != nil && from != nil && tx.To() != nil && *tx.To() == common.HexToAddress(params.ChiefAddress) {
+		if *from == crypto.PubkeyToAddress(pool.nodeKey.PublicKey) {
+			pool.chiefTx = tx
+			params.FixChiefTxNonce(tx.To(), tx.Nonce())
+			//fmt.Println(pool.chain.CurrentBlock().Number().Int64(), "--XXXX-- TxPool.addChief:FixChiefTxNonce ---->",pool.chiefTx.Nonce(), pool.chiefTx.Hash().Hex())
+			return true
+		} else {
+			log.Warn("repeat chief.tx", "from", from.Hex(), "txid", tx.Hash().Hex())
+			pool.removeTx(tx.Hash())
+			return true
+		}
 	}
 	return false
 }
+
+/*
 func (pool *TxPool) fixChief(tx *types.Transaction) error {
 	if tx.To() != nil && *tx.To() == common.HexToAddress(params.ChiefAddress) {
 		fmt.Println(pool.chain.CurrentBlock().Number().Int64(), "--> TxPool.add : fixChief :", tx.Nonce(), tx.Hash().Hex())
@@ -634,32 +641,11 @@ func (pool *TxPool) fixChief(tx *types.Transaction) error {
 			pool.pending[from] = newTxList(true)
 		}
 		list := pool.pending[from]
-		/*
-		for _, ttt := range list.txs.items {
-			if ttt.To() != nil && *ttt.To() == *tx.To() {
-				//fmt.Println("<-- fixChief.remove : ",ttt.Nonce(),ttt.Hash().Hex())
-				//list.Remove(ttt)
-				//return nil
-				err_txt := fmt.Sprintf("chief_tx_redundant : %d : %s", tx.Nonce(), tx.Hash().Hex())
-				return errors.New(err_txt)
-			}
-		}
-		*/
 		list.Add(tx, pool.config.PriceBump)
 	}
 	return nil
-	/*
-	if tx.To()!=nil && *tx.To() == common.HexToAddress(params.ChiefAddress) {
-		if pool.chiefTx != nil {
-			old := pool.chiefTx
-			fmt.Println("====fixchief===> delete old_tx : ",old.Hash().Hex())
-			pool.removeTx(old.Hash())
-		}
-		fmt.Println("====fixchief===> set_new_tx : ",tx.Hash().Hex())
-		pool.chiefTx = tx
-	}
-	*/
 }
+*/
 
 // add validates a transaction and inserts it into the non-executable queue for
 // later pending promotion and execution. If the transaction is a replacement for
@@ -731,7 +717,7 @@ func (pool *TxPool) add(tx *types.Transaction, local bool) (bool, error) {
 	// New transaction isn't replacing a pending one, push into queue
 	replace, err := pool.enqueueTx(hash, tx)
 	/*
-	// TODO add by liangc : 观察行为，其实只是为了第一次启动时
+	// add by liangc : logger for debug
 	if tx.To() != nil && *tx.To() == common.HexToAddress(params.ChiefAddress) {
 		//pool.promoteExecutables([]common.Address{from})
 		if pool.pending[from] == nil {

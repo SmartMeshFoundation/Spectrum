@@ -146,7 +146,7 @@ func init() {
 	// Initialize the CLI app and start Geth
 	app.Action = geth
 	app.HideVersion = true // we have a command to print the version
-	app.Copyright = "Copyright 2017-2018 The SmartmeshChain Author (Ethereum-based)"
+	app.Copyright = "Copyright 2017-2018 The SmartmeshChain Author (Ethereum-based:1.8.0)"
 	app.Commands = []cli.Command{
 		// See chaincmd.go:
 		initCommand,
@@ -184,11 +184,11 @@ func init() {
 	app.Before = func(ctx *cli.Context) error {
 		// add by liangc : append testnet flag
 		if tn := ctx.GlobalBool(utils.TestnetFlag.Name);tn {
-			fmt.Println(">>>> is_testnet :",tn)
+			log.Info("is_testnet :",tn)
 			os.Setenv("TESTNET","1")
 		}
 		ipc := node.DefaultIPCEndpoint(clientIdentifier)
-		fmt.Println(">>>> ipcpath :",ipc)
+		log.Info("ipcpath :",ipc)
 		os.Setenv("IPCPATH",ipc)
 
 		runtime.GOMAXPROCS(runtime.NumCPU())
