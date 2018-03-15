@@ -3,7 +3,7 @@
 SmartMesh Chain is an [Ethereum-based](https://github.com/SmartMeshFoundation/SMChain) project. It uses a new consensus and new block reward for SmartMesh ecosystem devices and IOT. 
 
 
-SMChain is still in the development stage
+SMChain is still in the development stage.
 
 SMChain is still in the development stage, and this version is just for testing.
 
@@ -29,13 +29,13 @@ or build a full suite of utilities: make all：
 
     > admin.addPeer("enode://f9cf4fdc53ce5ecf84e7c26fbe262bddd7cbf3d17593328f74816a1c646a0ccfac9a85d81f7d51b59bc02dc8f0e8c5dada4db081efd79698a820faf9384773c0@49.51.11.222:60303")
 
-    wait a few seconds, and you will see the block sync is begin
+    wait a few seconds, and you will see the block sync is begin.
 
 ## View the miner node
 
 	> tribe.getStatus()
 
-    then you will see the following message,
+    then you will see the following message:
     {
         number: 243,
         signers: [{
@@ -48,7 +48,7 @@ or build a full suite of utilities: make all：
         volunteers: []
     }
 
-    that tell you there are two miner in the testnet
+    that tell you there are two miners in the testnet.
 
 ## more works
     more functions is now under development, and will show you later.
