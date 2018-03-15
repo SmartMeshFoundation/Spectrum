@@ -14,7 +14,7 @@ Building SmartMesh Chain requires both Go Language(Version 1.9.2 or later) and C
 
     $ make geth
 
-or build a full suite of utilities: make all：
+or build a full suite of utilities:
 
     $ make all
 
