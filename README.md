@@ -7,7 +7,7 @@ SMChain is still in the development stage
 
 SMChain is still in the development stage, and this version is just for testing.
 
-## Building the source
+## Installation on Linux/macOS 
 
 Building smc requires both a Go (Version 1.9.2 or later) and a C cimpiler. You can install them using your favourite package manager. Once the dependencies are installed, run
 
