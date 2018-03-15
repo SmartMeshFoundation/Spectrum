@@ -2,9 +2,6 @@
 
 SmartMesh Chain is an [Ethereum-based](https://github.com/SmartMeshFoundation/SMChain) project. It uses a new consensus and new block reward for SmartMesh ecosystem devices and IOT. 
 
-
-SMChain is still in the development stage.
-
 SMChain is still in the development stage, and this version is just for testing.
 
 ## Installation on Linux/macOS 
