@@ -14,7 +14,6 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/accounts/abi/bind"
 	"github.com/SmartMeshFoundation/SMChain/log"
 	"math/big"
-	"fmt"
 	"github.com/SmartMeshFoundation/SMChain/crypto"
 	"github.com/SmartMeshFoundation/SMChain/ethclient"
 	"os"
@@ -103,25 +102,25 @@ func (self *TribeService) getnodekey(mbox params.Mbox) {
 func (self *TribeService) getstatus(mbox params.Mbox) {
 	var (
 		blockNumber *big.Int = nil
-		blockHash = common.HexToHash("0x")
+		blockHash            = common.HexToHash("0x")
 	)
 	if h, ok := mbox.Params["hash"]; ok {
 		blockHash = h.(common.Hash)
-		log.Debug("=>TribeService.getstatus","blockHash", blockHash.Hex())
-	}else if n, ok := mbox.Params["number"]; ok {
+		log.Debug("=>TribeService.getstatus", "blockHash", blockHash.Hex())
+	} else if n, ok := mbox.Params["number"]; ok {
 		blockNumber = n.(*big.Int)
-		log.Debug("-> TribeService.getstatus","blockNumber", blockNumber.Int64())
+		log.Debug("-> TribeService.getstatus", "blockNumber", blockNumber.Int64())
 	}
-	chiefStatus, err := self.getChiefStatus(blockNumber,blockHash)
+	chiefStatus, err := self.getChiefStatus(blockNumber, blockHash)
 	success := params.MBoxSuccess{Success: true}
 	if err != nil {
 		success.Success = false
 		success.Entity = err
-		log.Debug("chief.mbox.rtn: getstatus <-", "success", success.Success,"err", err)
+		log.Debug("chief.mbox.rtn: getstatus <-", "success", success.Success, "err", err)
 	} else {
 		entity := chiefStatus
 		success.Entity = entity
-		log.Debug("chief.mbox.rtn: getstatus <-", "success", success.Success, "entity",entity)
+		log.Debug("chief.mbox.rtn: getstatus <-", "success", success.Success, "entity", entity)
 	}
 	mbox.Rtn <- success
 }
@@ -139,10 +138,15 @@ func (self *TribeService) update(mbox params.Mbox) {
 		mbox.Rtn <- success
 		return
 	}
-	if params.ChiefTxNonce > 0 {
-		nonce := params.ChiefTxNonce
-		auth.Nonce = new(big.Int).SetUint64(nonce)
-	}
+	//if params.ChiefTxNonce > 0 {
+	pnonce, _ := self.client.NonceAt(context.Background(),crypto.PubkeyToAddress(prv.PublicKey),nil)
+	//pnonce0, perr0 := self.client.PendingNonceAt(context.Background(), crypto.PubkeyToAddress(prv.PublicKey))
+	//nonce := params.ChiefTxNonce
+	//fmt.Println(">>=== pnonce 0=", pnonce0, "perr=", perr0)
+	//fmt.Println(">>=== pnonce 1=", pnonce, "perr=", perr)
+	log.Debug(">>=== nonce=", pnonce)
+	auth.Nonce = new(big.Int).SetUint64(pnonce)
+	//}
 	t, e := self.tribeChief.Update(auth, self.fetchVolunteer())
 	if e != nil {
 		success.Entity = e
@@ -157,7 +161,7 @@ func (self *TribeService) update(mbox params.Mbox) {
 // --------------------------------------------------------------------------------------------------
 // inner private
 // --------------------------------------------------------------------------------------------------
-func (self *TribeService) getChiefStatus(blockNumber *big.Int,blockHash common.Hash) (params.ChiefStatus, error) {
+func (self *TribeService) getChiefStatus(blockNumber *big.Int, blockHash common.Hash) (params.ChiefStatus, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 	defer cancel()
 	//opts := &bind.CallOpts{Context: ctx}
@@ -183,7 +187,7 @@ func (self *TribeService) isVolunteer(dict map[common.Address]interface{}, add c
 func (self *TribeService) fetchVolunteer() common.Address {
 	peers := self.server.Peers()
 	if len(peers) > 0 {
-		chiefStatus, err := self.getChiefStatus(nil,common.HexToHash("0x"))
+		chiefStatus, err := self.getChiefStatus(nil, common.HexToHash("0x"))
 		if err != nil {
 			log.Error("getChiefStatus fail", "err", err)
 		}
@@ -192,21 +196,21 @@ func (self *TribeService) fetchVolunteer() common.Address {
 		for _, v := range vl {
 			vmap[v] = struct{}{}
 		}
-		fmt.Println("TODO #########################################################################")
-		for i, peer := range peers {
+		//fmt.Println("#########################################################################")
+		for _, peer := range peers {
 			pub, _ := peer.ID().Pubkey()
 			add := crypto.PubkeyToAddress(*pub)
-			fmt.Println(i, "id:", peer.ID().String())
-			fmt.Println(i, "hex:", add.Hex())
+			//fmt.Println(i, "id:", peer.ID().String())
+			//fmt.Println(i, "hex:", add.Hex())
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 			defer cancel()
 			b, e := self.client.BalanceAt(ctx, add, nil)
 			if e == nil && b.Cmp(params.ChiefBaseBalance) >= 0 && self.isVolunteer(vmap, add) {
 				return add
 			}
-			fmt.Println(i, "balance:", e, b.Int64())
+			//fmt.Println(i, "balance:", e, b.Int64())
 		}
-		fmt.Println("TODO #########################################################################")
+		//fmt.Println("#########################################################################")
 	}
 	return common.Address{}
 }

@@ -426,6 +426,7 @@ func NewTransactionsByPriceAndNonce(signer Signer, txs map[common.Address]Transa
 		txs[acc] = accTxs[1:]
 	}
 	heap.Init(&heads)
+	//fmt.Println("=== NewTransactionsByPriceAndNonce XXXXXXXXXXXXXX====> heads ",heads)
 	// Assemble and return the transaction set
 	return &TransactionsByPriceAndNonce{
 		txs:    txs,

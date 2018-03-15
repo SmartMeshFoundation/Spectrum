@@ -216,9 +216,9 @@ func (t *Tribe) SetMining(i int32, currentNumber *big.Int, currentBlockHash comm
 	atomic.StoreInt32(&t.Status.mining, i)
 	if i == 1 {
 		if currentNumber.Int64() >= CHIEF_NUMBER {
-			//fmt.Println(currentNumber.Int64(),"><> tribe.SetMining -> Status.Update : may be pending")
+			fmt.Println(currentNumber.Int64(),"><> tribe.SetMining -> Status.Update : may be pending")
 			t.Status.Update(currentNumber, currentBlockHash)
-			//fmt.Println(currentNumber.Int64(),"><> tribe.SetMining -> Status.Update : done")
+			fmt.Println(currentNumber.Int64(),"><> tribe.SetMining -> Status.Update : done")
 		}
 	}
 	log.Debug("tribe.setMining_unlock", "mining", i)
@@ -246,9 +246,7 @@ func (t *Tribe) VerifyHeaders(chain consensus.ChainReader, headers []*types.Head
 	log.Debug("==> VerifyHeaders ", "currentNum", chain.CurrentHeader().Number.Int64(), "headers.len", len(headers))
 	go func() {
 		for i, header := range headers {
-			fmt.Println(i, "00000000000 :: header.number=", header.Number.Int64())
 			err := t.verifyHeader(chain, header, headers[:i])
-
 			select {
 			case <-abort:
 				return
@@ -327,22 +325,37 @@ func (t *Tribe) verifyCascadingFields(chain consensus.ChainReader, header *types
 		//TODO : ****** 这个地方是临时解决方案，后续需要做很大调整
 		//TODO : ****** 这个地方是临时解决方案，后续需要做很大调整
 		//如果 header.parent != currentBlockNumber , 则等一下，让 blockBody 追赶 header
-		cn := chain.CurrentHeader().Number.Uint64()
+		//cn := chain.CurrentHeader().Number.Uint64()
 		//for cn < number-1 {
 		//for cn < number-1 && chain.CurrentHeader().Hash() != header.ParentHash {
+		/*
 		fmt.Println(cn, "--------------------------->")
 		fmt.Println(cn, "=1=> currentNum:", chain.CurrentHeader().Number.Int64(), "currentHash:", chain.CurrentHeader().Hash().Hex())
 		fmt.Println(cn, "=2=> parentNum:", parent.Number.Int64(), "parentHash:", parent.Hash().Hex())
 		fmt.Println(cn, "=3=> headerNum", header.Number.Int64(), "header.parentHex", header.ParentHash.Hex())
-		blk := chain.GetBlock(header.ParentHash, header.Number.Uint64()-1)
-		if blk != nil {
-			fmt.Println(cn, "=4=>", blk.Number(), blk.Hash().Hex())
+		*/
+		i := 0
+		ENDWAIT:
+		for {
+			blk := chain.GetBlock(header.ParentHash, header.Number.Uint64()-1)
+			if blk != nil {
+				//fmt.Println(cn, "=4=>", blk.Number(), blk.Hash().Hex())
+				break ENDWAIT
+			} else {
+				log.Info("wait block","number",header.Number.Int64()-1,"hash",header.ParentHash.Hex())
+				<-time.After(time.Millisecond*10)
+				i++
+			}
+			if i > 100 {
+				log.Error("tribe.verifyCascadingFields : loop_100")
+				return errors.New("loop 100 , may be bad block")
+			}
 		}
-		fmt.Println(cn, "<---------------------------")
+		//fmt.Println(cn, "<---------------------------")
 		//	<-time.After(time.Second*5)
 		//<-time.After(time.Microsecond * 200)
 		//}
-		fmt.Println("parents.len:", len(parents), "current:", chain.CurrentHeader().Number.Int64(), "header.parent:", parent.Number.Int64(), "header:", header.Number.Int64())
+		//fmt.Println("parents.len:", len(parents), "current:", chain.CurrentHeader().Number.Int64(), "header.parent:", parent.Number.Int64(), "header:", header.Number.Int64())
 	} else {
 		parent = chain.GetHeader(header.ParentHash, number-1)
 		if parent.Time.Uint64()+t.config.Period > header.Time.Uint64() {
@@ -416,7 +429,9 @@ func (t *Tribe) verifySeal(chain consensus.ChainReader, header *types.Header, pa
 // header for running the transactions on top.
 func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error {
 	number := header.Number.Uint64()
-	header.Coinbase = common.Address{}
+	//header.Coinbase = common.Address{}
+	// 没有实际左右，只是为了观察日志，后续会去掉
+	header.Coinbase = t.Status.GetMinerAddress()
 	//TODO tribe : **** 是否需要同步，要看签名人列表有没有变化，这里是个难题，如何提前预测？
 	// 按照当前得分看，如果这个块不是我的，那么应该出块的人如果等于1分，则预言此处为 SYNC
 	header.Nonce = types.BlockNonce{}

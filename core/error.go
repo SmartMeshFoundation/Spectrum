@@ -35,7 +35,7 @@ var (
 
 	// for tribe consensus block validator
 	ErrTribeNotAllowEmptyTxList = errors.New("tribe not allow empty tx list")
-	ErrTribeFirstTxMustChief = errors.New("tribe first tx must be chief")
+	ErrTribeMustContainChiefTx = errors.New("tribe must contain chief tx")
 	ErrTribeChiefCannotRepeat = errors.New("tribe chief tx cannot repeat")
 
 )

@@ -173,7 +173,8 @@ func (self *TribeStatus) InTurnForVerify(number int64,parentHash common.Hash, si
 	}
 	if idx, _, err := self.fetchOnSigners(signer, signers); err == nil {
 		log.Debug("-- InTurnForVerify -->", "parent", parentNumber, "idx", idx.Int64(), "signers", signers)
-		if number%int64(len(signers)) == idx.Int64() {
+		sl := len(signers)
+		if sl > 0 && number%int64(sl) == idx.Int64() {
 			return diffInTurn
 		}
 	}

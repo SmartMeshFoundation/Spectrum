@@ -459,7 +459,7 @@ func (self *worker) commitNewWork() {
 		misc.ApplyDAOHardFork(work.state)
 	}
 	pending, err := self.eth.TxPool().Pending()
-	//fmt.Println(header.Number.Int64(), "====== commitNewWork =======>", pending)
+	//fmt.Println(header.Number.Int64(),err, "====== commitNewWork =======> pending.len:", len(pending))
 	if err != nil {
 		log.Error("Failed to fetch pending transactions", "err", err)
 		return
@@ -537,7 +537,11 @@ func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsB
 		if tx == nil {
 			break
 		}
-		//fmt.Println(bc.CurrentBlock().Number().Int64(),"---- work.commitTransactions ---->",1,tx)
+		/*
+		if tx.To()!= nil {
+			fmt.Println(bc.CurrentBlock().Number().Int64(),"---- work.commitTransactions ---->",1,tx.To().Hex())
+		}
+		*/
 		// Error may be ignored here. The error has already been checked
 		// during transaction acceptance is the transaction pool.
 		//
@@ -547,7 +551,6 @@ func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsB
 		// phase, start ignoring the sender until we do.
 		if tx.Protected() && !env.config.IsEIP155(env.header.Number) {
 			log.Trace("Ignoring reply protected transaction", "hash", tx.Hash(), "eip155", env.config.EIP155Block)
-
 			txs.Pop()
 			continue
 		}
@@ -555,7 +558,9 @@ func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsB
 		// Start executing the transaction
 		env.state.Prepare(tx.Hash(), common.Hash{}, env.tcount)
 		err, logs := env.commitTransaction(tx, bc, coinbase, gp)
-		//fmt.Println(bc.CurrentBlock().Number().Int64(),"---- work.commitTransactions ---->",3,err)
+		if err != nil {
+			log.Error("work.commitTransactions->","err",err)
+		}
 		switch err {
 		case core.ErrGasLimitReached:
 			// Pop the current out-of-gas transaction without shifting in the next from the account

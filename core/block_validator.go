@@ -55,15 +55,19 @@ func NewBlockValidator(config *params.ChainConfig, blockchain *BlockChain, engin
 func (v *BlockValidator) ValidateBody(block *types.Block) error {
 	if _, ok := v.engine.(*tribe.Tribe); ok && block.Number().Int64() > 3 {
 		// check first tx , must be chief.tx , and onely one chief.tx in tx list
-		if block!=nil && block.Transactions().Len() == 0 {
+		if block != nil && block.Transactions().Len() == 0 {
 			return ErrTribeNotAllowEmptyTxList
 		}
-		for i, tx := range block.Transactions() {
-			if i == 0 && ( tx.To() == nil || common.HexToAddress(params.ChiefAddress) != *tx.To()) {
-				return ErrTribeFirstTxMustChief
-			} else if i > 0 && tx.To() != nil && common.HexToAddress(params.ChiefAddress) == *tx.To() {
-				return ErrTribeChiefCannotRepeat
+		var total = 0
+		for _, tx := range block.Transactions() {
+			if tx.To() != nil && common.HexToAddress(params.ChiefAddress) == *tx.To() {
+				total ++
 			}
+		}
+		if total == 0 {
+			return ErrTribeMustContainChiefTx
+		} else if total > 1 {
+			return ErrTribeChiefCannotRepeat
 		}
 	}
 	// Check whether the block's known, and if not, that it's linkable

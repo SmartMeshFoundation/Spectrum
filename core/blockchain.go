@@ -174,8 +174,8 @@ func NewBlockChain(chainDb ethdb.Database, config *params.ChainConfig, engine co
 	// Take ownership of this particular state
 	go bc.update()
 	// add by liangc : set nodekey
-	go func(){
-		<- params.InitTribeStatus
+	go func() {
+		<-params.InitTribeStatus
 		rtn := params.SendToMsgBox("GetNodeKey")
 		success := <-rtn
 		bc.nodeKey = success.Entity.(*ecdsa.PrivateKey)
@@ -808,15 +808,17 @@ func (bc *BlockChain) WriteBlockAndState(block *types.Block, receipts []*types.R
 	defer func() {
 		bc.mu.Unlock()
 		if tribe, ok := bc.engine.(*tribe.Tribe); ok {
+			/*
 			for _, t := range block.Transactions() {
 				f := types.GetFromByTx(t)
 				tf := crypto.PubkeyToAddress(bc.nodeKey.PublicKey)
-				if f!=nil && tf == *f {
+				if f != nil && tf == *f {
 					params.FixChiefTxNonce(t.To(), 0)
 				}
 			}
-			tribe.Status.Update(bc.currentBlock.Number(),bc.currentBlock.Hash())
-			log.Debug("WriteBlockAndState::tribe.Update -> : done","num",block.Number().Int64())
+			*/
+			tribe.Status.Update(bc.currentBlock.Number(), bc.currentBlock.Hash())
+			log.Debug("WriteBlockAndState::tribe.Update -> : done", "num", block.Number().Int64())
 		}
 	}()
 
@@ -950,11 +952,9 @@ func (bc *BlockChain) insertChain(chain types.Blocks) (int, []interface{}, []*ty
 		bstart := time.Now()
 
 		err := <-results
-		fmt.Println("11111>>",err)
 		if err == nil {
 			err = bc.Validator().ValidateBody(block)
 		}
-		fmt.Println("22222>>",err)
 		if err != nil {
 			if err == ErrKnownBlock {
 				stats.ignored++

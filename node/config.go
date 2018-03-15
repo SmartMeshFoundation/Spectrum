@@ -202,7 +202,8 @@ func DefaultIPCEndpoint(clientIdentifier string) string {
 	if os.Getenv("TESTNET") == "1" {
 		config = &Config{DataDir: TestDataDir(), IPCPath: clientIdentifier + ".ipc"}
 	}
-	return config.IPCEndpoint()
+	path := config.IPCEndpoint()
+	return path
 }
 
 // HTTPEndpoint resolves an HTTP endpoint based on the configured host interface

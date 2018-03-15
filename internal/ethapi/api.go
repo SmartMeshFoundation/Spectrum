@@ -588,13 +588,13 @@ func (s *PublicBlockChainAPI) doCallWithHash(ctx context.Context, args CallArgs,
 	if state == nil || err != nil {
 		return nil, common.Big0, false, err
 	}
-	fmt.Println("PublicBlockChainAPI.doCallWithHash #>",header.Number.Int64(),hash.Hex())
+	//fmt.Println("PublicBlockChainAPI.doCallWithHash #>",header.Number.Int64(),hash.Hex())
 	return s._doCall(ctx,args,vmCfg,state,header)
 }
 
 func (s *PublicBlockChainAPI) doCallWithNumber(ctx context.Context, args CallArgs, blockNr rpc.BlockNumber, vmCfg vm.Config) ([]byte, *big.Int, bool, error) {
 	defer func(start time.Time) { log.Debug("Executing EVM call finished", "runtime", time.Since(start)) }(time.Now())
-	fmt.Println("PublicBlockChainAPI.doCall #>",blockNr)
+	//fmt.Println("PublicBlockChainAPI.doCall #>",blockNr)
 	state, header, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
 	if state == nil || err != nil {
 		return nil, common.Big0, false, err
@@ -669,7 +669,7 @@ func (s *PublicBlockChainAPI) Call(ctx context.Context, args CallArgs, blockNr r
 	//fmt.Println(2,"PublicBlockChainAPI.Call",hash.Hex())
 	if hash != common.HexToHash("0x") {
 		result, _, _, err = s.doCallWithHash(ctx, args, hash, vm.Config{DisableGasMetering: true})
-		fmt.Println("doCallWithHash :::> ",hash.Hex(),"err:",err)
+		//fmt.Println("doCallWithHash :::> ",hash.Hex(),"err:",err)
 	}else{
 		result, _, _, err = s.doCallWithNumber(ctx, args, blockNr, vm.Config{DisableGasMetering: true})
 	}

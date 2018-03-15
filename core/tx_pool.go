@@ -546,7 +546,9 @@ func (pool *TxPool) Pending() (map[common.Address]types.Transactions, error) {
 	if pool.chiefTx != nil {
 		chiefTx := pool.chiefTx
 		pool.chiefTx = nil
+		//fmt.Println(1,"FFFFFFFFFFFFFFFFFFFF",pool.signer)
 		mid, _ = types.Sender(pool.signer, chiefTx)
+		//fmt.Println(2,"FFFFFFFFFFFFFFFFFFFF",err,mid.Hex())
 		pending[mid] = types.Transactions{chiefTx}
 	}
 	for addr, list := range pool.pending {
@@ -617,9 +619,11 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 func (pool *TxPool) addChief(tx *types.Transaction) bool {
 	from := types.GetFromByTx(tx)
 	if pool.nodeKey != nil && from != nil && tx.To() != nil && *tx.To() == common.HexToAddress(params.ChiefAddress) {
+		log.Debug("TxPool.addChief", "tx", tx.Hash().Hex(), "from", (*from).Hex(), "nk", crypto.PubkeyToAddress(pool.nodeKey.PublicKey).Hex())
 		if *from == crypto.PubkeyToAddress(pool.nodeKey.PublicKey) {
 			pool.chiefTx = tx
-			params.FixChiefTxNonce(tx.To(), tx.Nonce())
+			//params.FixChiefTxNonce(tx.To(), tx.Nonce())
+			log.Info("TxPool.addChief", "txNonce", tx.Nonce())
 			//fmt.Println(pool.chain.CurrentBlock().Number().Int64(), "--XXXX-- TxPool.addChief:FixChiefTxNonce ---->",pool.chiefTx.Nonce(), pool.chiefTx.Hash().Hex())
 			return true
 		} else {

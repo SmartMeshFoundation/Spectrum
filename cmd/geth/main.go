@@ -188,7 +188,8 @@ func init() {
 			os.Setenv("TESTNET","1")
 		}
 		ipc := node.DefaultIPCEndpoint(clientIdentifier)
-		if dir := ctx.GlobalString(utils.DataDirFlag.Name);dir!=""{
+
+		if dir := ctx.GlobalString(utils.DataDirFlag.Name);ctx.GlobalIsSet(utils.DataDirFlag.Name){
 			ipc = node.DefaultIPCEndpointWithDir(dir,clientIdentifier)
 		}
 		os.Setenv("IPCPATH",ipc)
