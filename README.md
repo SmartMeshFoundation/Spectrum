@@ -28,6 +28,10 @@ or build a full suite of utilities:
 
     wait a few seconds, and you will see the block sync is begin.
 
+## Create new account
+
+   > personal.newAccount()  
+
 ## View the miner node
 
 	> tribe.getStatus()
