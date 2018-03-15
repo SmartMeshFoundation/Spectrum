@@ -23,7 +23,7 @@ or build a full suite of utilities: make all：
 
 ## Run full node to test geth
 
-    $ ./build/bin/geth --testnet --synmode full console
+    $ ./build/bin/geth --testnet --syncmode full console
 
 ## Connect to the testnet
 
