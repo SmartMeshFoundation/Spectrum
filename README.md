@@ -10,19 +10,24 @@ SMChain is still in the development stage, and this version is just for testing.
 ## Building the source
 
 Building smc requires both a Go (Version 1.9.2 or later) and a C cimpiler. You can install them using your favourite package manager. Once the dependencies are installed, run
-    make geth
+
+    $ git clone https://github.com/SmartMeshFoundation/SMChain.git
+
+    $ cd ./SMChain
+
+    $ make geth
 
 or, to build the full suite of utilities:
-    make all
+
+    $ make all
 
 ## Running full node test geth
 
-    $ ./build/bin/geth --testnet console
-
+    $ ./build/bin/geth --testnet --synmode full console
 
 ## Connect to the testnet
 
-    > admin.addPeer("enode://963ab76ecf41a5a214f5892bf4679d0f421b216aa514a942a20d865334689610cb50ceeab8f9fe44404d40eb1b9aa41bb61e2b04485895afb7bc02f1184b0b6d@49.51.11.222:60303")
+    > admin.addPeer("enode://f9cf4fdc53ce5ecf84e7c26fbe262bddd7cbf3d17593328f74816a1c646a0ccfac9a85d81f7d51b59bc02dc8f0e8c5dada4db081efd79698a820faf9384773c0@49.51.11.222:60303")
 
     wait a few second, and you will see the block sync is begin
 
