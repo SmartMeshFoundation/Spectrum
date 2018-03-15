@@ -188,7 +188,9 @@ func init() {
 			os.Setenv("TESTNET","1")
 		}
 		ipc := node.DefaultIPCEndpoint(clientIdentifier)
-		log.Info("ipcpath :",ipc)
+		if dir := ctx.GlobalString(utils.DataDirFlag.Name);dir!=""{
+			ipc = node.DefaultIPCEndpointWithDir(dir,clientIdentifier)
+		}
 		os.Setenv("IPCPATH",ipc)
 
 		runtime.GOMAXPROCS(runtime.NumCPU())

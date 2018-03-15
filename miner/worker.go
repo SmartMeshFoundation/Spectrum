@@ -205,7 +205,11 @@ func (self *worker) start() {
 	atomic.StoreInt32(&self.mining, 1)
 	//add by liangc : sync mining status
 	if tribe, ok := self.engine.(*tribe.Tribe); ok {
-		tribe.SetMining(1, self.chain.CurrentBlock().Number())
+		log.Info(" ⏳   Everything is ready, Waiting for nomination")
+		if self.chain.CurrentHeader().Number.Int64() > 1 { // free for genesis signer
+			<-tribe.WaitingNomination()
+		}
+		tribe.SetMining(1, self.chain.CurrentBlock().Number(),self.chain.CurrentHeader().Hash())
 	}
 	// spin up agents
 	for agent := range self.agents {
@@ -220,7 +224,7 @@ func (self *worker) stop() {
 	defer self.mu.Unlock()
 	//add by liangc : sync mining status
 	if tribe, ok := self.engine.(*tribe.Tribe); ok {
-		tribe.SetMining(0, self.chain.CurrentBlock().Number())
+		tribe.SetMining(0, self.chain.CurrentBlock().Number(),self.chain.CurrentHeader().Hash())
 	}
 	if atomic.LoadInt32(&self.mining) == 1 {
 		for agent := range self.agents {

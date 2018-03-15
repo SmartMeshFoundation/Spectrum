@@ -40,6 +40,19 @@ type MBoxSuccess struct {
 	Entity  interface{}
 }
 
+func SendToMsgBoxWithHash(method string, hash common.Hash) chan MBoxSuccess {
+	rtn := make(chan MBoxSuccess)
+	m := Mbox{
+		Method: method,
+		Rtn:    rtn,
+	}
+	if hash != common.HexToHash("0x") {
+		m.Params = map[string]interface{}{"hash": hash}
+	}
+	MboxChan <- m
+	return rtn
+}
+/*
 func SendToMsgBoxWithNumber(method string, number *big.Int) chan MBoxSuccess {
 	rtn := make(chan MBoxSuccess)
 	m := Mbox{
@@ -52,9 +65,10 @@ func SendToMsgBoxWithNumber(method string, number *big.Int) chan MBoxSuccess {
 	MboxChan <- m
 	return rtn
 }
+*/
 
 func SendToMsgBox(method string) chan MBoxSuccess {
-	return SendToMsgBoxWithNumber(method, nil)
+	return SendToMsgBoxWithHash(method, common.HexToHash("0x"))
 }
 
 // clone from chief.getStatus return struct

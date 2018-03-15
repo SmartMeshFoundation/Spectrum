@@ -34,6 +34,7 @@ var (
 	ErrNonceTooHigh = errors.New("nonce too high")
 
 	// for tribe consensus block validator
+	ErrTribeNotAllowEmptyTxList = errors.New("tribe not allow empty tx list")
 	ErrTribeFirstTxMustChief = errors.New("tribe first tx must be chief")
 	ErrTribeChiefCannotRepeat = errors.New("tribe chief tx cannot repeat")
 

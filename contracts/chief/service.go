@@ -101,21 +101,27 @@ func (self *TribeService) getnodekey(mbox params.Mbox) {
 }
 
 func (self *TribeService) getstatus(mbox params.Mbox) {
-	var blockNumber *big.Int = nil
-	if n, ok := mbox.Params["number"]; ok {
-		fmt.Println("--> TribeService.getstatus : blockNumber =", n)
+	var (
+		blockNumber *big.Int = nil
+		blockHash = common.HexToHash("0x")
+	)
+	if h, ok := mbox.Params["hash"]; ok {
+		blockHash = h.(common.Hash)
+		log.Debug("=>TribeService.getstatus","blockHash", blockHash.Hex())
+	}else if n, ok := mbox.Params["number"]; ok {
 		blockNumber = n.(*big.Int)
+		log.Debug("-> TribeService.getstatus","blockNumber", blockNumber.Int64())
 	}
-	chiefStatus, err := self.getChiefStatus(blockNumber)
+	chiefStatus, err := self.getChiefStatus(blockNumber,blockHash)
 	success := params.MBoxSuccess{Success: true}
 	if err != nil {
 		success.Success = false
 		success.Entity = err
-		log.Debug("chief.mbox.rtn: getstatus <-", "success", success.Success, err)
+		log.Debug("chief.mbox.rtn: getstatus <-", "success", success.Success,"err", err)
 	} else {
 		entity := chiefStatus
 		success.Entity = entity
-		log.Debug("chief.mbox.rtn: getstatus <-", "success", success.Success, entity)
+		log.Debug("chief.mbox.rtn: getstatus <-", "success", success.Success, "entity",entity)
 	}
 	mbox.Rtn <- success
 }
@@ -151,13 +157,14 @@ func (self *TribeService) update(mbox params.Mbox) {
 // --------------------------------------------------------------------------------------------------
 // inner private
 // --------------------------------------------------------------------------------------------------
-func (self *TribeService) getChiefStatus(blockNumber *big.Int) (params.ChiefStatus, error) {
+func (self *TribeService) getChiefStatus(blockNumber *big.Int,blockHash common.Hash) (params.ChiefStatus, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 	defer cancel()
 	//opts := &bind.CallOpts{Context: ctx}
 	opts := new(bind.CallOptsWithNumber)
 	opts.Context = ctx
 	opts.Number = blockNumber
+	opts.Hash = blockHash
 	chiefStatus, err := self.tribeChief.GetStatus(opts)
 	if err != nil {
 		return params.ChiefStatus{}, err
@@ -176,7 +183,7 @@ func (self *TribeService) isVolunteer(dict map[common.Address]interface{}, add c
 func (self *TribeService) fetchVolunteer() common.Address {
 	peers := self.server.Peers()
 	if len(peers) > 0 {
-		chiefStatus, err := self.getChiefStatus(nil)
+		chiefStatus, err := self.getChiefStatus(nil,common.HexToHash("0x"))
 		if err != nil {
 			log.Error("getChiefStatus fail", "err", err)
 		}

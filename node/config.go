@@ -174,6 +174,22 @@ func (c *Config) NodeDB() string {
 }
 
 // DefaultIPCEndpoint returns the IPC path used by default.
+func DefaultIPCEndpointWithDir(dir,clientIdentifier string) string {
+	if clientIdentifier == "" {
+		clientIdentifier = strings.TrimSuffix(filepath.Base(os.Args[0]), ".exe")
+		if clientIdentifier == "" {
+			panic("empty executable name")
+		}
+	}
+
+	config := &Config{DataDir: dir, IPCPath: clientIdentifier + ".ipc"}
+	if os.Getenv("TESTNET") == "1" {
+		config = &Config{DataDir: dir, IPCPath: clientIdentifier + ".ipc"}
+	}
+	return config.IPCEndpoint()
+}
+
+// DefaultIPCEndpoint returns the IPC path used by default.
 func DefaultIPCEndpoint(clientIdentifier string) string {
 	if clientIdentifier == "" {
 		clientIdentifier = strings.TrimSuffix(filepath.Base(os.Args[0]), ".exe")

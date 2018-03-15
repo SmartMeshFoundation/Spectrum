@@ -815,7 +815,7 @@ func (bc *BlockChain) WriteBlockAndState(block *types.Block, receipts []*types.R
 					params.FixChiefTxNonce(t.To(), 0)
 				}
 			}
-			tribe.Status.Update(bc.currentBlock.Number())
+			tribe.Status.Update(bc.currentBlock.Number(),bc.currentBlock.Hash())
 			log.Debug("WriteBlockAndState::tribe.Update -> : done","num",block.Number().Int64())
 		}
 	}()
@@ -950,9 +950,11 @@ func (bc *BlockChain) insertChain(chain types.Blocks) (int, []interface{}, []*ty
 		bstart := time.Now()
 
 		err := <-results
+		fmt.Println("11111>>",err)
 		if err == nil {
 			err = bc.Validator().ValidateBody(block)
 		}
+		fmt.Println("22222>>",err)
 		if err != nil {
 			if err == ErrKnownBlock {
 				stats.ignored++

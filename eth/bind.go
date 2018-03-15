@@ -67,7 +67,12 @@ func (b *ContractBackend) PendingCodeAt(ctx context.Context, contract common.Add
 // call with the specified data as the input. The pending flag requests execution
 // against the pending block, not the stable head of the chain.
 func (b *ContractBackend) CallContract(ctx context.Context, msg ethereum.CallMsg, blockNum *big.Int) ([]byte, error) {
-	out, err := b.bcapi.Call(ctx, toCallArgs(msg), toBlockNumber(blockNum))
+	out, err := b.bcapi.Call(ctx, toCallArgs(msg), toBlockNumber(blockNum),common.HexToHash("0x"))
+	return out, err
+}
+
+func (b *ContractBackend) CallContractWithHash(ctx context.Context, msg ethereum.CallMsg, blockHash common.Hash) ([]byte, error) {
+	out, err := b.bcapi.Call(ctx, toCallArgs(msg), toBlockNumber(nil),blockHash)
 	return out, err
 }
 
@@ -75,7 +80,7 @@ func (b *ContractBackend) CallContract(ctx context.Context, msg ethereum.CallMsg
 // call with the specified data as the input. The pending flag requests execution
 // against the pending block, not the stable head of the chain.
 func (b *ContractBackend) PendingCallContract(ctx context.Context, msg ethereum.CallMsg) ([]byte, error) {
-	out, err := b.bcapi.Call(ctx, toCallArgs(msg), rpc.PendingBlockNumber)
+	out, err := b.bcapi.Call(ctx, toCallArgs(msg), rpc.PendingBlockNumber,common.HexToHash("0x"))
 	return out, err
 }
 

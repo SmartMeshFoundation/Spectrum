@@ -50,6 +50,8 @@ type ContractCaller interface {
 	// ContractCall executes an Ethereum contract call with the specified data as the
 	// input.
 	CallContract(ctx context.Context, call ethereum.CallMsg, blockNumber *big.Int) ([]byte, error)
+	// add by liangc
+	CallContractWithHash(ctx context.Context, call ethereum.CallMsg, blockHash common.Hash) ([]byte, error)
 }
 
 // DeployBackend wraps the operations needed by WaitMined and WaitDeployed.

@@ -8,10 +8,10 @@ contract TribeChief {
     string vsn = "0.0.2";
 
     //配置 >>>>
-    uint epoch = 300; // TODO 调试环境设置为 300 , 生产环境为 30000
+    uint epoch = 11520; // 48H
     mapping(address => bool) genesisSigner; //创世签名节点
-    uint constant singerLimit = 30;
-    uint constant volunteerLimit = 4;
+    uint singerLimit = 3;
+    uint volunteerLimit = 4;
     //配置 <<<<
 
     uint blockNumber;
@@ -21,6 +21,8 @@ contract TribeChief {
         uint score;
         uint number;
     }
+
+    address _owner;
 
     //签名人列表
     address[] _signerList;
@@ -80,6 +82,7 @@ contract TribeChief {
     }
 
     function TribeChief(address[] genesisSigners) public {
+        _owner = msg.sender;
         uint len = genesisSigners.length;
         if (len > 0) {
             for (uint i = 0; i < len; i++) {
@@ -105,6 +108,18 @@ contract TribeChief {
     modifier apply(address _addr) {
         require(signersMap[_addr].number > 0);
         _;
+    }
+    modifier owner(address _addr) {
+        require(_addr == _owner);
+        _;
+    }
+
+    function setVolunteerLimit(uint n) public apply(msg.sender) {
+        volunteerLimit = n;
+    }
+
+    function setSingerLimit(uint n) public apply(msg.sender) {
+        singerLimit = n;
     }
 
     function update(address volunteer) public apply(msg.sender) {
@@ -167,6 +182,12 @@ contract TribeChief {
 
     function version() constant returns (string) {
         return vsn;
+    }
+    function getSignerLimit() constant returns (uint) {
+        return singerLimit;
+    }
+    function getVolunteerLimit() constant returns (uint) {
+        return volunteerLimit;
     }
 
     function getStatus() constant returns (

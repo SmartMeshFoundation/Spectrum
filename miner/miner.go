@@ -106,22 +106,7 @@ out:
 
 func (self *Miner) Start(coinbase common.Address) {
 	atomic.StoreInt32(&self.shouldStart, 1)
-	if tribe, ok := self.engine.(*tribe.Tribe); ok {
-	ENDCHECK:
-		for {
-			m := tribe.Status.GetMinerAddress()
-			s, err := self.worker.chain.State()
-			if err != nil {
-				log.Error("😦 miner start fail", err)
-			}
-			if s.GetBalance(m).Cmp(params.ChiefBaseBalance) < 0 {
-				log.Warn(fmt.Sprintf("🏆   Wait send 1 finney at least to \"%s\" to upgrade to signature node", m.Hex()))
-			} else {
-				break ENDCHECK
-			}
-			<-time.After(time.Second * 3)
-		}
-	}
+
 	self.worker.setEtherbase(coinbase)
 	self.coinbase = coinbase
 	if atomic.LoadInt32(&self.canStart) == 0 {
@@ -130,10 +115,28 @@ func (self *Miner) Start(coinbase common.Address) {
 	}
 	atomic.StoreInt32(&self.mining, 1)
 	log.Info("Starting mining operation")
-	fmt.Println(">>>>>>>>>>> miner.start wait 1 sec for chief.update ", coinbase.Hex())
+
+	if tribe, ok := self.engine.(*tribe.Tribe); ok {
+		i := 0
+	ENDCHECK:
+		for {
+			m := tribe.Status.GetMinerAddress()
+			s, err := self.worker.chain.State()
+			if err != nil {
+				log.Error("😦 miner start fail", err)
+			}
+			if s.GetBalance(m).Cmp(params.ChiefBaseBalance) < 0 {
+				if i % 10 == 0 {
+					log.Warn(fmt.Sprintf("🏆   Wait send 1 finney at least to \"%s\" to upgrade to signature node", m.Hex()))
+				}
+			} else {
+				break ENDCHECK
+			}
+			<-time.After(time.Second * 3)
+			i++
+		}
+	}
 	self.worker.start()
-	//<-time.After(time.Duration(time.Second * 1))
-	fmt.Println("<<<<<<<<<<< miner.start wait 1 sec for chief.update ", coinbase.Hex())
 	self.worker.commitNewWork()
 }
 
