@@ -3,6 +3,7 @@ package tribe
 import (
 	"testing"
 	"github.com/SmartMeshFoundation/SMChain/common"
+	"fmt"
 )
 
 var (
@@ -19,5 +20,8 @@ var (
 	}
 )
 
+type BUF []byte
+func (a BUF) Str() string   { return string(a[:]) }
 func TestSigners(t *testing.T) {
+
 }

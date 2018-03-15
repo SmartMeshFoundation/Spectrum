@@ -14,8 +14,8 @@ import (
 	"time"
 	"context"
 	"os"
-	"fmt"
 	"github.com/SmartMeshFoundation/SMChain/log"
+	"fmt"
 )
 
 func (api *API) GetMiner(number *rpc.BlockNumber) (*TribeMiner, error) {
@@ -31,54 +31,60 @@ func (api *API) GetMiner(number *rpc.BlockNumber) (*TribeMiner, error) {
 	if e != nil {
 		return nil, e
 	}
-	//TODO level from status
-	level := "None"
-	return &TribeMiner{add, b, level}, nil
+	return &TribeMiner{add, b, api.tribe.Status.SignerLevel}, nil
 }
 
-func (api *API) GetSigners(number *rpc.BlockNumber) ([]*Signer, error) {
+func (api *API) GetSigners(hash *common.Hash) ([]*Signer, error) {
 	header := api.chain.CurrentHeader()
 	if header.Number.Int64() == 0 {
 		api.tribe.Status.genesisSigner(header)
 	} else {
-		if number != nil {
-			api.tribe.Status.LoadSignersFromChief(big.NewInt(number.Int64()))
-		} else {
-			api.tribe.Status.LoadSignersFromChief(nil)
+		h := common.HexToHash("0x")
+		if hash!= nil {
+			h = *hash
 		}
+		api.tribe.Status.LoadSignersFromChief(h)
 	}
 	return api.tribe.Status.Signers, nil
 }
 
-func (api *API) GetStatus(number *rpc.BlockNumber) (*TribeStatus, error) {
+func (api *API) GetStatus(hash *common.Hash) (*TribeStatus, error) {
 	header := api.chain.CurrentHeader()
 	if header.Number.Int64() == 0 {
 		api.tribe.Status.genesisSigner(header)
 	} else {
-		if number != nil {
-			api.tribe.Status.LoadSignersFromChief(big.NewInt(number.Int64()))
-		} else {
-			api.tribe.Status.LoadSignersFromChief(nil)
+		h := common.HexToHash("0x")
+		if hash!= nil {
+			h = *hash
 		}
+		api.tribe.Status.LoadSignersFromChief(h)
 	}
 	return api.tribe.Status, nil
 }
 
 func NewTribeStatus() *TribeStatus {
 	ts := &TribeStatus{
-		Signers: make([]*Signer, 0, signerLimit),
+		Signers:     make([]*Signer, 0),
+		SignerLevel: LevelNone,
 	}
 	return ts
 }
 
 func (self *TribeStatus) GetMinerAddress() common.Address {
+	if self.nodeKey == nil {
+		fmt.Println("   ☠️  ")
+		fmt.Println("   ☠️  ")
+		fmt.Println("   ☠️  ")
+		fmt.Println("   ☠️  ")
+		return common.Address{}
+	}
 	pub := self.nodeKey.PublicKey
 	add := crypto.PubkeyToAddress(pub)
 	return add
 }
 
-func (self *TribeStatus) GetSignersFromChiefByNumber(number *big.Int) ([]*Signer, error) {
-	rtn := params.SendToMsgBoxWithNumber("GetStatus", number)
+func (self *TribeStatus) GetSignersFromChiefByHash(hash common.Hash) ([]*Signer, error) {
+	rtn := params.SendToMsgBoxWithHash("GetStatus", hash)
 	r := <-rtn
 	if !r.Success {
 		return nil, r.Entity.(error)
@@ -95,8 +101,8 @@ func (self *TribeStatus) GetSignersFromChiefByNumber(number *big.Int) ([]*Signer
 }
 
 // 在 加载完所有 node.service 后，需要主动调用一次
-func (self *TribeStatus) LoadSignersFromChief(number *big.Int) error {
-	rtn := params.SendToMsgBoxWithNumber("GetStatus", number)
+func (self *TribeStatus) LoadSignersFromChief(hash common.Hash) error {
+	rtn := params.SendToMsgBoxWithHash("GetStatus", hash)
 	r := <-rtn
 	if !r.Success {
 		return r.Entity.(error)
@@ -112,13 +118,27 @@ func (self *TribeStatus) LoadSignersFromChief(number *big.Int) error {
 	self.Volunteers = cs.VolunteerList
 	self.Number = cs.Number.Int64()
 	self.loadSigners(sl)
+	go self.resetSignersLevel()
 	return nil
 }
 
-func (self *TribeStatus) loadSigners(sl []*Signer) error {
-	if len(sl) > signerLimit {
-		return errors.New("size_not_allow")
+func (self *TribeStatus) resetSignersLevel() {
+	m := self.GetMinerAddress()
+	for _, v := range self.Volunteers {
+		if v == m {
+			self.SignerLevel = LevelVolunteer
+			return
+		}
 	}
+	for _, s := range self.Signers {
+		if s.Address == m {
+			self.SignerLevel = LevelSigner
+			return
+		}
+	}
+}
+
+func (self *TribeStatus) loadSigners(sl []*Signer) error {
 	self.Signers = append(self.Signers[:0], sl...)
 	return nil
 }
@@ -130,7 +150,7 @@ func (self *TribeStatus) GetSigners() []*Signer {
 func (self *TribeStatus) InTurnForCalc(signer common.Address, parent *types.Header) *big.Int {
 	number := parent.Number.Int64() + 1
 	signers := self.GetSigners()
-	fmt.Println("-- tribe.InTurnForCalc::signers -->", signers)
+	log.Debug("-- tribe.InTurnForCalc -->", "signers", signers)
 	if idx, _, err := self.fetchOnSigners(signer, signers); err == nil {
 		if number%int64(len(self.Signers)) == idx.Int64() {
 			return diffInTurn
@@ -138,13 +158,13 @@ func (self *TribeStatus) InTurnForCalc(signer common.Address, parent *types.Head
 	}
 	return diffNoTurn
 }
-func (self *TribeStatus) InTurnForVerify(number int64, signer common.Address) *big.Int {
+func (self *TribeStatus) InTurnForVerify(number int64,parentHash common.Hash, signer common.Address) *big.Int {
 	parentNumber := number - 1
 	var signers []*Signer
 	//if number > 1 & self.Number != parentNumber {
 	if number > 1 {
 		var err error
-		signers, err = self.GetSignersFromChiefByNumber(big.NewInt(parentNumber))
+		signers, err = self.GetSignersFromChiefByHash(parentHash)
 		if err != nil {
 			log.Warn("InTurn:GetSignersFromChiefByNumber:", "parentNumber", parentNumber, "err", err)
 		}
@@ -161,13 +181,12 @@ func (self *TribeStatus) InTurnForVerify(number int64, signer common.Address) *b
 }
 
 // 签名人是否在授权列表中
-func (self *TribeStatus) ValidateSigner(number int64, signer common.Address) bool {
-	parentNumber := number - 1
+func (self *TribeStatus) ValidateSigner(number int64,parentHash common.Hash, signer common.Address) bool {
 	var signers []*Signer
 	//if number > 1 && self.Number != parentNumber {
 	if number > 1 {
 		var err error
-		signers, err = self.GetSignersFromChiefByNumber(big.NewInt(parentNumber))
+		signers, err = self.GetSignersFromChiefByHash(parentHash)
 		if err != nil {
 			log.Warn("TribeStatus.ValidateSigner : GetSignersFromChiefByNumber :", "err", err)
 		}
@@ -189,9 +208,9 @@ func (self *TribeStatus) fetchOnSigners(address common.Address, signers []*Signe
 	if signers == nil {
 		signers = self.Signers
 	}
-	if l := len(self.Signers); l > 0 {
+	if l := len(signers); l > 0 {
 		for i := 0; i < l; i++ {
-			if s := self.Signers[i]; s.Address == address {
+			if s := signers[i]; s.Address == address {
 				return big.NewInt(int64(i)), s, nil
 			}
 		}
@@ -202,13 +221,13 @@ func (self *TribeStatus) fetchOnSigners(address common.Address, signers []*Signe
 // called by end of WriteBlockAndState
 // if miner then execute chief.update and chief.getStatus
 // else execute chief.getStatus only
-func (self *TribeStatus) Update(currentNumber *big.Int) {
+func (self *TribeStatus) Update(currentNumber *big.Int,hash common.Hash) {
 	if currentNumber.Int64() >= CHIEF_NUMBER && atomic.LoadInt32(&self.mining) == 1 {
 		// mining start
 		success := <-params.SendToMsgBox("Update")
-		fmt.Println(currentNumber.Int64(), "TribeStatus.Update :", success)
+		log.Debug("TribeStatus.Update :", "num", currentNumber.Int64(), "success", success)
 	}
-	self.LoadSignersFromChief(currentNumber)
+	self.LoadSignersFromChief(hash)
 	return
 }
 

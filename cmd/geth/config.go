@@ -157,6 +157,12 @@ func makeFullNode(ctx *cli.Context) *node.Node {
 	stack, cfg := makeConfigNode(ctx)
 
 	utils.RegisterEthService(stack, &cfg.Eth)
+	// add by liangc : add chief service
+	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
+		return chief.NewTribeService(ctx)
+	}); err != nil {
+		fmt.Println("error",err)
+	}
 
 	if ctx.GlobalBool(utils.DashboardEnabledFlag.Name) {
 		utils.RegisterDashboardService(stack, &cfg.Dashboard)
@@ -192,12 +198,6 @@ func makeFullNode(ctx *cli.Context) *node.Node {
 		return release.NewReleaseService(ctx, config)
 	}); err != nil {
 		utils.Fatalf("Failed to register the Geth release oracle service: %v", err)
-	}
-	// add by liangc : add chief service
-	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-		return chief.NewTribeService(ctx)
-	}); err != nil {
-		fmt.Println("error",err)
 	}
 	return stack
 }

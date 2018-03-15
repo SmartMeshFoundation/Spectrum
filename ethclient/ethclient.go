@@ -430,6 +430,10 @@ func (ec *Client) CallContract(ctx context.Context, msg ethereum.CallMsg, blockN
 	return hex, nil
 }
 
+func (ec *Client) CallContractWithHash(ctx context.Context, msg ethereum.CallMsg, blockHash common.Hash) ([]byte, error) {
+	return nil, errors.New("TODO : ethclient not implements CallContractWithHash yet")
+}
+
 // PendingCallContract executes a message call transaction using the EVM.
 // The state seen by the contract call is the pending state.
 func (ec *Client) PendingCallContract(ctx context.Context, msg ethereum.CallMsg) ([]byte, error) {

@@ -32,4 +32,10 @@ var (
 	// ErrNonceTooHigh is returned if the nonce of a transaction is higher than the
 	// next one expected based on the local chain.
 	ErrNonceTooHigh = errors.New("nonce too high")
+
+	// for tribe consensus block validator
+	ErrTribeNotAllowEmptyTxList = errors.New("tribe not allow empty tx list")
+	ErrTribeFirstTxMustChief = errors.New("tribe first tx must be chief")
+	ErrTribeChiefCannotRepeat = errors.New("tribe chief tx cannot repeat")
+
 )

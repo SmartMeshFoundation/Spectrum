@@ -172,6 +172,10 @@ func (b *SimulatedBackend) CallContract(ctx context.Context, call ethereum.CallM
 	rval, _, _, err := b.callContract(ctx, call, b.blockchain.CurrentBlock(), state)
 	return rval, err
 }
+func (b *SimulatedBackend) CallContractWithHash(ctx context.Context, call ethereum.CallMsg, blockHash common.Hash) ([]byte, error) {
+	return nil,errors.New("TODO : SimulatedBackend not implements CallContractWithHash")
+}
+
 
 // PendingCallContract executes a contract call on the pending state.
 func (b *SimulatedBackend) PendingCallContract(ctx context.Context, call ethereum.CallMsg) ([]byte, error) {

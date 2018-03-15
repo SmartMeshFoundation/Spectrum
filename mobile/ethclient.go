@@ -23,6 +23,7 @@ import (
 
 	"github.com/SmartMeshFoundation/SMChain/core/types"
 	"github.com/SmartMeshFoundation/SMChain/ethclient"
+	"github.com/SmartMeshFoundation/SMChain/common"
 )
 
 // EthereumClient provides access to the Ethereum APIs.
@@ -279,6 +280,11 @@ func (ec *EthereumClient) CallContract(ctx *Context, msg *CallMsg, number int64)
 		return ec.client.CallContract(ctx.context, msg.msg, nil)
 	}
 	return ec.client.CallContract(ctx.context, msg.msg, big.NewInt(number))
+}
+
+// add by liangc
+func (ec *EthereumClient) CallContractWithHash(ctx *Context, msg *CallMsg, blockHash common.Hash) (output []byte, _ error) {
+	return ec.client.CallContractWithHash(ctx.context, msg.msg, blockHash)
 }
 
 // PendingCallContract executes a message call transaction using the EVM.

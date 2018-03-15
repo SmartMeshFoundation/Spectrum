@@ -42,6 +42,7 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/rpc"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/util"
+	"github.com/SmartMeshFoundation/SMChain/core/state"
 )
 
 const (
@@ -581,13 +582,27 @@ type CallArgs struct {
 	Data     hexutil.Bytes   `json:"data"`
 }
 
-func (s *PublicBlockChainAPI) doCall(ctx context.Context, args CallArgs, blockNr rpc.BlockNumber, vmCfg vm.Config) ([]byte, *big.Int, bool, error) {
+func (s *PublicBlockChainAPI) doCallWithHash(ctx context.Context, args CallArgs, hash common.Hash, vmCfg vm.Config) ([]byte, *big.Int, bool, error) {
 	defer func(start time.Time) { log.Debug("Executing EVM call finished", "runtime", time.Since(start)) }(time.Now())
+	state, header, err := s.b.StateAndHeaderByHash(ctx, hash)
+	if state == nil || err != nil {
+		return nil, common.Big0, false, err
+	}
+	fmt.Println("PublicBlockChainAPI.doCallWithHash #>",header.Number.Int64(),hash.Hex())
+	return s._doCall(ctx,args,vmCfg,state,header)
+}
 
+func (s *PublicBlockChainAPI) doCallWithNumber(ctx context.Context, args CallArgs, blockNr rpc.BlockNumber, vmCfg vm.Config) ([]byte, *big.Int, bool, error) {
+	defer func(start time.Time) { log.Debug("Executing EVM call finished", "runtime", time.Since(start)) }(time.Now())
+	fmt.Println("PublicBlockChainAPI.doCall #>",blockNr)
 	state, header, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
 	if state == nil || err != nil {
 		return nil, common.Big0, false, err
 	}
+	return s._doCall(ctx,args,vmCfg,state,header)
+}
+func (s *PublicBlockChainAPI) _doCall(ctx context.Context,args CallArgs,vmCfg vm.Config,state *state.StateDB,header *types.Header) ([]byte, *big.Int, bool, error) {
+
 	// Set sender address or use a default if none specified
 	addr := args.From
 	if addr == (common.Address{}) {
@@ -645,8 +660,19 @@ func (s *PublicBlockChainAPI) doCall(ctx context.Context, args CallArgs, blockNr
 
 // Call executes the given transaction on the state for the given block number.
 // It doesn't make and changes in the state/blockchain and is useful to execute and retrieve values.
-func (s *PublicBlockChainAPI) Call(ctx context.Context, args CallArgs, blockNr rpc.BlockNumber) (hexutil.Bytes, error) {
-	result, _, _, err := s.doCall(ctx, args, blockNr, vm.Config{DisableGasMetering: true})
+func (s *PublicBlockChainAPI) Call(ctx context.Context, args CallArgs, blockNr rpc.BlockNumber,hash common.Hash) (hexutil.Bytes, error) {
+	var (
+		result []byte
+		err error
+	)
+	//fmt.Println(1,"PublicBlockChainAPI.Call",hash)
+	//fmt.Println(2,"PublicBlockChainAPI.Call",hash.Hex())
+	if hash != common.HexToHash("0x") {
+		result, _, _, err = s.doCallWithHash(ctx, args, hash, vm.Config{DisableGasMetering: true})
+		fmt.Println("doCallWithHash :::> ",hash.Hex(),"err:",err)
+	}else{
+		result, _, _, err = s.doCallWithNumber(ctx, args, blockNr, vm.Config{DisableGasMetering: true})
+	}
 	return (hexutil.Bytes)(result), err
 }
 
@@ -674,7 +700,7 @@ func (s *PublicBlockChainAPI) EstimateGas(ctx context.Context, args CallArgs) (*
 	// Create a helper to check if a gas allowance results in an executable transaction
 	executable := func(gas uint64) bool {
 		(*big.Int)(&args.Gas).SetUint64(gas)
-		_, _, failed, err := s.doCall(ctx, args, rpc.PendingBlockNumber, vm.Config{})
+		_, _, failed, err := s.doCallWithNumber(ctx, args, rpc.PendingBlockNumber, vm.Config{})
 		if err != nil || failed {
 			return false
 		}
