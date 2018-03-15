@@ -1,6 +1,6 @@
 # SMChain
 
-SmartMesh Chain is an [Ethereum-based](https://github.com/SmartMeshFoundation/SMChain) and use new consensus and new block reward for SmartMesh ecosystem devices and IOT. 
+SmartMesh Chain is an [Ethereum-based](https://github.com/SmartMeshFoundation/SMChain) project. It uses a new consensus and new block reward for SmartMesh ecosystem devices and IOT. 
 
 
 SMChain is still in the development stage
@@ -9,7 +9,7 @@ SMChain is still in the development stage, and this version is just for testing.
 
 ## Installation on Linux/macOS 
 
-Building SmartMesh Chain requires both a Go (Version 1.9.2 or later) and a C cimpiler. You can install them using your favourite package manager. Once the dependencies are installed, run
+Building SmartMesh Chain requires both Go Language(Version 1.9.2 or later) and C Language. You can install them using your favourite package manager. Once the dependencies have been installed, run
 
     $ git clone https://github.com/SmartMeshFoundation/SMChain.git
 
@@ -17,11 +17,11 @@ Building SmartMesh Chain requires both a Go (Version 1.9.2 or later) and a C cim
 
     $ make geth
 
-or, to build the full suite of utilities:
+or build a full suite of utilities: make all：
 
     $ make all
 
-## Running full node test geth
+## Run full node to test geth
 
     $ ./build/bin/geth --testnet --synmode full console
 
@@ -29,7 +29,7 @@ or, to build the full suite of utilities:
 
     > admin.addPeer("enode://f9cf4fdc53ce5ecf84e7c26fbe262bddd7cbf3d17593328f74816a1c646a0ccfac9a85d81f7d51b59bc02dc8f0e8c5dada4db081efd79698a820faf9384773c0@49.51.11.222:60303")
 
-    wait a few second, and you will see the block sync is begin
+    wait a few seconds, and you will see the block sync is begin
 
 ## View the miner node
 
