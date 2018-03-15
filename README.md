@@ -44,7 +44,6 @@ or build a full suite of utilities:
         }],
         volunteers: []
     }
-
     that tell you there are two miners in the testnet.
 
 ## More works
