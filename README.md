@@ -30,7 +30,7 @@ or build a full suite of utilities:
 
 ## Create new account
 
-   > personal.newAccount()  
+        > personal.newAccount()
 
 ## View the miner node
 
