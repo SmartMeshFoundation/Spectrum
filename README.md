@@ -9,7 +9,7 @@ SMChain is still in the development stage, and this version is just for testing.
 
 ## Installation on Linux/macOS 
 
-Building smc requires both a Go (Version 1.9.2 or later) and a C cimpiler. You can install them using your favourite package manager. Once the dependencies are installed, run
+Building SmartMesh Chain requires both a Go (Version 1.9.2 or later) and a C cimpiler. You can install them using your favourite package manager. Once the dependencies are installed, run
 
     $ git clone https://github.com/SmartMeshFoundation/SMChain.git
 
