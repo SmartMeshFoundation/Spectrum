@@ -32,7 +32,8 @@ or, to build the full suite of utilities:
     wait a few second, and you will see the block sync is begin
 
 ## View the miner node
-    > tribe.getStatus()
+
+	> tribe.getStatus()
 
     then you will see the following message,
     {
