@@ -47,6 +47,6 @@ or build a full suite of utilities:
 
     that tell you there are two miners in the testnet.
 
-## more works
+## More works
     more functions is now under development, and will show you later.
 
