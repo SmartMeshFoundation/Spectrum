@@ -33,9 +33,5 @@ var (
 	// next one expected based on the local chain.
 	ErrNonceTooHigh = errors.New("nonce too high")
 
-	// for tribe consensus block validator
-	ErrTribeNotAllowEmptyTxList = errors.New("tribe not allow empty tx list")
-	ErrTribeMustContainChiefTx = errors.New("tribe must contain chief tx")
-	ErrTribeChiefCannotRepeat = errors.New("tribe chief tx cannot repeat")
 
 )

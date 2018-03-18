@@ -26,7 +26,7 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/core/types"
 	"github.com/SmartMeshFoundation/SMChain/params"
 	"github.com/SmartMeshFoundation/SMChain/consensus/tribe"
-	"github.com/SmartMeshFoundation/SMChain/common"
+	"github.com/SmartMeshFoundation/SMChain/log"
 )
 
 // BlockValidator is responsible for validating block headers, uncles and
@@ -53,21 +53,10 @@ func NewBlockValidator(config *params.ChainConfig, blockchain *BlockChain, engin
 // header's transaction and uncle roots. The headers are assumed to be already
 // validated at this point.
 func (v *BlockValidator) ValidateBody(block *types.Block) error {
-	if _, ok := v.engine.(*tribe.Tribe); ok && block.Number().Int64() > 3 {
-		// check first tx , must be chief.tx , and onely one chief.tx in tx list
-		if block != nil && block.Transactions().Len() == 0 {
-			return ErrTribeNotAllowEmptyTxList
-		}
-		var total = 0
-		for _, tx := range block.Transactions() {
-			if tx.To() != nil && common.HexToAddress(params.ChiefAddress) == *tx.To() {
-				total ++
-			}
-		}
-		if total == 0 {
-			return ErrTribeMustContainChiefTx
-		} else if total > 1 {
-			return ErrTribeChiefCannotRepeat
+	if tribe, ok := v.engine.(*tribe.Tribe); ok && block.Number().Int64() > 3 {
+		if err := tribe.Status.ValidatorBlock(block) ; err != nil {
+			log.Error("BlockValidator.ValidateBody","number",block.Number().Int64(),"err",err)
+			return err
 		}
 	}
 	// Check whether the block's known, and if not, that it's linkable

@@ -181,22 +181,7 @@ func (self *TribeStatus) InTurnForVerify(number int64,parentHash common.Hash, si
 	return diffNoTurn
 }
 
-// 签名人是否在授权列表中
-func (self *TribeStatus) ValidateSigner(number int64,parentHash common.Hash, signer common.Address) bool {
-	var signers []*Signer
-	//if number > 1 && self.Number != parentNumber {
-	if number > 1 {
-		var err error
-		signers, err = self.GetSignersFromChiefByHash(parentHash)
-		if err != nil {
-			log.Warn("TribeStatus.ValidateSigner : GetSignersFromChiefByNumber :", "err", err)
-		}
-	}
-	if _, _, e := self.fetchOnSigners(signer, signers); e == nil {
-		return true
-	}
-	return false
-}
+
 
 func (self *TribeStatus) genesisSigner(header *types.Header) (common.Address, error) {
 	signer := common.Address{}
@@ -230,6 +215,47 @@ func (self *TribeStatus) Update(currentNumber *big.Int,hash common.Hash) {
 	}
 	self.LoadSignersFromChief(hash)
 	return
+}
+
+func (self *TribeStatus) ValidateSigner(number int64,parentHash common.Hash, signer common.Address) bool {
+	var signers []*Signer
+	//if number > 1 && self.Number != parentNumber {
+	if number > 1 {
+		var err error
+		signers, err = self.GetSignersFromChiefByHash(parentHash)
+		if err != nil {
+			log.Warn("TribeStatus.ValidateSigner : GetSignersFromChiefByNumber :", "err", err)
+		}
+	}
+	if _, _, e := self.fetchOnSigners(signer, signers); e == nil {
+		return true
+	}
+	return false
+}
+
+// every block
+// sync download or mine
+// check chief tx
+func (self *TribeStatus) ValidatorBlock(block *types.Block) error {
+	if block.Number().Int64() < 3 {
+		return nil
+	}
+	// check first tx , must be chief.tx , and onely one chief.tx in tx list
+	if block != nil && block.Transactions().Len() == 0 {
+		return ErrTribeNotAllowEmptyTxList
+	}
+	var total = 0
+	for _, tx := range block.Transactions() {
+		if tx.To() != nil && common.HexToAddress(params.ChiefAddress) == *tx.To() {
+			total ++
+		}
+	}
+	if total == 0 {
+		return ErrTribeMustContainChiefTx
+	} else if total > 1 {
+		return ErrTribeChiefCannotRepeat
+	}
+	return nil
 }
 
 func (self *TribeStatus) String() string {

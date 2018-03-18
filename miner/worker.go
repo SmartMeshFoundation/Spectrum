@@ -303,6 +303,21 @@ func (self *worker) wait() {
 			atomic.AddInt32(&self.atWork, -1)
 
 			if result == nil {
+				// add by liangc
+				if tribe,ok := self.engine.(*tribe.Tribe);ok {
+					select {
+					case err := <- tribe.SealErrorCh:
+						counter := atomic.LoadUint32(&tribe.SealErrorCounter)
+						if err!= nil && counter < 3 {
+							atomic.AddUint32(&tribe.SealErrorCounter,1)
+							<- time.After(time.Millisecond*500)
+							self.commitNewWork()
+						}else{
+							log.Warn("wait_new_work_already_retry","counter",counter)
+						}
+					default:
+					}
+				}
 				continue
 			}
 			block := result.Block
