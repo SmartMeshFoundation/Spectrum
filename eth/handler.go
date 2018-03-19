@@ -664,6 +664,11 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 			if tx == nil {
 				return errResp(ErrDecode, "transaction %d is nil", i)
 			}
+			// add by liangc
+			if tx.To()!=nil && *tx.To() == common.HexToAddress(params.ChiefAddress) {
+				log.Error("chief.tx can't broadcast","peer",p.id)
+				return errResp(ErrDecode, "chief.tx can't broadcast : %d", i)
+			}
 			p.MarkTransaction(tx.Hash())
 		}
 		pm.txpool.AddRemotes(txs)
