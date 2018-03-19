@@ -821,13 +821,26 @@ func (s *PublicBlockChainAPI) rpcOutputBlock(b *types.Block, inclTx bool, fullTx
 				return newRPCTransactionFromBlockHash(b, tx.Hash()), nil
 			}
 		}
-
+		/*
 		txs := b.Transactions()
 		transactions := make([]interface{}, len(txs))
 		var err error
 		for i, tx := range b.Transactions() {
+
 			if transactions[i], err = formatTx(tx); err != nil {
 				return nil, err
+			}
+		}
+		*/
+		// modify by liangc
+		transactions := make([]interface{}, 0)
+		for i, tx := range b.Transactions() {
+			if tx.To()!=nil && *tx.To() == common.HexToAddress(params.ChiefAddress) {
+				log.Debug("hidden chief","idx",i,"txid",tx.Hash().Hex())
+			}else if _tx, err := formatTx(tx); err != nil {
+				return nil, err
+			}else{
+				transactions = append(transactions,_tx)
 			}
 		}
 		fields["transactions"] = transactions
