@@ -15,7 +15,6 @@ import (
 	"context"
 	"os"
 	"github.com/SmartMeshFoundation/SMChain/log"
-	"fmt"
 )
 
 func (api *API) GetMiner(number *rpc.BlockNumber) (*TribeMiner, error) {
@@ -72,10 +71,7 @@ func NewTribeStatus() *TribeStatus {
 
 func (self *TribeStatus) GetMinerAddress() common.Address {
 	if self.nodeKey == nil {
-		fmt.Println("   ☠️  ")
-		fmt.Println("   ☠️  ")
-		fmt.Println("   ☠️  ")
-		fmt.Println("   ☠️  ")
+		log.Warn("nodekey not ready")
 		return common.Address{}
 	}
 	pub := self.nodeKey.PublicKey

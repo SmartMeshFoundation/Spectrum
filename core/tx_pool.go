@@ -258,7 +258,6 @@ func NewTxPool(config TxPoolConfig, chainconfig *params.ChainConfig, chain block
 	// Start the event loop and return
 	pool.wg.Add(1)
 	go pool.loop()
-	fmt.Println("new TxPool success >>>> ")
 
 	// add by liangc : set nodekey
 	go func() {
