@@ -426,8 +426,8 @@ func (t *Tribe) Authorize(signer common.Address, signFn SignerFn) {
 // the local signing credentials.
 func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-chan struct{}) (*types.Block, error) {
 	if err := t.Status.ValidatorBlock(block); err != nil {
+		log.Error("Tribe_Seal","retry",atomic.LoadUint32(&t.SealErrorCounter),"number",block.Number().Int64(),"err",err)
 		t.SealErrorCh <- err
-		log.Error("Tribe.Seal","retry",atomic.LoadUint32(&t.SealErrorCounter),"number",block.Number().Int64(),"err",err)
 		return nil, err
 	}
 	atomic.StoreUint32(&t.SealErrorCounter,0)

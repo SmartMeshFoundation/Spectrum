@@ -574,7 +574,7 @@ func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsB
 		env.state.Prepare(tx.Hash(), common.Hash{}, env.tcount)
 		err, logs := env.commitTransaction(tx, bc, coinbase, gp)
 		if err != nil {
-			log.Error("work.commitTransactions->","err",err)
+			log.Error("work.commitTransactions->","err",err,"c_number",bc.CurrentHeader().Number.Int64(),"coinbase",coinbase.Hex())
 		}
 		switch err {
 		case core.ErrGasLimitReached:

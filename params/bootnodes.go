@@ -16,25 +16,16 @@
 
 package params
 
-// MainnetBootnodes are the enode URLs of the P2P bootstrap nodes running on
-// the main Ethereum network.
 var MainnetBootnodes = []string{
-	//"enode://b7b98b906d8870a70da15e67f6294b4472c33cdc000e983eea9862a05437149d78ad4fc0be9c7fcef03aa9c26fffab32e534b43ce44d5ed4743f9b5f0ea2ea46@119.28.178.138:44944",
 }
 
-// TestnetBootnodes are the enode URLs of the P2P bootstrap nodes running on the
-// Ropsten test network.
 var TestnetBootnodes = []string{
-	//"enode://b7b98b906d8870a70da15e67f6294b4472c33cdc000e983eea9862a05437149d78ad4fc0be9c7fcef03aa9c26fffab32e534b43ce44d5ed4743f9b5f0ea2ea46@119.28.178.138:44944",
+	"enode://c65553f06d82bc26fb6e6126e619f682ae59529f5506ae98269cc60de3c803bf3d8abd99ef7a64ce777f554a4f5d3be70078d319afff59015b7a9d23a5e3c3a1@123.207.146.205:44944",
 }
 
-// RinkebyBootnodes are the enode URLs of the P2P bootstrap nodes running on the
-// Rinkeby test network.
 var RinkebyBootnodes = []string{
 }
 
-// RinkebyV5Bootnodes are the enode URLs of the P2P bootstrap nodes running on the
-// Rinkeby test network for the experimental RLPx v5 topic-discovery network.
 var RinkebyV5Bootnodes = []string{
 }
 

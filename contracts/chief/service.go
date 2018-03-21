@@ -139,13 +139,17 @@ func (self *TribeService) update(mbox params.Mbox) {
 		return
 	}
 	//if params.ChiefTxNonce > 0 {
-	pnonce, _ := self.client.NonceAt(context.Background(),crypto.PubkeyToAddress(prv.PublicKey),nil)
-	//pnonce0, perr0 := self.client.PendingNonceAt(context.Background(), crypto.PubkeyToAddress(prv.PublicKey))
-	//nonce := params.ChiefTxNonce
-	//fmt.Println(">>=== pnonce 0=", pnonce0, "perr=", perr0)
-	//fmt.Println(">>=== pnonce 1=", pnonce, "perr=", perr)
-	log.Debug(">>=== nonce=", pnonce)
-	auth.Nonce = new(big.Int).SetUint64(pnonce)
+	pnonce, perr := self.client.NonceAt(context.Background(), crypto.PubkeyToAddress(prv.PublicKey), nil)
+	if perr != nil {
+		log.Warn(">>=== nonce_err=", "err",perr)
+	} else {
+		//pnonce0, perr0 := self.client.PendingNonceAt(context.Background(), crypto.PubkeyToAddress(prv.PublicKey))
+		//nonce := params.ChiefTxNonce
+		//fmt.Println(">>=== pnonce 0=", pnonce0, "perr=", perr0)
+		//fmt.Println(">>=== pnonce 1=", pnonce, "perr=", perr)
+		log.Debug(">>=== nonce=", "nonce",pnonce)
+		auth.Nonce = new(big.Int).SetUint64(pnonce)
+	}
 	//}
 	t, e := self.tribeChief.Update(auth, self.fetchVolunteer())
 	if e != nil {
