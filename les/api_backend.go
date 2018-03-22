@@ -72,8 +72,8 @@ func (b *LesApiBackend) BlockByNumber(ctx context.Context, blockNr rpc.BlockNumb
 }
 
 // add by liangc : only for execute contract by hash
-func (b *LesApiBackend) StateAndHeaderByHash(ctx context.Context, hash common.Hash) (*state.StateDB, *types.Header, error) {
-	blk,err := b.GetBlock(ctx,hash)
+func (b *LesApiBackend) StateAndHeaderByHash(ctx context.Context, hash *common.Hash) (*state.StateDB, *types.Header, error) {
+	blk,err := b.GetBlock(ctx,*hash)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -84,10 +84,10 @@ func (b *EthApiBackend) BlockByNumber(ctx context.Context, blockNr rpc.BlockNumb
 }
 
 // add by liangc : only for execute contract by hash
-func (b *EthApiBackend) StateAndHeaderByHash(ctx context.Context, hash common.Hash) (*state.StateDB, *types.Header, error) {
+func (b *EthApiBackend) StateAndHeaderByHash(ctx context.Context, hash *common.Hash) (*state.StateDB, *types.Header, error) {
 	// Pending state is only known by the miner
 	// Otherwise resolve the block number and return its state
-	blk,err := b.GetBlock(ctx,hash)
+	blk,err := b.GetBlock(ctx,*hash)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -158,7 +158,7 @@ func parseRequest(incomingMsg json.RawMessage) ([]rpcRequest, bool, Error) {
 	if err := json.Unmarshal(incomingMsg, &in); err != nil {
 		return nil, false, &invalidMessageError{err.Error()}
 	}
-
+	//fmt.Println("incoming <><> ",string(incomingMsg))
 	if err := checkReqId(in.Id); err != nil {
 		return nil, false, &invalidMessageError{err.Error()}
 	}
@@ -260,6 +260,7 @@ func (c *jsonCodec) ParseRequestArguments(argTypes []reflect.Type, params interf
 	if args, ok := params.(json.RawMessage); !ok {
 		return nil, &invalidParamsError{"Invalid params supplied"}
 	} else {
+		//fmt.Println("params : <><> ",string(args))
 		return parsePositionalArguments(args, argTypes)
 	}
 }
@@ -284,6 +285,7 @@ func parsePositionalArguments(rawArgs json.RawMessage, types []reflect.Type) ([]
 			return nil, &invalidParamsError{fmt.Sprintf("invalid argument %d: %v", i, err)}
 		}
 		if argval.IsNil() && types[i].Kind() != reflect.Ptr {
+			log.Error("TODO rpc_parse_1", "argval",argval.String(), "type",types[i].String())
 			return nil, &invalidParamsError{fmt.Sprintf("missing value for required argument %d", i)}
 		}
 		args = append(args, argval.Elem())
@@ -295,6 +297,7 @@ func parsePositionalArguments(rawArgs json.RawMessage, types []reflect.Type) ([]
 	// Set any missing args to nil.
 	for i := len(args); i < len(types); i++ {
 		if types[i].Kind() != reflect.Ptr {
+			log.Error("TODO rpc_parse_2","type",types[i].String())
 			return nil, &invalidParamsError{fmt.Sprintf("missing value for required argument %d", i)}
 		}
 		args = append(args, reflect.Zero(types[i]))

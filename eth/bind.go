@@ -67,12 +67,12 @@ func (b *ContractBackend) PendingCodeAt(ctx context.Context, contract common.Add
 // call with the specified data as the input. The pending flag requests execution
 // against the pending block, not the stable head of the chain.
 func (b *ContractBackend) CallContract(ctx context.Context, msg ethereum.CallMsg, blockNum *big.Int) ([]byte, error) {
-	out, err := b.bcapi.Call(ctx, toCallArgs(msg), toBlockNumber(blockNum),common.HexToHash("0x"))
+	out, err := b.bcapi.Call(ctx, toCallArgs(msg), toBlockNumber(blockNum), nil)
 	return out, err
 }
 
 func (b *ContractBackend) CallContractWithHash(ctx context.Context, msg ethereum.CallMsg, blockHash common.Hash) ([]byte, error) {
-	out, err := b.bcapi.Call(ctx, toCallArgs(msg), toBlockNumber(nil),blockHash)
+	out, err := b.bcapi.Call(ctx, toCallArgs(msg), toBlockNumber(nil), &blockHash)
 	return out, err
 }
 
@@ -80,7 +80,7 @@ func (b *ContractBackend) CallContractWithHash(ctx context.Context, msg ethereum
 // call with the specified data as the input. The pending flag requests execution
 // against the pending block, not the stable head of the chain.
 func (b *ContractBackend) PendingCallContract(ctx context.Context, msg ethereum.CallMsg) ([]byte, error) {
-	out, err := b.bcapi.Call(ctx, toCallArgs(msg), rpc.PendingBlockNumber,common.HexToHash("0x"))
+	out, err := b.bcapi.Call(ctx, toCallArgs(msg), rpc.PendingBlockNumber, nil)
 	return out, err
 }
 
@@ -138,7 +138,7 @@ func (b *ContractBackend) EstimateGas(ctx context.Context, msg ethereum.CallMsg)
 // SendTransaction implements bind.ContractTransactor injects the transaction
 // into the pending pool for execution.
 func (b *ContractBackend) SendTransaction(ctx context.Context, tx *types.Transaction) error {
-	log.Debug("ContractBackend.SendTransaction","tx",tx.Hash().Hex())
+	log.Debug("ContractBackend.SendTransaction", "tx", tx.Hash().Hex())
 	raw, _ := rlp.EncodeToBytes(tx)
 	_, err := b.txapi.SendRawTransaction(ctx, raw)
 	return err

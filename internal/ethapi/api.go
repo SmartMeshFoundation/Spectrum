@@ -582,7 +582,8 @@ type CallArgs struct {
 	Data     hexutil.Bytes   `json:"data"`
 }
 
-func (s *PublicBlockChainAPI) doCallWithHash(ctx context.Context, args CallArgs, hash common.Hash, vmCfg vm.Config) ([]byte, *big.Int, bool, error) {
+// add by liangc
+func (s *PublicBlockChainAPI) doCallWithHash(ctx context.Context, args CallArgs, hash *common.Hash, vmCfg vm.Config) ([]byte, *big.Int, bool, error) {
 	defer func(start time.Time) { log.Debug("Executing EVM call finished", "runtime", time.Since(start)) }(time.Now())
 	state, header, err := s.b.StateAndHeaderByHash(ctx, hash)
 	if state == nil || err != nil {
@@ -592,6 +593,7 @@ func (s *PublicBlockChainAPI) doCallWithHash(ctx context.Context, args CallArgs,
 	return s._doCall(ctx,args,vmCfg,state,header)
 }
 
+// add by liangc
 func (s *PublicBlockChainAPI) doCallWithNumber(ctx context.Context, args CallArgs, blockNr rpc.BlockNumber, vmCfg vm.Config) ([]byte, *big.Int, bool, error) {
 	defer func(start time.Time) { log.Debug("Executing EVM call finished", "runtime", time.Since(start)) }(time.Now())
 	//fmt.Println("PublicBlockChainAPI.doCall #>",blockNr)
@@ -660,14 +662,16 @@ func (s *PublicBlockChainAPI) _doCall(ctx context.Context,args CallArgs,vmCfg vm
 
 // Call executes the given transaction on the state for the given block number.
 // It doesn't make and changes in the state/blockchain and is useful to execute and retrieve values.
-func (s *PublicBlockChainAPI) Call(ctx context.Context, args CallArgs, blockNr rpc.BlockNumber,hash common.Hash) (hexutil.Bytes, error) {
+// modify by liangc : append *hash params
+func (s *PublicBlockChainAPI) Call(ctx context.Context, args CallArgs, blockNr rpc.BlockNumber,hash *common.Hash) (hexutil.Bytes, error) {
 	var (
 		result []byte
 		err error
 	)
 	//fmt.Println(1,"PublicBlockChainAPI.Call",hash)
 	//fmt.Println(2,"PublicBlockChainAPI.Call",hash.Hex())
-	if hash != common.HexToHash("0x") {
+	//if hash != common.HexToHash("0x") {
+	if hash != nil {
 		result, _, _, err = s.doCallWithHash(ctx, args, hash, vm.Config{DisableGasMetering: true})
 		//fmt.Println("doCallWithHash :::> ",hash.Hex(),"err:",err)
 	}else{

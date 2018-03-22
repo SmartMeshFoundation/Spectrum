@@ -36,7 +36,7 @@ type SignerFn func(types.Signer, common.Address, *types.Transaction) (*types.Tra
 type CallOptsWithNumber struct {
 	CallOpts
 	Number *big.Int // block number
-	Hash common.Hash //block hash
+	Hash *common.Hash //block hash
 }
 
 // CallOpts is the collection of options to fine tune a contract call request.
@@ -132,10 +132,11 @@ func (c *BoundContract) CallWithNumber(opts *CallOptsWithNumber, result interfac
 			}
 		}
 	} else {
-		if opts.Hash == common.HexToHash("0x") {
+		//if opts.Hash == common.HexToHash("0x") {
+		if opts.Hash == nil {
 			output, err = c.caller.CallContract(ctx, msg, opts.Number)
 		}else{
-			output, err = c.caller.CallContractWithHash(ctx,msg,opts.Hash)
+			output, err = c.caller.CallContractWithHash(ctx,msg,*opts.Hash)
 		}
 		if err == nil && len(output) == 0 {
 			// Make sure we have a contract to operate on, and bail out otherwise.

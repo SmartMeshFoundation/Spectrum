@@ -101,12 +101,13 @@ func (self *TribeService) getnodekey(mbox params.Mbox) {
 
 func (self *TribeService) getstatus(mbox params.Mbox) {
 	var (
-		blockNumber *big.Int = nil
-		blockHash            = common.HexToHash("0x")
+		blockNumber *big.Int     = nil
+		blockHash   *common.Hash = nil
 	)
 	if h, ok := mbox.Params["hash"]; ok {
-		blockHash = h.(common.Hash)
-		log.Debug("=>TribeService.getstatus", "blockHash", blockHash.Hex())
+		bh := h.(common.Hash)
+		blockHash = &bh
+		log.Debug("=>TribeService.getstatus", "blockHash", blockHash)
 	} else if n, ok := mbox.Params["number"]; ok {
 		blockNumber = n.(*big.Int)
 		log.Debug("-> TribeService.getstatus", "blockNumber", blockNumber.Int64())
@@ -141,13 +142,13 @@ func (self *TribeService) update(mbox params.Mbox) {
 	//if params.ChiefTxNonce > 0 {
 	pnonce, perr := self.client.NonceAt(context.Background(), crypto.PubkeyToAddress(prv.PublicKey), nil)
 	if perr != nil {
-		log.Warn(">>=== nonce_err=", "err",perr)
+		log.Warn(">>=== nonce_err=", "err", perr)
 	} else {
 		//pnonce0, perr0 := self.client.PendingNonceAt(context.Background(), crypto.PubkeyToAddress(prv.PublicKey))
 		//nonce := params.ChiefTxNonce
 		//fmt.Println(">>=== pnonce 0=", pnonce0, "perr=", perr0)
 		//fmt.Println(">>=== pnonce 1=", pnonce, "perr=", perr)
-		log.Debug(">>=== nonce=", "nonce",pnonce)
+		log.Debug(">>=== nonce=", "nonce", pnonce)
 		auth.Nonce = new(big.Int).SetUint64(pnonce)
 	}
 	//}
@@ -165,7 +166,7 @@ func (self *TribeService) update(mbox params.Mbox) {
 // --------------------------------------------------------------------------------------------------
 // inner private
 // --------------------------------------------------------------------------------------------------
-func (self *TribeService) getChiefStatus(blockNumber *big.Int, blockHash common.Hash) (params.ChiefStatus, error) {
+func (self *TribeService) getChiefStatus(blockNumber *big.Int, blockHash *common.Hash) (params.ChiefStatus, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 	defer cancel()
 	//opts := &bind.CallOpts{Context: ctx}
@@ -191,7 +192,7 @@ func (self *TribeService) isVolunteer(dict map[common.Address]interface{}, add c
 func (self *TribeService) fetchVolunteer() common.Address {
 	peers := self.server.Peers()
 	if len(peers) > 0 {
-		chiefStatus, err := self.getChiefStatus(nil, common.HexToHash("0x"))
+		chiefStatus, err := self.getChiefStatus(nil, nil)
 		if err != nil {
 			log.Error("getChiefStatus fail", "err", err)
 		}
