@@ -218,7 +218,9 @@ func (c *ChainConfig) IsEIP158(num *big.Int) bool {
 }
 
 func (c *ChainConfig) IsByzantium(num *big.Int) bool {
-	return isForked(c.ByzantiumBlock, num)
+	// add by liangc : set default byzantium
+	return true
+	// return isForked(c.ByzantiumBlock, num)
 }
 
 // GasTable returns the gas table corresponding to the current phase (homestead or homestead reprice).
