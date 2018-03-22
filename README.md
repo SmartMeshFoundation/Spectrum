@@ -22,12 +22,6 @@ or build a full suite of utilities:
 
     $ ./build/bin/geth --testnet --syncmode full console
 
-## Connect to the testnet
-
-    > admin.addPeer("enode://8fa4f00ae7f6524ca85012ca5a395f12ca575ef9d12b4ddca3f3ba1dd40541b85ae86fee7fbc26984687e4fae1336d7eb3329171f508287b85a46971cce2010f@123.207.146.205:60303")
-
-    wait a few seconds, and you will see the block sync is begin.
-
 ## Create new account
 
     > personal.newAccount()
