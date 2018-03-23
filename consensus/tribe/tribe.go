@@ -267,7 +267,7 @@ func (t *Tribe) verifyCascadingFields(chain consensus.ChainReader, header *types
 		*/
 		i := 0
 	ENDWAIT:
-		for {
+		for number > 3 {
 			blk := chain.GetBlock(header.ParentHash, header.Number.Uint64()-1)
 			if blk != nil {
 				//fmt.Println(cn, "=4=>", blk.Number(), blk.Hash().Hex())

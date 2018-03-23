@@ -46,7 +46,7 @@ var (
 	}
 	*/
 	MainnetChainConfig = &ChainConfig{
-		ChainId:        big.NewInt(1),
+		ChainId:        big.NewInt(19840711),
 		HomesteadBlock: big.NewInt(0),
 		DAOForkBlock:   nil,
 		DAOForkSupport: false,
@@ -54,7 +54,7 @@ var (
 		EIP150Hash:     common.Hash{},
 		EIP155Block:    big.NewInt(0),
 		EIP158Block:    big.NewInt(0),
-		ByzantiumBlock: big.NewInt(2400000),
+		ByzantiumBlock: big.NewInt(4),
 		// add by liangc : change default consensus for dev
 		//Clique: &CliqueConfig{ Period: 15, Epoch:  30000}, //Ethash: new(EthashConfig),
 		Tribe: &TribeConfig{},
@@ -219,8 +219,7 @@ func (c *ChainConfig) IsEIP158(num *big.Int) bool {
 
 func (c *ChainConfig) IsByzantium(num *big.Int) bool {
 	// add by liangc : set default byzantium
-	return true
-	// return isForked(c.ByzantiumBlock, num)
+	return isForked(c.ByzantiumBlock, num)
 }
 
 // GasTable returns the gas table corresponding to the current phase (homestead or homestead reprice).

@@ -39,7 +39,7 @@ func (api *API) GetSigners(hash *common.Hash) ([]*Signer, error) {
 		api.tribe.Status.genesisSigner(header)
 	} else {
 		h := common.HexToHash("0x")
-		if hash!= nil {
+		if hash != nil {
 			h = *hash
 		}
 		api.tribe.Status.LoadSignersFromChief(h)
@@ -53,7 +53,7 @@ func (api *API) GetStatus(hash *common.Hash) (*TribeStatus, error) {
 		api.tribe.Status.genesisSigner(header)
 	} else {
 		h := common.HexToHash("0x")
-		if hash!= nil {
+		if hash != nil {
 			h = *hash
 		}
 		api.tribe.Status.LoadSignersFromChief(h)
@@ -154,7 +154,7 @@ func (self *TribeStatus) InTurnForCalc(signer common.Address, parent *types.Head
 	}
 	return diffNoTurn
 }
-func (self *TribeStatus) InTurnForVerify(number int64,parentHash common.Hash, signer common.Address) *big.Int {
+func (self *TribeStatus) InTurnForVerify(number int64, parentHash common.Hash, signer common.Address) *big.Int {
 	parentNumber := number - 1
 	var signers []*Signer
 	//if number > 1 & self.Number != parentNumber {
@@ -176,8 +176,6 @@ func (self *TribeStatus) InTurnForVerify(number int64,parentHash common.Hash, si
 	}
 	return diffNoTurn
 }
-
-
 
 func (self *TribeStatus) genesisSigner(header *types.Header) (common.Address, error) {
 	signer := common.Address{}
@@ -203,7 +201,7 @@ func (self *TribeStatus) fetchOnSigners(address common.Address, signers []*Signe
 // called by end of WriteBlockAndState
 // if miner then execute chief.update and chief.getStatus
 // else execute chief.getStatus only
-func (self *TribeStatus) Update(currentNumber *big.Int,hash common.Hash) {
+func (self *TribeStatus) Update(currentNumber *big.Int, hash common.Hash) {
 	if currentNumber.Int64() >= CHIEF_NUMBER && atomic.LoadInt32(&self.mining) == 1 {
 		// mining start
 		success := <-params.SendToMsgBox("Update")
@@ -213,15 +211,16 @@ func (self *TribeStatus) Update(currentNumber *big.Int,hash common.Hash) {
 	return
 }
 
-func (self *TribeStatus) ValidateSigner(number int64,parentHash common.Hash, signer common.Address) bool {
+func (self *TribeStatus) ValidateSigner(number int64, parentHash common.Hash, signer common.Address) bool {
 	var signers []*Signer
 	//if number > 1 && self.Number != parentNumber {
-	if number > 1 {
-		var err error
-		signers, err = self.GetSignersFromChiefByHash(parentHash)
-		if err != nil {
-			log.Warn("TribeStatus.ValidateSigner : GetSignersFromChiefByNumber :", "err", err)
-		}
+	if number <= 3 {
+		return true
+	}
+	var err error
+	signers, err = self.GetSignersFromChiefByHash(parentHash)
+	if err != nil {
+		log.Warn("TribeStatus.ValidateSigner : GetSignersFromChiefByNumber :", "err", err)
 	}
 	if _, _, e := self.fetchOnSigners(signer, signers); e == nil {
 		return true
