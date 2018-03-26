@@ -70,7 +70,8 @@ var (
 		EIP150Hash:     common.Hash{},
 		EIP155Block:    big.NewInt(0),
 		EIP158Block:    big.NewInt(0),
-		ByzantiumBlock: big.NewInt(1700000),
+		ByzantiumBlock: big.NewInt(62678),
+		//ByzantiumBlock: big.NewInt(1700000),
 		//Clique: &CliqueConfig{ Period: 15, Epoch:  30000}, //Ethash: new(EthashConfig),
 		Tribe: &TribeConfig{},
 	}
