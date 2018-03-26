@@ -209,7 +209,7 @@ func (self *worker) start() {
 		if self.chain.CurrentHeader().Number.Int64() > 1 { // free for genesis signer
 			<-tribe.WaitingNomination()
 		}
-		tribe.SetMining(1, self.chain.CurrentBlock().Number(),self.chain.CurrentHeader().Hash())
+		tribe.SetMining(1, self.chain.CurrentBlock().Number(), self.chain.CurrentHeader().Hash())
 	}
 	// spin up agents
 	for agent := range self.agents {
@@ -224,7 +224,7 @@ func (self *worker) stop() {
 	defer self.mu.Unlock()
 	//add by liangc : sync mining status
 	if tribe, ok := self.engine.(*tribe.Tribe); ok {
-		tribe.SetMining(0, self.chain.CurrentBlock().Number(),self.chain.CurrentHeader().Hash())
+		tribe.SetMining(0, self.chain.CurrentBlock().Number(), self.chain.CurrentHeader().Hash())
 	}
 	if atomic.LoadInt32(&self.mining) == 1 {
 		for agent := range self.agents {
@@ -304,16 +304,16 @@ func (self *worker) wait() {
 
 			if result == nil {
 				// add by liangc
-				if tribe,ok := self.engine.(*tribe.Tribe);ok {
+				if tribe, ok := self.engine.(*tribe.Tribe); ok {
 					select {
-					case err := <- tribe.SealErrorCh:
+					case err := <-tribe.SealErrorCh:
 						counter := atomic.LoadUint32(&tribe.SealErrorCounter)
-						if err!= nil && counter < 3 {
-							atomic.AddUint32(&tribe.SealErrorCounter,1)
-							<- time.After(time.Millisecond*500)
+						if err != nil && counter < 3 {
+							atomic.AddUint32(&tribe.SealErrorCounter, 1)
+							<-time.After(time.Millisecond * 500)
 							self.commitNewWork()
-						}else{
-							log.Warn("wait_new_work_already_retry","counter",counter)
+						} else {
+							log.Warn("wait_new_work_already_retry", "counter", counter)
 						}
 					default:
 					}
@@ -574,7 +574,12 @@ func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsB
 		env.state.Prepare(tx.Hash(), common.Hash{}, env.tcount)
 		err, logs := env.commitTransaction(tx, bc, coinbase, gp)
 		if err != nil {
-			log.Error("work.commitTransactions->","err",err,"c_number",bc.CurrentHeader().Number.Int64(),"coinbase",coinbase.Hex())
+			log.Error("debug:work.commitTransactions->", "err", err, "c_number", bc.CurrentHeader().Number.Int64(), "coinbase", coinbase.Hex())
+			if tx.To() != nil {
+				log.Error("debug:work.commitTransactions->", "tx", tx.Hash().Hex(), "from", types.GetFromByTx(tx), "to", tx.To().Hex())
+			} else {
+				log.Error("debug:work.commitTransactions->", "tx", tx.Hash().Hex(), "from", types.GetFromByTx(tx), "to", tx.To())
+			}
 		}
 		switch err {
 		case core.ErrGasLimitReached:
