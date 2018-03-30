@@ -669,6 +669,12 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 				log.Error("chief.tx can't broadcast","peer",p.id)
 				return errResp(ErrDecode, "chief.tx can't broadcast : %d", i)
 			}
+			/*
+			fmt.Println(">-----DEBUG----->")
+			fmt.Println("id:",p.ID().String())
+			fmt.Println("info:",p.Info())
+			fmt.Println("txid:",tx.Hash().Hex())
+			*/
 			p.MarkTransaction(tx.Hash())
 		}
 		pm.txpool.AddRemotes(txs)

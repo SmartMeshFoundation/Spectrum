@@ -35,6 +35,8 @@ import (
 	"gopkg.in/karalabe/cookiejar.v2/collections/prque"
 	"crypto/ecdsa"
 	"github.com/SmartMeshFoundation/SMChain/crypto"
+	"sync/atomic"
+	"runtime/debug"
 )
 
 const (
@@ -42,6 +44,8 @@ const (
 	chainHeadChanSize = 10
 	// rmTxChanSize is the size of channel listening to RemovedTransactionEvent.
 	rmTxChanSize = 10
+
+	FailLimit = 8 // add by liangc
 )
 
 var (
@@ -211,6 +215,7 @@ type TxPool struct {
 	queue   map[common.Address]*txList         // Queued but non-processable transactions
 	beats   map[common.Address]time.Time       // Last heartbeat from each known account
 	all     map[common.Hash]*types.Transaction // All transactions to allow lookups
+	fail    map[common.Hash]int32              // add by liangc : when apply tx error , put in this map and if counter greate then failLimit do removeTx
 	priced  *txPricedList                      // All transactions sorted by price
 
 	wg sync.WaitGroup // for shutdown sync
@@ -234,6 +239,7 @@ func NewTxPool(config TxPoolConfig, chainconfig *params.ChainConfig, chain block
 		queue:       make(map[common.Address]*txList),
 		beats:       make(map[common.Address]time.Time),
 		all:         make(map[common.Hash]*types.Transaction),
+		fail:        make(map[common.Hash]int32),
 		chainHeadCh: make(chan ChainHeadEvent, chainHeadChanSize),
 		gasPrice:    new(big.Int).SetUint64(config.PriceLimit),
 	}
@@ -626,12 +632,37 @@ func (pool *TxPool) addChief(tx *types.Transaction) bool {
 			//fmt.Println(pool.chain.CurrentBlock().Number().Int64(), "--XXXX-- TxPool.addChief:FixChiefTxNonce ---->",pool.chiefTx.Nonce(), pool.chiefTx.Hash().Hex())
 			return true
 		} else {
+			debug.PrintStack()
 			log.Warn("repeat chief.tx", "from", from.Hex(), "txid", tx.Hash().Hex())
 			pool.removeTx(tx.Hash())
 			return true
 		}
 	}
 	return false
+}
+
+// log the fail tx on dict, when counter > 32 remove this tx
+func (pool *TxPool) IncFailTx(txHash common.Hash) {
+	counter, ok := pool.fail[txHash]
+	if ok {
+		pool.fail[txHash] = atomic.AddInt32(&counter, 1)
+	} else {
+		pool.fail[txHash] = 1
+	}
+	log.Warn("IncFailTx", "tx", txHash.Hex(), "counter", counter)
+}
+
+// check counter and remove
+func (pool *TxPool) CheckFailTx() {
+	if len(pool.fail) > 0 {
+		for k, v := range pool.fail {
+			if v >= FailLimit {
+				pool.removeTx(k)
+				delete(pool.fail, k)
+				log.Warn("remove_fail_tx : ", "hex", k.Hex(), "retry", v)
+			}
+		}
+	}
 }
 
 /*
@@ -691,6 +722,8 @@ func (pool *TxPool) add(tx *types.Transaction, local bool) (bool, error) {
 			pool.removeTx(tx.Hash())
 		}
 	}
+	// TODO : add by liangc : clean fail tx local
+
 	// If the transaction is replacing an already pending one, do directly
 	from, _ := types.Sender(pool.signer, tx) // already validated
 	if list := pool.pending[from]; list != nil && list.Overlaps(tx) {
@@ -847,6 +880,15 @@ func (pool *TxPool) AddLocals(txs []*types.Transaction) []error {
 // If the senders are not among the locally tracked ones, full pricing constraints
 // will apply.
 func (pool *TxPool) AddRemotes(txs []*types.Transaction) []error {
+	// debug : add by liangc
+	/*
+	for _, tx := range txs {
+		if tx.To()!=nil && *tx.To() == common.HexToAddress(params.ChiefAddress) {
+			debug.PrintStack()
+			log.Error("AddRemotes:","txid",tx.Hash().Hex(),"from",types.GetFromByTx(tx).Hex())
+		}
+	}
+	*/
 	return pool.addTxs(txs, false)
 }
 

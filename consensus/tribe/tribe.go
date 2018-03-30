@@ -273,7 +273,7 @@ func (t *Tribe) verifyCascadingFields(chain consensus.ChainReader, header *types
 				//fmt.Println(cn, "=4=>", blk.Number(), blk.Hash().Hex())
 				break ENDWAIT
 			} else {
-				log.Info("wait block", "number", header.Number.Int64()-1, "hash", header.ParentHash.Hex())
+				log.Debug("wait block", "number", header.Number.Int64()-1, "hash", header.ParentHash.Hex())
 				<-time.After(time.Millisecond * 10)
 				i++
 			}
@@ -338,7 +338,7 @@ func (t *Tribe) verifySeal(chain consensus.ChainReader, header *types.Header, pa
 	if err != nil {
 		return err
 	}
-	log.Info("verifySeal", "number", number, "signer", signer.Hex())
+	log.Debug("verifySeal", "number", number, "signer", signer.Hex())
 	// signer 必须在合法的签名人列表中
 	if !t.Status.ValidateSigner(number, header.ParentHash, signer) {
 		return errUnauthorized

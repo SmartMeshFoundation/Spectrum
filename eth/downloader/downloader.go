@@ -476,22 +476,18 @@ func (d *Downloader) syncWithPeer(p *peerConnection, hash common.Hash, td *big.I
 	fetchers := []func() error{
 		func() error {
 			e := d.fetchHeaders(p, origin+1)
-			fmt.Println(1, "XXXXXXX", e)
 			return e
 		}, // Headers are always retrieved
 		func() error {
 			e := d.fetchBodies(origin + 1)
-			fmt.Println(2, "XXXXXXX", e)
 			return e
 		}, // Bodies are retrieved during normal and fast sync
 		func() error {
 			e := d.fetchReceipts(origin + 1)
-			fmt.Println(3, "XXXXXXX", e)
 			return e
 		}, // Receipts are retrieved during fast sync
 		func() error {
 			e := d.processHeaders(origin+1, td)
-			fmt.Println(4, "XXXXXXX TODO get error ", e)
 			return e
 		},
 	}

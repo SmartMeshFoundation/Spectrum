@@ -50,7 +50,15 @@ const (
 	chainHeadChanSize = 10
 	// chainSideChanSize is the size of channel listening to ChainSideEvent.
 	chainSideChanSize = 10
+	// add by liangc : fail tx will tag at txPool.fail ,when
+	failTxChanSize = 4096
 )
+
+// add by liangc
+var failTxCh = make(chan common.Hash,failTxChanSize)
+func appendToFailTx(txHash common.Hash) {
+	failTxCh <- txHash
+}
 
 // Agent can register themself with the worker
 type Agent interface {
@@ -151,9 +159,16 @@ func newWorker(config *params.ChainConfig, engine consensus.Engine, coinbase com
 	// Subscribe events for blockchain
 	worker.chainHeadSub = eth.BlockChain().SubscribeChainHeadEvent(worker.chainHeadCh)
 	worker.chainSideSub = eth.BlockChain().SubscribeChainSideEvent(worker.chainSideCh)
+
 	go worker.update()
 	go worker.wait()
 	worker.commitNewWork()
+	// add by liangc
+	go func(){
+		for txHash := range failTxCh {
+			eth.TxPool().IncFailTx(txHash)
+		}
+	}()
 	return worker
 }
 
@@ -275,7 +290,7 @@ func (self *worker) update() {
 				acc, _ := types.Sender(self.current.signer, ev.Tx)
 				txs := map[common.Address]types.Transactions{acc: {ev.Tx}}
 				txset := types.NewTransactionsByPriceAndNonce(self.current.signer, txs)
-
+				//fmt.Println("1111111",ev.Tx.Hash().Hex())
 				self.current.commitTransactions(self.mux, txset, self.chain, self.coinbase)
 				self.currentMu.Unlock()
 			} else {
@@ -411,6 +426,8 @@ func (self *worker) makeCurrent(parent *types.Block, header *types.Header) error
 }
 
 func (self *worker) commitNewWork() {
+	// add by liangc
+	self.eth.TxPool().CheckFailTx()
 	self.mu.Lock()
 	defer self.mu.Unlock()
 	self.uncleMu.Lock()
@@ -487,6 +504,7 @@ func (self *worker) commitNewWork() {
 		}
 	}
 	*/
+	//fmt.Println("22222",len(pending))
 	txs := types.NewTransactionsByPriceAndNonce(self.current.signer, pending)
 	work.commitTransactions(self.mux, txs, self.chain, self.coinbase)
 	//<- time.After(time.Second)
@@ -571,15 +589,19 @@ func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsB
 		}
 		//fmt.Println(bc.CurrentBlock().Number().Int64(),"---- work.commitTransactions ---->",2)
 		// Start executing the transaction
+		// TODO : add by liangc
 		env.state.Prepare(tx.Hash(), common.Hash{}, env.tcount)
 		err, logs := env.commitTransaction(tx, bc, coinbase, gp)
 		if err != nil {
-			log.Error("debug:work.commitTransactions->", "err", err, "c_number", bc.CurrentHeader().Number.Int64(), "coinbase", coinbase.Hex())
+			/*
+			log.Warn("debug:work.commitTransactions->", "err", err, "c_number", bc.CurrentHeader().Number.Int64(), "coinbase", coinbase.Hex())
 			if tx.To() != nil {
-				log.Error("debug:work.commitTransactions->", "tx", tx.Hash().Hex(), "from", types.GetFromByTx(tx), "to", tx.To().Hex())
+				log.Warn("debug:work.commitTransactions->", "tx", tx.Hash().Hex(), "from", types.GetFromByTx(tx), "to", tx.To().Hex())
 			} else {
-				log.Error("debug:work.commitTransactions->", "tx", tx.Hash().Hex(), "from", types.GetFromByTx(tx), "to", tx.To())
+				log.Warn("debug:work.commitTransactions->", "tx", tx.Hash().Hex(), "from", types.GetFromByTx(tx), "to", tx.To())
 			}
+			*/
+			appendToFailTx(tx.Hash())
 		}
 		switch err {
 		case core.ErrGasLimitReached:

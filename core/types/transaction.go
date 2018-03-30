@@ -353,13 +353,16 @@ func TxDifference(a, b Transactions) (keep Transactions) {
 	for _, tx := range b {
 		remove[tx.Hash()] = struct{}{}
 	}
-
 	for _, tx := range a {
-		if _, ok := remove[tx.Hash()]; !ok {
+		// add by liangc : remove chief tx when reset
+		not_chief := true
+		if tx.To()!=nil && *tx.To() == common.HexToAddress(params.ChiefAddress) {
+			not_chief = false
+		}
+		if _, ok := remove[tx.Hash()]; !ok && not_chief{
 			keep = append(keep, tx)
 		}
 	}
-
 	return keep
 }
 
