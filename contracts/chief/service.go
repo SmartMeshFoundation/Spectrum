@@ -17,6 +17,7 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/crypto"
 	"github.com/SmartMeshFoundation/SMChain/ethclient"
 	"os"
+	"github.com/SmartMeshFoundation/SMChain/contracts/chief/lib"
 )
 
 /*
@@ -27,9 +28,12 @@ type Service interface {
 	Stop() error
 }
 */
+
+
 //implements node.Service
 type TribeService struct {
-	tribeChief *TribeChief
+	tribeChief_0_0_2 *chieflib.TribeChief
+	tribeChief_0_0_3 *chieflib.TribeChief_0_0_3
 	quit       chan int
 	server     *p2p.Server // peers and nodekey ...
 	ipcpath    string
@@ -49,13 +53,15 @@ func NewTribeService(ctx *node.ServiceContext) (node.Service, error) {
 			return nil, err
 		}
 	}
-	contract, err := NewTribeChief(common.HexToAddress(params.ChiefAddress), eth.NewContractBackend(apiBackend))
+	contract_0_0_2, err := chieflib.NewTribeChief(common.HexToAddress(params.ChiefAddress), eth.NewContractBackend(apiBackend))
+	contract_0_0_3, err := chieflib.NewTribeChief_0_0_3(common.HexToAddress(params.ChiefAddress), eth.NewContractBackend(apiBackend))
 	if err != nil {
 		return nil, err
 	}
 	ipcpath := os.Getenv("IPCPATH")
 	return &TribeService{
-		tribeChief: contract,
+		tribeChief_0_0_2: contract_0_0_2,
+		tribeChief_0_0_3: contract_0_0_3,
 		quit:       make(chan int),
 		ipcpath:    ipcpath,
 	}, nil
@@ -152,7 +158,7 @@ func (self *TribeService) update(mbox params.Mbox) {
 		auth.Nonce = new(big.Int).SetUint64(pnonce)
 	}
 	//}
-	t, e := self.tribeChief.Update(auth, self.fetchVolunteer())
+	t, e := self.tribeChief_0_0_2.Update(auth, self.fetchVolunteer())
 	if e != nil {
 		success.Entity = e
 	} else {
@@ -174,7 +180,7 @@ func (self *TribeService) getChiefStatus(blockNumber *big.Int, blockHash *common
 	opts.Context = ctx
 	opts.Number = blockNumber
 	opts.Hash = blockHash
-	chiefStatus, err := self.tribeChief.GetStatus(opts)
+	chiefStatus, err := self.tribeChief_0_0_2.GetStatus(opts)
 	if err != nil {
 		return params.ChiefStatus{}, err
 	}

@@ -649,7 +649,7 @@ func (pool *TxPool) IncFailTx(txHash common.Hash) {
 	} else {
 		pool.fail[txHash] = 1
 	}
-	log.Warn("IncFailTx", "tx", txHash.Hex(), "counter", counter)
+	log.Debug("IncFailTx", "tx", txHash.Hex(), "counter", counter)
 }
 
 // check counter and remove
