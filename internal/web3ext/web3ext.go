@@ -127,6 +127,12 @@ web3._extend({
 			inputFormatter: [null]
 		}),
 		new web3._extend.Method({
+			name: 'getSinners',
+			call: 'tribe_getSinners',
+			params: 1,
+			inputFormatter: [null]
+		}),
+		new web3._extend.Method({
 			name: 'getMiner',
 			call: 'tribe_getMiner',
 			params: 1,

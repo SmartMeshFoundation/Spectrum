@@ -33,6 +33,11 @@ func (api *API) GetMiner(number *rpc.BlockNumber) (*TribeMiner, error) {
 	return &TribeMiner{add, b, api.tribe.Status.SignerLevel}, nil
 }
 
+// chief-0.0.3 show blacklist
+func (api *API) GetSinners(hash *common.Hash) ([]common.Address,error) {
+	return api.tribe.Status.blackList,nil
+}
+
 func (api *API) GetSigners(hash *common.Hash) ([]*Signer, error) {
 	header := api.chain.CurrentHeader()
 	if header.Number.Int64() == 0 {
@@ -117,6 +122,8 @@ func (self *TribeStatus) LoadSignersFromChief(hash common.Hash, number *big.Int)
 	}
 	self.Volunteers = cs.VolunteerList
 	self.Number = cs.Number.Int64()
+	self.BlackListLen = len(cs.BlackList) // chief-0.0.3
+	self.blackList = cs.BlackList
 	self.loadSigners(sl)
 	go self.resetSignersLevel()
 	return nil
@@ -136,6 +143,14 @@ func (self *TribeStatus) resetSignersLevel() {
 			return
 		}
 	}
+	for _, s := range self.blackList {
+		if s == m {
+			self.SignerLevel = LevelSinner
+			return
+		}
+	}
+	// default none
+	self.SignerLevel = LevelNone
 }
 
 func (self *TribeStatus) loadSigners(sl []*Signer) error {

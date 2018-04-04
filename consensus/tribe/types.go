@@ -18,10 +18,11 @@ import (
 )
 
 const (
-	// None -> Volunteer -> Signer
+	// None -> Volunteer -> Signer -> Sinner
 	LevelNone      = "None"
 	LevelVolunteer = "Volunteer"
 	LevelSigner    = "Signer"
+	LevelSinner = "Sinner"
 
 	historyLimit = 2048
 	wiggleTime   = 500 * time.Millisecond // Random delay (per signer) to allow concurrent signers
@@ -104,7 +105,7 @@ type Tribe struct {
 	lock             sync.RWMutex // Protects the signer fields
 	Status           *TribeStatus
 	SealErrorCh      chan error // when error from seal fun, may be need commit a new work
-	SealErrorCounter uint32 // less then 3 , retry commit new work
+	SealErrorCounter uint32     // less then 3 , retry commit new work
 }
 
 type API struct {
@@ -126,12 +127,14 @@ func (self *Signer) String() string {
 }
 
 type TribeStatus struct {
-	Signers     []*Signer        `json:"signers"`    // 签名人
-	Volunteers  []common.Address `json:"volunteers"` //候选人
-	SignerLevel string                               // None -> Volunteer -> Signer
-	Number      int64            `json:"number"`     // last block.number
-	mining      int32                                // 1 mining start , 0 mining stop
-	nodeKey     *ecdsa.PrivateKey
+	Signers      []*Signer        `json:"signers"`
+	Volunteers   []common.Address `json:"volunteers"`
+	SignerLevel  string           `json:"signerLevel"` // None -> Volunteer -> Signer
+	Number       int64            `json:"number"`      // last block.number
+	BlackListLen int              `json:"totalSinner"` // length of blacklist
+	blackList    []common.Address
+	mining       int32 // 1 mining start , 0 mining stop
+	nodeKey      *ecdsa.PrivateKey
 }
 
 type TribeMiner struct {

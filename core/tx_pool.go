@@ -772,7 +772,6 @@ func (pool *TxPool) add(tx *types.Transaction, local bool) (bool, error) {
 		pool.locals.add(from)
 	}
 	pool.journalTx(from, tx)
-	fmt.Println("TTTTTTTTTTT>", replace, tx.Hash().Hex())
 	log.Trace("Pooled new future transaction", "hash", hash, "from", from, "to", tx.To())
 	return replace, nil
 }
