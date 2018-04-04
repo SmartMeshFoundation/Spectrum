@@ -2,7 +2,11 @@
 // This file is part of the SMChain library.
 pragma solidity ^0.4.19;
 
-
+/*
+vsn 0.0.3 改进如下 :
+    每个 epoch 增加了一个 黑名单，用来保存被淘汰的 signers ，以保证其不会重复被选拔;
+    在每个 epoch 中按打包交易数量来清除 1/3 非 genesisSigners 的节点 ；
+*/
 contract TribeChief_0_0_3 {
 
     // in vsn 0.0.3 , A blacklist is used to save a zero score signature node
@@ -11,8 +15,8 @@ contract TribeChief_0_0_3 {
     //config >>>>
     uint epoch = 11520; // 48H
     mapping(address => bool) genesisSigner; // genesis signer address
-    uint singerLimit = 3;
-    uint volunteerLimit = 4;
+    uint singerLimit = 5;
+    uint volunteerLimit = 15;
     //config <<<<
 
     uint blockNumber;
@@ -76,7 +80,7 @@ contract TribeChief_0_0_3 {
     }
 
     // append a sinner to blacklist
-    function pushBlacklist(address sinner) private {
+    function pushBlackList(address sinner) private {
 
         if (blMap[sinner] == 0) {
             _blackList.push(sinner);
@@ -86,12 +90,18 @@ contract TribeChief_0_0_3 {
 
     // append a volunteer
     function pushVolunteer(address volunteer) private {
-
         //满员或者已经存在于签名人or候选人则不添加
-        if (_volunteerList.length < volunteerLimit && volunteersMap[volunteer] == 0 && signersMap[volunteer].number == 0) {
+        //vsn-0.0.3 : blMap is blacklist map , the new volunteer can not in blacklist
+        if (_volunteerList.length < volunteerLimit && volunteersMap[volunteer] == 0 && blMap[volunteer] == 0 && signersMap[volunteer].number == 0) {
             _volunteerList.push(volunteer);
             volunteersMap[volunteer] = block.number;
         }
+    }
+
+    // generate a random index for remove signers every epoch
+    function getRandomIdx(address addr, uint max) private returns (uint256) {
+        uint256 random = uint256(keccak256(addr, block.difficulty, now));
+        return (random % max);
     }
 
     // append a signer
@@ -104,7 +114,7 @@ contract TribeChief_0_0_3 {
         }
     }
 
-    function TribeChief(address[] genesisSigners) public {
+    function TribeChief_0_0_3(address[] genesisSigners) public {
         _owner = msg.sender;
         uint len = genesisSigners.length;
         if (len > 0) {
@@ -116,15 +126,9 @@ contract TribeChief_0_0_3 {
         } else {
             // normal default for testing
             address g1 = 0x4110bd1ff0b73fa12c259acf39c950277f266787;
-            address g2 = 0xca012e2facf405885293d8d3ba3f14fae1e58b71;
-            address g3 = 0xadb3ea3ad356199206ca817b04fd668cc5196df2;
-
             // nerver delete genesis signer
             genesisSigner[g1] = true;
-
             pushSigner(g1, 3);
-            pushSigner(g2, 3);
-            pushSigner(g3, 3);
         }
     }
 
@@ -145,28 +149,69 @@ contract TribeChief_0_0_3 {
         singerLimit = n;
     }
 
+    function repeatTi(uint[] tiList, uint ti) private returns (bool) {
+        if (tiList.length > 0) {
+            for (uint i = 0; i < tiList.length; i++) {
+                if (tiList[i] == ti) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     function update(address volunteer) public apply(msg.sender) {
 
         blockNumber = block.number;
 
-        // every epoch be clean volunteers
+        // vsn-0.0.2 : every epoch be clean volunteers
+        // vsn-0.0.3 : clean blacklist and move 1/3 signers to blacklist excelude genesisSigners
         if (block.number > epoch && block.number % epoch == 0) {
 
+            // ==== vsn-0.0.2 ====
             uint vlen = _volunteerList.length;
-            for (uint i = 0; i < vlen; i++) {
-                delete volunteersMap[_volunteerList[i]];
+            for (uint i1 = 0; i1 < vlen; i1++) {
+                delete volunteersMap[_volunteerList[i1]];
             }
-
             delete _volunteerList;
+
+            // ==== vsn-0.0.3 ====
+            // 1 : clean blacklist
+            uint blen = _blackList.length;
+            for (uint i2 = 0; i2 < blen; i2++) {
+                delete blMap[_blackList[i2]];
+            }
+            delete _blackList;
+            // 2 : move 1/3 signers to blacklist
+            uint slen = _signerList.length;
+            uint counter = 0;
+            uint[] memory tiList;
+            // target signer idx
+            for (uint i3 = (slen - 1); i3 >= 0; i3--) {
+                address _addr = _signerList[i3];
+                uint ti = getRandomIdx(_addr, (slen - 1));
+                //skip genesis signer
+                if (genesisSigner[_signerList[ti]]) {
+                    continue;
+                }
+                if (repeatTi(tiList, ti)) {
+                    continue;
+                }
+                tiList[counter] = ti;
+                if (counter++ >= (slen / 3)) break;
+            }
+            if (tiList.length > 0) {
+                for (uint i4 = 0; i4 < tiList.length; i4++) {
+                    pushBlackList(_signerList[tiList[i4]]);
+                    deleteSigner(tiList[i4]);
+                }
+            }
         }
 
         // mine
         // 如果当前块 不是 signers[ blockNumber % signers.length ] 出的，就给这个 signer 减分
         // 否则恢复成 3 分
-
-        // 序号
         uint signerIdx = blockNumber % _signerList.length;
-
         //初始签名人不做处理
         if (!genesisSigner[_signerList[signerIdx]]) {
 
@@ -178,7 +223,10 @@ contract TribeChief_0_0_3 {
                     signer.score -= 1;
                     signer.number = blockNumber;
                 } else {
-                    // 0 分时就删除了
+                    // move to blacklist and cannot be selected in this epoch
+                    pushBlackList(_signerList[signerIdx]);
+                    // vsn-0.0.3
+                    // score == 0 , remove on signerList
                     deleteSigner(signerIdx);
                 }
             } else {
@@ -218,9 +266,9 @@ contract TribeChief_0_0_3 {
     function getStatus() constant returns (
         address[] volunteerList,
         address[] signerList,
+        address[] blackList, // vsn 0.0.3
         uint[] memory scoreList,
         uint[] memory numberList,
-        uint[] memory blackList,
         uint number
     ) {
         scoreList = new uint[](_signerList.length);
@@ -231,6 +279,8 @@ contract TribeChief_0_0_3 {
         }
         volunteerList = _volunteerList;
         signerList = _signerList;
+        blackList = _blackList;
+        // vsn 0.0.3
         number = blockNumber;
         return;
     }

@@ -623,7 +623,7 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 // add by liangc : chief contract's tx only be one , Keep up with the latest
 func (pool *TxPool) addChief(tx *types.Transaction) bool {
 	from := types.GetFromByTx(tx)
-	if pool.nodeKey != nil && from != nil && tx.To() != nil && *tx.To() == common.HexToAddress(params.ChiefAddress) {
+	if pool.nodeKey != nil && from != nil && tx.To() != nil && params.IsChiefAddress(*tx.To()) {
 		log.Debug("TxPool.addChief", "tx", tx.Hash().Hex(), "from", (*from).Hex(), "nk", crypto.PubkeyToAddress(pool.nodeKey.PublicKey).Hex())
 		if *from == crypto.PubkeyToAddress(pool.nodeKey.PublicKey) {
 			pool.chiefTx = tx
@@ -764,7 +764,6 @@ func (pool *TxPool) add(tx *types.Transaction, local bool) (bool, error) {
 		fmt.Println("--> TxPool.add : pending.add : ", tx.Nonce(), tx.Hash().Hex())
 	}
 	*/
-
 	if err != nil {
 		return false, err
 	}
@@ -773,7 +772,7 @@ func (pool *TxPool) add(tx *types.Transaction, local bool) (bool, error) {
 		pool.locals.add(from)
 	}
 	pool.journalTx(from, tx)
-
+	fmt.Println("TTTTTTTTTTT>", replace, tx.Hash().Hex())
 	log.Trace("Pooled new future transaction", "hash", hash, "from", from, "to", tx.To())
 	return replace, nil
 }

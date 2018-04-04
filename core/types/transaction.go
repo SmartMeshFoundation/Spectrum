@@ -356,7 +356,7 @@ func TxDifference(a, b Transactions) (keep Transactions) {
 	for _, tx := range a {
 		// add by liangc : remove chief tx when reset
 		not_chief := true
-		if tx.To()!=nil && *tx.To() == common.HexToAddress(params.ChiefAddress) {
+		if tx.To()!=nil && params.IsChiefAddress(*tx.To()) {
 			not_chief = false
 		}
 		if _, ok := remove[tx.Hash()]; !ok && not_chief{
@@ -381,27 +381,16 @@ type TxByPrice Transactions
 
 func (s TxByPrice) Len() int { return len(s) }
 func (s TxByPrice) Less(i, j int) bool {
-	//TODO add by liangc move chief.tx idx to 0
-	chiefTx := common.HexToAddress(params.ChiefAddress)
+	//add by liangc move chief.tx idx to 0
 	iTx := s[i].To()
-	if iTx != nil && *iTx == chiefTx {
+	if iTx != nil && params.IsChiefAddress(*iTx) {
 		return true
 	}
 	jTx := s[j].To()
-	if jTx != nil && *jTx == chiefTx {
+	if jTx != nil && params.IsChiefAddress(*jTx) {
 		return false
 	}
 	return s[i].data.Price.Cmp(s[j].data.Price) > 0
-	/*
-	switch params.ChiefAddress {
-	case s[i].To().Hex():
-		return true
-	case s[j].To().Hex():
-		return false
-	default:
-		return s[i].data.Price.Cmp(s[j].data.Price) > 0
-	}
-	*/
 }
 func (s TxByPrice) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
 

@@ -18,6 +18,8 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/ethclient"
 	"os"
 	"github.com/SmartMeshFoundation/SMChain/contracts/chief/lib"
+	"github.com/SmartMeshFoundation/SMChain/core/types"
+	"errors"
 )
 
 /*
@@ -29,15 +31,14 @@ type Service interface {
 }
 */
 
-
 //implements node.Service
 type TribeService struct {
 	tribeChief_0_0_2 *chieflib.TribeChief
 	tribeChief_0_0_3 *chieflib.TribeChief_0_0_3
-	quit       chan int
-	server     *p2p.Server // peers and nodekey ...
-	ipcpath    string
-	client     *ethclient.Client
+	quit             chan int
+	server           *p2p.Server // peers and nodekey ...
+	ipcpath          string
+	client           *ethclient.Client
 }
 
 func NewTribeService(ctx *node.ServiceContext) (node.Service, error) {
@@ -53,18 +54,26 @@ func NewTribeService(ctx *node.ServiceContext) (node.Service, error) {
 			return nil, err
 		}
 	}
-	contract_0_0_2, err := chieflib.NewTribeChief(common.HexToAddress(params.ChiefAddress), eth.NewContractBackend(apiBackend))
-	contract_0_0_3, err := chieflib.NewTribeChief_0_0_3(common.HexToAddress(params.ChiefAddress), eth.NewContractBackend(apiBackend))
-	if err != nil {
-		return nil, err
-	}
 	ipcpath := os.Getenv("IPCPATH")
-	return &TribeService{
-		tribeChief_0_0_2: contract_0_0_2,
-		tribeChief_0_0_3: contract_0_0_3,
-		quit:       make(chan int),
-		ipcpath:    ipcpath,
-	}, nil
+	ts := &TribeService{
+		quit:    make(chan int),
+		ipcpath: ipcpath,
+	}
+	if v0_0_2 := params.GetChiefInfoByVsn("0.0.2"); v0_0_2 != nil {
+		contract_0_0_2, err := chieflib.NewTribeChief(v0_0_2.Addr, eth.NewContractBackend(apiBackend))
+		if err != nil {
+			return nil, err
+		}
+		ts.tribeChief_0_0_2 = contract_0_0_2
+	}
+	if v0_0_3 := params.GetChiefInfoByVsn("0.0.3"); v0_0_3 != nil {
+		contract_0_0_3, err := chieflib.NewTribeChief_0_0_3(v0_0_3.Addr, eth.NewContractBackend(apiBackend))
+		if err != nil {
+			return nil, err
+		}
+		ts.tribeChief_0_0_3 = contract_0_0_3
+	}
+	return ts, nil
 }
 
 func (self *TribeService) Protocols() []p2p.Protocol { return nil }
@@ -110,20 +119,22 @@ func (self *TribeService) getstatus(mbox params.Mbox) {
 		blockNumber *big.Int     = nil
 		blockHash   *common.Hash = nil
 	)
+	// hash and number can not nil
 	if h, ok := mbox.Params["hash"]; ok {
 		bh := h.(common.Hash)
 		blockHash = &bh
-		log.Debug("=>TribeService.getstatus", "blockHash", blockHash)
-	} else if n, ok := mbox.Params["number"]; ok {
-		blockNumber = n.(*big.Int)
-		log.Debug("-> TribeService.getstatus", "blockNumber", blockNumber.Int64())
 	}
-	chiefStatus, err := self.getChiefStatus(blockNumber, blockHash)
+	if n, ok := mbox.Params["number"]; ok {
+		blockNumber = n.(*big.Int)
+	}
+	log.Debug("=>TribeService.getstatus", "blockNumber", blockNumber, "blockHash", blockHash.Hex())
+
 	success := params.MBoxSuccess{Success: true}
+	chiefStatus, err := self.getChiefStatus(blockNumber, blockHash)
 	if err != nil {
 		success.Success = false
 		success.Entity = err
-		log.Debug("chief.mbox.rtn: getstatus <-", "success", success.Success, "err", err)
+		log.Error("chief.mbox.rtn: getstatus <-", "success", success.Success, "err", err)
 	} else {
 		entity := chiefStatus
 		success.Entity = entity
@@ -133,7 +144,6 @@ func (self *TribeService) getstatus(mbox params.Mbox) {
 }
 
 func (self *TribeService) update(mbox params.Mbox) {
-
 	prv := self.server.PrivateKey
 	auth := bind.NewKeyedTransactor(prv)
 	auth.GasPrice = eth.DefaultConfig.GasPrice
@@ -150,15 +160,33 @@ func (self *TribeService) update(mbox params.Mbox) {
 	if perr != nil {
 		log.Warn(">>=== nonce_err=", "err", perr)
 	} else {
-		//pnonce0, perr0 := self.client.PendingNonceAt(context.Background(), crypto.PubkeyToAddress(prv.PublicKey))
-		//nonce := params.ChiefTxNonce
-		//fmt.Println(">>=== pnonce 0=", pnonce0, "perr=", perr0)
-		//fmt.Println(">>=== pnonce 1=", pnonce, "perr=", perr)
 		log.Debug(">>=== nonce=", "nonce", pnonce)
 		auth.Nonce = new(big.Int).SetUint64(pnonce)
 	}
 	//}
-	t, e := self.tribeChief_0_0_2.Update(auth, self.fetchVolunteer())
+	var (
+		t           *types.Transaction
+		e           error
+		blockNumber *big.Int
+	)
+	// not nil
+	if n, ok := mbox.Params["number"]; ok {
+		blockNumber = n.(*big.Int)
+		log.Debug("-> TribeService.update", "blockNumber", blockNumber.Int64())
+	} else {
+		success.Entity = errors.New("TribeService.update : blockNumber not nil")
+		mbox.Rtn <- success
+		return
+	}
+	if chiefInfo := params.GetChiefInfo(blockNumber); chiefInfo != nil {
+		switch chiefInfo.Version {
+		case "0.0.2":
+			t, e = self.tribeChief_0_0_2.Update(auth, self.fetchVolunteer(blockNumber))
+		case "0.0.3":
+			t, e = self.tribeChief_0_0_3.Update(auth, self.fetchVolunteer(blockNumber))
+		}
+	}
+
 	if e != nil {
 		success.Entity = e
 	} else {
@@ -178,13 +206,31 @@ func (self *TribeService) getChiefStatus(blockNumber *big.Int, blockHash *common
 	//opts := &bind.CallOpts{Context: ctx}
 	opts := new(bind.CallOptsWithNumber)
 	opts.Context = ctx
-	opts.Number = blockNumber
 	opts.Hash = blockHash
-	chiefStatus, err := self.tribeChief_0_0_2.GetStatus(opts)
-	if err != nil {
-		return params.ChiefStatus{}, err
+	if chiefInfo := params.GetChiefInfo(blockNumber); chiefInfo != nil {
+		switch chiefInfo.Version {
+		case "0.0.2":
+			chiefStatus, err := self.tribeChief_0_0_2.GetStatus(opts)
+			if err != nil {
+				return params.ChiefStatus{}, err
+			}
+			return params.ChiefStatus{
+				VolunteerList: chiefStatus.VolunteerList,
+				SignerList:    chiefStatus.SignerList,
+				ScoreList:     chiefStatus.ScoreList,
+				NumberList:    chiefStatus.NumberList,
+				BlackList:     nil,
+				Number:        chiefStatus.Number,
+			}, nil
+		case "0.0.3":
+			chiefStatus, err := self.tribeChief_0_0_3.GetStatus(opts)
+			if err != nil {
+				return params.ChiefStatus{}, err
+			}
+			return params.ChiefStatus(chiefStatus), err
+		}
 	}
-	return params.ChiefStatus(chiefStatus), nil
+	return params.ChiefStatus{}, errors.New("status_not_found")
 }
 
 func (self *TribeService) isVolunteer(dict map[common.Address]interface{}, add common.Address) bool {
@@ -195,33 +241,33 @@ func (self *TribeService) isVolunteer(dict map[common.Address]interface{}, add c
 	}
 	return true
 }
-func (self *TribeService) fetchVolunteer() common.Address {
+func (self *TribeService) fetchVolunteer(blockNumber *big.Int) common.Address {
 	peers := self.server.Peers()
 	if len(peers) > 0 {
-		chiefStatus, err := self.getChiefStatus(nil, nil)
+		chiefStatus, err := self.getChiefStatus(blockNumber, nil)
 		if err != nil {
 			log.Error("getChiefStatus fail", "err", err)
 		}
+		// exclude signers and volunteers
 		vl := append(chiefStatus.VolunteerList[:], chiefStatus.SignerList...)
+		if chiefStatus.BlackList != nil {
+			// exclude blacklist address
+			vl = append(vl[:], chiefStatus.BlackList...)
+		}
 		vmap := make(map[common.Address]interface{})
 		for _, v := range vl {
 			vmap[v] = struct{}{}
 		}
-		//fmt.Println("#########################################################################")
 		for _, peer := range peers {
 			pub, _ := peer.ID().Pubkey()
 			add := crypto.PubkeyToAddress(*pub)
-			//fmt.Println(i, "id:", peer.ID().String())
-			//fmt.Println(i, "hex:", add.Hex())
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 			defer cancel()
 			b, e := self.client.BalanceAt(ctx, add, nil)
 			if e == nil && b.Cmp(params.ChiefBaseBalance) >= 0 && self.isVolunteer(vmap, add) {
 				return add
 			}
-			//fmt.Println(i, "balance:", e, b.Int64())
 		}
-		//fmt.Println("#########################################################################")
 	}
 	return common.Address{}
 }

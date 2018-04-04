@@ -5,19 +5,17 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/common"
 	"fmt"
 	"sort"
-)
-
-const (
-	// at same account and block number to deploy this contract can be get the same address
-	ChiefAddress = "0x9ec55c1dafd4a487e41da33e344aef86da41ab82" //chief contract address for consensus of tribe
+	"os"
+	"errors"
 )
 
 type ChiefInfo struct {
-	StartNumber *big.Int
+	StartNumber *big.Int // 0 is nil
 	Version     string
 	Addr        common.Address
 }
 type ChiefInfoList []*ChiefInfo
+
 func (p ChiefInfoList) Len() int { return len(p) }
 func (p ChiefInfoList) Less(i, j int) bool {
 	return p[i].StartNumber.Int64() > p[j].StartNumber.Int64()
@@ -30,32 +28,59 @@ func (self *ChiefInfo) String() string {
 	return fmt.Sprintf("start: %d , vsn: %s , addr: %s", self.StartNumber.Int64(), self.Version, self.Addr.Hex())
 }
 
-func newChiefInfo(num int64, vsn, addr string) *ChiefInfo {
+func newChiefInfo(num *big.Int, vsn string, addr common.Address) *ChiefInfo {
 	return &ChiefInfo{
-		StartNumber: big.NewInt(num),
+		StartNumber: num,
 		Version:     vsn,
-		Addr:        common.HexToAddress(addr),
+		Addr:        addr,
 	}
 }
 
 // for chief
 var (
-	ChiefBaseBalance = new(big.Int).Mul(big.NewInt(1), big.NewInt(Finney))
-	MboxChan         = make(chan Mbox, 32)
-	InitTribeStatus  = make(chan struct{})
-	chiefAddressList = ChiefInfoList{
-		newChiefInfo(2, "0.0.2", "0x9ec55c1dafd4a487e41da33e344aef86da41ab82"),
-		newChiefInfo(30000, "0.0.3", "0x01"),
-	}
+	ChiefBaseBalance               = new(big.Int).Mul(big.NewInt(1), big.NewInt(Finney))
+	MboxChan                       = make(chan Mbox, 32)
+	InitTribeStatus                = make(chan struct{})
+	chiefInfoList    ChiefInfoList = nil
 )
 
-func GetChiefAddress(blockNumber *big.Int) *ChiefInfo {
-	return getChiefAddress(chiefAddressList,blockNumber)
+// startNumber and address must from chain's config
+func chiefAddressList() (list ChiefInfoList) {
+	if chiefInfoList != nil {
+		return chiefInfoList
+	}
+	if os.Getenv("TESTNET") == "1" {
+		list = ChiefInfoList{
+			// at same account and block number to deploy this contract can be get the same address
+			newChiefInfo(TestnetChainConfig.Chief002Block, "0.0.2", TestnetChainConfig.Chief002Address),
+			newChiefInfo(TestnetChainConfig.Chief003Block, "0.0.3", TestnetChainConfig.Chief003Address),
+		}
+	} else {
+		list = ChiefInfoList{
+			// at same account and block number to deploy this contract can be get the same address
+			newChiefInfo(MainnetChainConfig.Chief002Block, "0.0.2", MainnetChainConfig.Chief002Address),
+			newChiefInfo(MainnetChainConfig.Chief003Block, "0.0.3", MainnetChainConfig.Chief003Address),
+		}
+	}
+	chiefInfoList = list
+	return
 }
-func getChiefAddress(list ChiefInfoList,blockNumber *big.Int) *ChiefInfo {
+
+func GetChiefInfoByVsn(vsn string) *ChiefInfo {
+	for _, ci := range chiefAddressList() {
+		if ci.StartNumber.Int64() > 0 && ci.Version == vsn {
+			return ci
+		}
+	}
+	return nil
+}
+func GetChiefInfo(blockNumber *big.Int) *ChiefInfo {
+	return getChiefInfo(chiefAddressList(), blockNumber)
+}
+func getChiefInfo(list ChiefInfoList, blockNumber *big.Int) *ChiefInfo {
 	// TODO sort once only
 	sort.Sort(list)
-	for _,c := range list {
+	for _, c := range list {
 		if blockNumber.Int64() >= c.StartNumber.Int64() {
 			return c
 		}
@@ -64,9 +89,9 @@ func getChiefAddress(list ChiefInfoList,blockNumber *big.Int) *ChiefInfo {
 }
 
 func IsChiefAddress(addr common.Address) bool {
-	return isChiefAddress(chiefAddressList,addr)
+	return isChiefAddress(chiefAddressList(), addr)
 }
-func isChiefAddress(list ChiefInfoList,addr common.Address) bool {
+func isChiefAddress(list ChiefInfoList, addr common.Address) bool {
 	for _, ci := range list {
 		if ci.Addr == addr {
 			return true
@@ -87,20 +112,22 @@ type MBoxSuccess struct {
 	Entity  interface{}
 }
 
-func SendToMsgBoxWithHash(method string, hash common.Hash) chan MBoxSuccess {
+// called by chief.GetStatus
+func SendToMsgBoxWithHash(method string, hash common.Hash,number *big.Int) chan MBoxSuccess {
 	rtn := make(chan MBoxSuccess)
 	m := Mbox{
 		Method: method,
 		Rtn:    rtn,
 	}
-	if hash != common.HexToHash("0x") {
-		m.Params = map[string]interface{}{"hash": hash}
+	if number == nil || hash == common.HexToHash("0x") {
+		panic(errors.New("hash and number can not nil"))
 	}
+	m.Params = map[string]interface{}{"hash": hash,"number":number}
 	MboxChan <- m
 	return rtn
 }
 
-/*
+// called by chief.Update
 func SendToMsgBoxWithNumber(method string, number *big.Int) chan MBoxSuccess {
 	rtn := make(chan MBoxSuccess)
 	m := Mbox{
@@ -113,10 +140,15 @@ func SendToMsgBoxWithNumber(method string, number *big.Int) chan MBoxSuccess {
 	MboxChan <- m
 	return rtn
 }
-*/
 
 func SendToMsgBox(method string) chan MBoxSuccess {
-	return SendToMsgBoxWithHash(method, common.HexToHash("0x"))
+	rtn := make(chan MBoxSuccess)
+	m := Mbox{
+		Method: method,
+		Rtn:    rtn,
+	}
+	MboxChan <- m
+	return rtn
 }
 
 // clone from chief.getStatus return struct
@@ -124,6 +156,7 @@ func SendToMsgBox(method string) chan MBoxSuccess {
 type ChiefStatus struct {
 	VolunteerList []common.Address
 	SignerList    []common.Address
+	BlackList     []common.Address // append by vsn 0.0.3
 	ScoreList     []*big.Int
 	NumberList    []*big.Int
 	Number        *big.Int

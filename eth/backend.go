@@ -176,7 +176,11 @@ func New(ctx *node.ServiceContext, config *Config) (*Ethereum, error) {
 		gpoParams.Default = config.GasPrice
 	}
 	eth.ApiBackend.gpo = gasprice.NewOracle(eth.ApiBackend, gpoParams)
-
+	// add by liangc
+	if tribe,ok := eth.engine.(*tribe.Tribe) ; ok{
+		cb := eth.blockchain.CurrentBlock()
+		tribe.Init(cb.Hash(),cb.Number())
+	}
 	return eth, nil
 }
 

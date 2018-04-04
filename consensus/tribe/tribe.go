@@ -99,24 +99,25 @@ func New(config *params.TribeConfig, db ethdb.Database) *Tribe {
 	if conf.Period <= 0 {
 		conf.Period = blockPeriod
 	}
+	return &Tribe{
+		config:      &conf,
+		db:          db,
+		Status:      status,
+		sigcache:    sigcache,
+		SealErrorCh: make(chan error, 1),
+	}
+}
 
+func (t *Tribe) Init(hash common.Hash, number *big.Int) {
 	go func() {
 		log.Info("init tribe.status when chiefservice start end.")
 		<-params.InitTribeStatus
-		status.LoadSignersFromChief(common.HexToHash("0x"))
+		t.Status.LoadSignersFromChief(hash, number)
 		rtn := params.SendToMsgBox("GetNodeKey")
 		success := <-rtn
-		status.nodeKey = success.Entity.(*ecdsa.PrivateKey)
+		t.Status.nodeKey = success.Entity.(*ecdsa.PrivateKey)
 		log.Info("init tribe.status success.")
 	}()
-
-	return &Tribe{
-		config:   &conf,
-		db:       db,
-		Status:   status,
-		sigcache: sigcache,
-		SealErrorCh: make(chan error,1),
-	}
 }
 
 // called by miner.start
@@ -426,11 +427,11 @@ func (t *Tribe) Authorize(signer common.Address, signFn SignerFn) {
 // the local signing credentials.
 func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-chan struct{}) (*types.Block, error) {
 	if err := t.Status.ValidatorBlock(block); err != nil {
-		log.Error("Tribe_Seal","retry",atomic.LoadUint32(&t.SealErrorCounter),"number",block.Number().Int64(),"err",err)
+		log.Error("Tribe_Seal", "retry", atomic.LoadUint32(&t.SealErrorCounter), "number", block.Number().Int64(), "err", err)
 		t.SealErrorCh <- err
 		return nil, err
 	}
-	atomic.StoreUint32(&t.SealErrorCounter,0)
+	atomic.StoreUint32(&t.SealErrorCounter, 0)
 	header := block.Header()
 	// Sealing the genesis block is not supported
 	number := header.Number.Int64()

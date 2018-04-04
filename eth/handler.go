@@ -664,8 +664,9 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 			if tx == nil {
 				return errResp(ErrDecode, "transaction %d is nil", i)
 			}
+
 			// add by liangc
-			if tx.To()!=nil && *tx.To() == common.HexToAddress(params.ChiefAddress) {
+			if tx.To()!=nil && params.IsChiefAddress(*tx.To()) {
 				log.Error("chief.tx can't broadcast","peer",p.id)
 				return errResp(ErrDecode, "chief.tx can't broadcast : %d", i)
 			}
@@ -747,10 +748,9 @@ func (self *ProtocolManager) txBroadcastLoop() {
 		select {
 		case event := <-self.txCh:
 			// add by liangc
-			if event.Tx.To()==nil || common.HexToAddress(params.ChiefAddress) != *event.Tx.To() {
+			if event.Tx.To()==nil || !params.IsChiefAddress(*event.Tx.To()) {
 				self.BroadcastTx(event.Tx.Hash(), event.Tx)
 			}
-
 		// Err() channel will be closed when unsubscribing.
 		case <-self.txSub.Err():
 			return

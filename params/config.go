@@ -41,7 +41,6 @@ var (
 		EIP155Block:    big.NewInt(2675000),
 		EIP158Block:    big.NewInt(2675000),
 		ByzantiumBlock: big.NewInt(4370000),
-
 		Ethash: new(EthashConfig),
 	}
 	*/
@@ -57,7 +56,14 @@ var (
 		ByzantiumBlock: big.NewInt(4),
 		// add by liangc : change default consensus for dev
 		//Clique: &CliqueConfig{ Period: 15, Epoch:  30000}, //Ethash: new(EthashConfig),
-		Tribe: &TribeConfig{},
+		// if skip this vsn please set 0 or nil to block and set common.Address{} to address
+		// 0.0.2
+		Chief002Block:   big.NewInt(0),
+		Chief002Address: common.Address{},
+		// 0.0.3
+		Chief003Block:   big.NewInt(2),
+		Chief003Address: common.Address{},
+		Tribe:           &TribeConfig{},
 	}
 
 	// TestnetChainConfig contains the chain parameters to run a node on the Ropsten test network.
@@ -73,7 +79,14 @@ var (
 		ByzantiumBlock: big.NewInt(62678),
 		//ByzantiumBlock: big.NewInt(1700000),
 		//Clique: &CliqueConfig{ Period: 15, Epoch:  30000}, //Ethash: new(EthashConfig),
-		Tribe: &TribeConfig{},
+		// if skip this vsn please set 0 or nil to block and set common.Address{} to address
+		// 0.0.2
+		Chief002Block:   big.NewInt(2),
+		Chief002Address: common.HexToAddress("0x9ec55c1dafd4a487e41da33e344aef86da41ab82"),
+		// TODO : set chief 0.0.3 in chain config
+		Chief003Block:   big.NewInt(113772),//TODO hard fork test
+		Chief003Address: common.HexToAddress("0xac28e532b3fac82554fc7b0b8b62549deeeb33a9"),
+		Tribe:           &TribeConfig{},
 	}
 
 	// RinkebyChainConfig contains the chain parameters to run a node on the Rinkeby test network.
@@ -87,7 +100,6 @@ var (
 		EIP155Block:    big.NewInt(3),
 		EIP158Block:    big.NewInt(3),
 		ByzantiumBlock: big.NewInt(1035301),
-
 		Clique: &CliqueConfig{
 			Period: 15,
 			Epoch:  30000,
@@ -99,16 +111,54 @@ var (
 	//
 	// This configuration is intentionally not using keyed fields to force anyone
 	// adding flags to the config to also have to set these fields.
-	AllEthashProtocolChanges = &ChainConfig{big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), new(EthashConfig), nil,nil}
+	AllEthashProtocolChanges = &ChainConfig{
+		ChainId:        big.NewInt(1337),
+		HomesteadBlock: big.NewInt(0),
+		DAOForkBlock:   nil,
+		DAOForkSupport: false,
+		EIP150Block:    big.NewInt(0),
+		EIP150Hash:     common.Hash{},
+		EIP155Block:    big.NewInt(0),
+		EIP158Block:    big.NewInt(0),
+		ByzantiumBlock: big.NewInt(0),
+		Ethash:         new(EthashConfig),
+		Clique:         nil,
+		Tribe:          nil,
+	}
 
 	// AllCliqueProtocolChanges contains every protocol change (EIPs) introduced
 	// and accepted by the Ethereum core developers into the Clique consensus.
 	//
 	// This configuration is intentionally not using keyed fields to force anyone
 	// adding flags to the config to also have to set these fields.
-	AllCliqueProtocolChanges = &ChainConfig{big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, &CliqueConfig{Period: 0, Epoch: 30000},nil}
-
-	TestChainConfig = &ChainConfig{big.NewInt(1), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), new(EthashConfig), nil,nil}
+	AllCliqueProtocolChanges = &ChainConfig{
+		ChainId:        big.NewInt(1337),
+		HomesteadBlock: big.NewInt(0),
+		DAOForkBlock:   nil,
+		DAOForkSupport: false,
+		EIP150Block:    big.NewInt(0),
+		EIP150Hash:     common.Hash{},
+		EIP155Block:    big.NewInt(0),
+		EIP158Block:    big.NewInt(0),
+		ByzantiumBlock: big.NewInt(0),
+		Ethash:         nil,
+		Clique:         &CliqueConfig{Period: 0, Epoch: 30000},
+		Tribe:          nil,
+	}
+	TestChainConfig = &ChainConfig{
+		ChainId:        big.NewInt(1),
+		HomesteadBlock: big.NewInt(0),
+		DAOForkBlock:   nil,
+		DAOForkSupport: false,
+		EIP150Block:    big.NewInt(0),
+		EIP150Hash:     common.Hash{},
+		EIP155Block:    big.NewInt(0),
+		EIP158Block:    big.NewInt(0),
+		ByzantiumBlock: big.NewInt(0),
+		Ethash:         new(EthashConfig),
+		Clique:         nil,
+		Tribe:          nil,
+	}
 	TestRules       = TestChainConfig.Rules(new(big.Int))
 )
 
@@ -137,7 +187,16 @@ type ChainConfig struct {
 	// Various consensus engines
 	Ethash *EthashConfig `json:"ethash,omitempty"`
 	Clique *CliqueConfig `json:"clique,omitempty"`
-	Tribe *TribeConfig `json:"tribe,omitempty"` // add by liangc
+	Tribe  *TribeConfig  `json:"tribe,omitempty"` // add by liangc
+
+	// >>> add by liangc : set chief start number >>>
+	// chief.sol vsn 0.0.2
+	Chief002Block   *big.Int       `json:"chief002Block,omitempty"`
+	Chief002Address common.Address `json:"chief002Address,omitempty"`
+	// chief.sol vsn 0.0.3
+	Chief003Block   *big.Int       `json:"chief003Block,omitempty"`
+	Chief003Address common.Address `json:"chief003Address,omitempty"`
+	// <<< add by liangc : set chief start number <<<
 }
 
 // EthashConfig is the consensus engine configs for proof-of-work based sealing.
@@ -159,9 +218,8 @@ func (c *CliqueConfig) String() string {
 	return "clique"
 }
 
-
 // TribeConfig is the consensus engine configs.
-type TribeConfig struct{
+type TribeConfig struct {
 	Period uint64 `json:"period"` // Number of seconds between blocks to enforce
 }
 

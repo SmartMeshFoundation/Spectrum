@@ -104,7 +104,7 @@ func (journal *txJournal) load(add func(*types.Transaction) error) error {
 // insert adds the specified transaction to the local disk journal.
 func (journal *txJournal) insert(tx *types.Transaction) error {
 	// add by liangc : only for dev and test
-	if tx.To()!=nil && common.HexToAddress(params.ChiefAddress) == *tx.To() {
+	if tx.To()!=nil && params.IsChiefAddress(*tx.To()) {
 		fmt.Println("><> txJournal.insert : chief tx do not save to disk : ",tx.Hash().Hex())
 		return nil
 	}
