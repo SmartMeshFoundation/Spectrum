@@ -192,7 +192,7 @@ contract TribeChief_0_0_3 {
             // 2 : move 1/3 signers to blacklist
             uint slen = _signerList.length;
             uint counter = 0;
-            uint[] memory tiList;
+            uint[] memory tiList = new uint[](slen);
             // target signer idx
             for (uint i3 = (slen - 1); i3 >= 0; i3--) {
                 address _addr = _signerList[i3];
@@ -209,10 +209,14 @@ contract TribeChief_0_0_3 {
                 if (counter >= (slen / 3)) break;
                 counter += 1;
             }
-            if (tiList.length > 0) {
-                for (uint i4 = 0; i4 < tiList.length; i4++) {
-                    pushBlackList(_signerList[tiList[i4]]);
-                    deleteSigner(tiList[i4]);
+            if (counter > 0) {
+                for (uint i4 = 0; i4 < slen; i4++) {
+                    uint idx = tiList[i4];
+                    // skip nil , 0 == nil
+                    if (idx != 0) {
+                        pushBlackList(_signerList[tiList[i4]]);
+                        deleteSigner(tiList[i4]);
+                    }
                 }
             }
         }
