@@ -35,6 +35,7 @@ type Service interface {
 type TribeService struct {
 	tribeChief_0_0_2 *chieflib.TribeChief
 	tribeChief_0_0_3 *chieflib.TribeChief_0_0_3
+	tribeChief_0_0_4 *chieflib.TribeChief_0_0_4
 	quit             chan int
 	server           *p2p.Server // peers and nodekey ...
 	ipcpath          string
@@ -72,6 +73,13 @@ func NewTribeService(ctx *node.ServiceContext) (node.Service, error) {
 			return nil, err
 		}
 		ts.tribeChief_0_0_3 = contract_0_0_3
+	}
+	if v0_0_4 := params.GetChiefInfoByVsn("0.0.4"); v0_0_4 != nil {
+		contract_0_0_4, err := chieflib.NewTribeChief_0_0_4(v0_0_4.Addr, eth.NewContractBackend(apiBackend))
+		if err != nil {
+			return nil, err
+		}
+		ts.tribeChief_0_0_4 = contract_0_0_4
 	}
 	return ts, nil
 }
@@ -184,6 +192,8 @@ func (self *TribeService) update(mbox params.Mbox) {
 			t, e = self.tribeChief_0_0_2.Update(auth, self.fetchVolunteer(blockNumber))
 		case "0.0.3":
 			t, e = self.tribeChief_0_0_3.Update(auth, self.fetchVolunteer(blockNumber))
+		case "0.0.4":
+			t, e = self.tribeChief_0_0_4.Update(auth, self.fetchVolunteer(blockNumber))
 		}
 	}
 
@@ -224,6 +234,12 @@ func (self *TribeService) getChiefStatus(blockNumber *big.Int, blockHash *common
 			}, nil
 		case "0.0.3":
 			chiefStatus, err := self.tribeChief_0_0_3.GetStatus(opts)
+			if err != nil {
+				return params.ChiefStatus{}, err
+			}
+			return params.ChiefStatus(chiefStatus), err
+		case "0.0.4":
+			chiefStatus, err := self.tribeChief_0_0_4.GetStatus(opts)
 			if err != nil {
 				return params.ChiefStatus{}, err
 			}

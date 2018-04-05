@@ -61,8 +61,11 @@ var (
 		Chief002Block:   big.NewInt(0),
 		Chief002Address: common.Address{},
 		// 0.0.3
-		Chief003Block:   big.NewInt(2),
+		Chief003Block:   big.NewInt(0),
 		Chief003Address: common.Address{},
+		// TODO : 0.0.4
+		Chief004Block:   big.NewInt(0),
+		Chief004Address: common.Address{},
 		Tribe:           &TribeConfig{},
 	}
 
@@ -84,13 +87,11 @@ var (
 		Chief002Block:   big.NewInt(2),
 		Chief002Address: common.HexToAddress("0x9ec55c1dafd4a487e41da33e344aef86da41ab82"),
 		// TODO : set chief 0.0.3 in chain config
-		/*
 		Chief003Block:   big.NewInt(113772),//hard fork test
 		Chief003Address: common.HexToAddress("0xac28e532b3fac82554fc7b0b8b62549deeeb33a9"),
-		*/
 		// fix bug : redeploy
-		Chief003Block:   big.NewInt(113772),//TODO hard fork test
-		Chief003Address: common.HexToAddress("0xac28e532b3fac82554fc7b0b8b62549deeeb33a9"),
+		Chief004Block:   big.NewInt(120455),//TODO hard fork test
+		Chief004Address: common.HexToAddress(""),
 		Tribe:           &TribeConfig{},
 	}
 
@@ -201,6 +202,9 @@ type ChainConfig struct {
 	// chief.sol vsn 0.0.3
 	Chief003Block   *big.Int       `json:"chief003Block,omitempty"`
 	Chief003Address common.Address `json:"chief003Address,omitempty"`
+	// chief.sol vsn 0.0.4
+	Chief004Block   *big.Int       `json:"chief004Block,omitempty"`
+	Chief004Address common.Address `json:"chief004Address,omitempty"`
 	// <<< add by liangc : set chief start number <<<
 }
 

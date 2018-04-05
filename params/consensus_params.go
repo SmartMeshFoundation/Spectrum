@@ -54,12 +54,14 @@ func chiefAddressList() (list ChiefInfoList) {
 			// at same account and block number to deploy this contract can be get the same address
 			newChiefInfo(TestnetChainConfig.Chief002Block, "0.0.2", TestnetChainConfig.Chief002Address),
 			newChiefInfo(TestnetChainConfig.Chief003Block, "0.0.3", TestnetChainConfig.Chief003Address),
+			newChiefInfo(TestnetChainConfig.Chief004Block, "0.0.4", TestnetChainConfig.Chief004Address),
 		}
 	} else {
 		list = ChiefInfoList{
 			// at same account and block number to deploy this contract can be get the same address
 			newChiefInfo(MainnetChainConfig.Chief002Block, "0.0.2", MainnetChainConfig.Chief002Address),
 			newChiefInfo(MainnetChainConfig.Chief003Block, "0.0.3", MainnetChainConfig.Chief003Address),
+			newChiefInfo(MainnetChainConfig.Chief004Block, "0.0.4", MainnetChainConfig.Chief004Address),
 		}
 	}
 	chiefInfoList = list
