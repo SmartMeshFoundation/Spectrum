@@ -87,11 +87,11 @@ var (
 		Chief002Block:   big.NewInt(2),
 		Chief002Address: common.HexToAddress("0x9ec55c1dafd4a487e41da33e344aef86da41ab82"),
 		// TODO : set chief 0.0.3 in chain config
-		Chief003Block:   big.NewInt(113772),//hard fork test
+		Chief003Block:   big.NewInt(113772),//hard fork testnet
 		Chief003Address: common.HexToAddress("0xac28e532b3fac82554fc7b0b8b62549deeeb33a9"),
 		// fix bug : redeploy
-		Chief004Block:   big.NewInt(120455),//TODO hard fork test
-		Chief004Address: common.HexToAddress(""),
+		Chief004Block:   big.NewInt(120305),//hard fork testnet : fix bugs and debug chief
+		Chief004Address: common.HexToAddress("0xe242e2bcf5b0da6518320210fab0a27458bc0674"),
 		Tribe:           &TribeConfig{},
 	}
 
