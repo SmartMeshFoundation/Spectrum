@@ -839,7 +839,7 @@ func (s *PublicBlockChainAPI) rpcOutputBlock(b *types.Block, inclTx bool, fullTx
 		// modify by liangc
 		transactions := make([]interface{}, 0)
 		for i, tx := range b.Transactions() {
-			if tx.To()!=nil && params.IsChiefAddress(*tx.To()) {
+			if !log.IsDebug() && tx.To()!=nil && params.IsChiefAddress(*tx.To()) {
 				log.Debug("hidden chief","idx",i,"txid",tx.Hash().Hex())
 			}else if _tx, err := formatTx(tx); err != nil {
 				return nil, err

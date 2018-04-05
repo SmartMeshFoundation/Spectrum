@@ -21,13 +21,20 @@ const (
 )
 
 // locationTrims are trimmed for display to avoid unwieldy log lines.
-var locationTrims = []string{
-	"github.com/SmartMeshFoundation/SMChain/",
-}
+var (
+	locationTrims = []string{
+		"github.com/SmartMeshFoundation/SMChain/",
+	}
+	is_debug = false
+)
 
+func IsDebug() bool {
+	return is_debug
+}
 // PrintOrigins sets or unsets log location (file:line) printing for terminal
 // format output.
 func PrintOrigins(print bool) {
+	is_debug = print
 	if print {
 		atomic.StoreUint32(&locationEnabled, 1)
 	} else {
@@ -355,7 +362,7 @@ func escapeString(s string) string {
 	if needsQuotes {
 		ret = e.String()
 	} else {
-		ret = string(e.Bytes()[1 : e.Len()-1])
+		ret = string(e.Bytes()[1: e.Len()-1])
 	}
 	e.Reset()
 	stringBufPool.Put(e)

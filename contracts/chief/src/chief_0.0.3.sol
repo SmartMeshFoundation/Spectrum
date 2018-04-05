@@ -13,7 +13,7 @@ contract TribeChief_0_0_3 {
     string vsn = "0.0.3";
 
     //config >>>>
-    uint epoch = 11520; // 48H
+    uint epoch = 20; // 11520 = 48H
     mapping(address => bool) genesisSigner; // genesis signer address
     uint singerLimit = 5;
     uint volunteerLimit = 15;
@@ -99,7 +99,10 @@ contract TribeChief_0_0_3 {
     }
 
     // generate a random index for remove signers every epoch
-    function getRandomIdx(address addr, uint max) private returns (uint256) {
+    function getRandomIdx(address addr, uint max) private view returns (uint256) {
+        if (max <= 0) {
+            return 0;
+        }
         uint256 random = uint256(keccak256(addr, block.difficulty, now));
         return (random % max);
     }
@@ -149,7 +152,11 @@ contract TribeChief_0_0_3 {
         singerLimit = n;
     }
 
-    function repeatTi(uint[] tiList, uint ti) private returns (bool) {
+    function setEpoch(uint n) public apply(msg.sender) {
+        epoch = n;
+    }
+
+    function repeatTi(uint[] tiList, uint ti) private pure returns (bool) {
         if (tiList.length > 0) {
             for (uint i = 0; i < tiList.length; i++) {
                 if (tiList[i] == ti) {
@@ -190,15 +197,17 @@ contract TribeChief_0_0_3 {
             for (uint i3 = (slen - 1); i3 >= 0; i3--) {
                 address _addr = _signerList[i3];
                 uint ti = getRandomIdx(_addr, (slen - 1));
+                //skip out of range
                 //skip genesis signer
-                if (genesisSigner[_signerList[ti]]) {
+                //skip repeat
+                if (ti >= slen || genesisSigner[_signerList[ti]] || repeatTi(tiList, ti)) {
                     continue;
                 }
-                if (repeatTi(tiList, ti)) {
-                    continue;
-                }
+                //if (genesisSigner[_signerList[ti]]) continue;
+                //if (repeatTi(tiList, ti)) continue;
                 tiList[counter] = ti;
-                if (counter++ >= (slen / 3)) break;
+                if (counter >= (slen / 3)) break;
+                counter += 1;
             }
             if (tiList.length > 0) {
                 for (uint i4 = 0; i4 < tiList.length; i4++) {
@@ -251,19 +260,23 @@ contract TribeChief_0_0_3 {
         }
     }
 
-    function version() constant returns (string) {
+    function version() public constant returns (string) {
         return vsn;
     }
 
-    function getSignerLimit() constant returns (uint) {
+    function getSignerLimit() public constant returns (uint) {
         return singerLimit;
     }
 
-    function getVolunteerLimit() constant returns (uint) {
+    function getEpoch() public constant returns (uint) {
+        return epoch;
+    }
+
+    function getVolunteerLimit() public constant returns (uint) {
         return volunteerLimit;
     }
 
-    function getStatus() constant returns (
+    function getStatus() public constant returns (
         address[] volunteerList,
         address[] signerList,
         address[] blackList, // vsn 0.0.3
