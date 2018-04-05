@@ -167,6 +167,56 @@ contract TribeChief_0_0_3 {
         return false;
     }
 
+    // v0.0.2
+    function _cleanVolunteerList() private {
+        uint vlen = _volunteerList.length;
+        for (uint i1 = 0; i1 < vlen; i1++) {
+            delete volunteersMap[_volunteerList[i1]];
+        }
+        delete _volunteerList;
+    }
+    // v0.0.3
+    function _cleanBlacklist() private {
+        // 1 : clean blacklist
+        uint blen = _blackList.length;
+        for (uint i2 = 0; i2 < blen; i2++) {
+            delete blMap[_blackList[i2]];
+        }
+        delete _blackList;
+    }
+    // v0.0.3
+    function _moveSignersToBlacklist() private {
+        uint slen = _signerList.length;
+        uint counter = 0;
+        uint[] memory tiList = new uint[](slen);
+        // target signer idx
+        for (uint i3 = (slen - 1); i3 >= 0; i3--) {
+            address _addr = _signerList[i3];
+            uint ti = getRandomIdx(_addr, (slen - 1));
+            //skip out of range
+            //skip genesis signer
+            //skip repeat
+            if (ti >= slen || genesisSigner[_signerList[ti]] || repeatTi(tiList, ti)) {
+                continue;
+            }
+            //if (genesisSigner[_signerList[ti]]) continue;
+            //if (repeatTi(tiList, ti)) continue;
+            tiList[counter] = ti;
+            if (counter >= (slen / 3)) break;
+            counter += 1;
+        }
+        if (counter > 0) {
+            for (uint i4 = 0; i4 < slen; i4++) {
+                uint idx = tiList[i4];
+                // skip nil , 0 == nil
+                if (idx != 0) {
+                    pushBlackList(_signerList[tiList[i4]]);
+                    deleteSigner(tiList[i4]);
+                }
+            }
+        }
+    }
+
     function update(address volunteer) public apply(msg.sender) {
 
         blockNumber = block.number;
@@ -174,51 +224,13 @@ contract TribeChief_0_0_3 {
         // vsn-0.0.2 : every epoch be clean volunteers
         // vsn-0.0.3 : clean blacklist and move 1/3 signers to blacklist excelude genesisSigners
         if (block.number > epoch && block.number % epoch == 0) {
-
             // ==== vsn-0.0.2 ====
-            uint vlen = _volunteerList.length;
-            for (uint i1 = 0; i1 < vlen; i1++) {
-                delete volunteersMap[_volunteerList[i1]];
-            }
-            delete _volunteerList;
-
+            _cleanVolunteerList();
             // ==== vsn-0.0.3 ====
             // 1 : clean blacklist
-            uint blen = _blackList.length;
-            for (uint i2 = 0; i2 < blen; i2++) {
-                delete blMap[_blackList[i2]];
-            }
-            delete _blackList;
+            _cleanBlacklist();
             // 2 : move 1/3 signers to blacklist
-            uint slen = _signerList.length;
-            uint counter = 0;
-            uint[] memory tiList = new uint[](slen);
-            // target signer idx
-            for (uint i3 = (slen - 1); i3 >= 0; i3--) {
-                address _addr = _signerList[i3];
-                uint ti = getRandomIdx(_addr, (slen - 1));
-                //skip out of range
-                //skip genesis signer
-                //skip repeat
-                if (ti >= slen || genesisSigner[_signerList[ti]] || repeatTi(tiList, ti)) {
-                    continue;
-                }
-                //if (genesisSigner[_signerList[ti]]) continue;
-                //if (repeatTi(tiList, ti)) continue;
-                tiList[counter] = ti;
-                if (counter >= (slen / 3)) break;
-                counter += 1;
-            }
-            if (counter > 0) {
-                for (uint i4 = 0; i4 < slen; i4++) {
-                    uint idx = tiList[i4];
-                    // skip nil , 0 == nil
-                    if (idx != 0) {
-                        pushBlackList(_signerList[tiList[i4]]);
-                        deleteSigner(tiList[i4]);
-                    }
-                }
-            }
+            _moveSignersToBlacklist();
         }
 
         // mine
