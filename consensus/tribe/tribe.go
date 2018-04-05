@@ -223,7 +223,7 @@ func (t *Tribe) verifyHeader(chain consensus.ChainReader, header *types.Header, 
 		return errInvalidUncleHash
 	}
 	// Ensure that the block's difficulty is meaningful (may not be correct at this point)
-	if number > 0 {
+	if number > 0 && !params.IsChiefBlock(header.Number) {
 		if header.Difficulty == nil || (header.Difficulty.Cmp(diffInTurn) != 0 && header.Difficulty.Cmp(diffNoTurn) != 0) {
 			log.Error("** verifyHeader ERROR **", "diff", header.Difficulty.String(), "err", errInvalidDifficulty)
 			return errInvalidDifficulty
@@ -345,9 +345,11 @@ func (t *Tribe) verifySeal(chain consensus.ChainReader, header *types.Header, pa
 		return errUnauthorized
 	}
 	// 根据 signer 算出 Difficulty 并予以校验
-	if number > 3 {
+	if number > 3 && !params.IsChiefBlock(header.Number) {
 		difficulty := t.Status.InTurnForVerify(number, header.ParentHash, signer)
 		if difficulty.Cmp(header.Difficulty) != 0 {
+			log.Error("** verifySeal ERROR **", "diff", header.Difficulty.String(), "err", errInvalidDifficulty)
+			log.Error("??is_chiefBlock??","chiefBlock",params.IsChiefBlock(header.Number),"num",header.Number.Int64())
 			return errInvalidDifficulty
 		}
 	}

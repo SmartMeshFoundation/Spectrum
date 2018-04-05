@@ -90,6 +90,21 @@ func getChiefInfo(list ChiefInfoList, blockNumber *big.Int) *ChiefInfo {
 	return nil
 }
 
+// skip verify difficulty on this block number
+func IsChiefBlock(blockNumber *big.Int) bool {
+	return isChiefBlock(chiefAddressList(), blockNumber)
+}
+
+func isChiefBlock(list ChiefInfoList, blockNumber *big.Int) bool {
+	for _, ci := range list {
+		//log.Info("isChief", "a", ci.StartNumber, "b", blockNumber)
+		if ci.StartNumber.Cmp(blockNumber) == 0 {
+			return true
+		}
+	}
+	return false
+}
+
 func IsChiefAddress(addr common.Address) bool {
 	return isChiefAddress(chiefAddressList(), addr)
 }
@@ -115,7 +130,7 @@ type MBoxSuccess struct {
 }
 
 // called by chief.GetStatus
-func SendToMsgBoxWithHash(method string, hash common.Hash,number *big.Int) chan MBoxSuccess {
+func SendToMsgBoxWithHash(method string, hash common.Hash, number *big.Int) chan MBoxSuccess {
 	rtn := make(chan MBoxSuccess)
 	m := Mbox{
 		Method: method,
@@ -124,7 +139,7 @@ func SendToMsgBoxWithHash(method string, hash common.Hash,number *big.Int) chan 
 	if number == nil || hash == common.HexToHash("0x") {
 		panic(errors.New("hash and number can not nil"))
 	}
-	m.Params = map[string]interface{}{"hash": hash,"number":number}
+	m.Params = map[string]interface{}{"hash": hash, "number": number}
 	MboxChan <- m
 	return rtn
 }
