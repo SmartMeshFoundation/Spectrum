@@ -430,14 +430,14 @@ func (d *Downloader) syncWithPeer(p *peerConnection, hash common.Hash, td *big.I
 		return err
 	}
 	fmt.Println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-	fmt.Println("::: ORIGIN ::: origin=",origin,"height=",height)
+	fmt.Println("::: ORIGIN ::: origin=", origin, "height=", height)
 	d.syncStatsLock.Lock()
 	if d.syncStatsChainHeight <= origin || d.syncStatsChainOrigin > origin {
 		d.syncStatsChainOrigin = origin
 	}
 	d.syncStatsChainHeight = height
 	d.syncStatsLock.Unlock()
-	fmt.Println("::: ORIGIN ::: d.syncStatsChainHeight=",d.syncStatsChainHeight,"d.syncStatsChainHeight=",d.syncStatsChainHeight)
+	fmt.Println("::: ORIGIN ::: d.syncStatsChainHeight=", d.syncStatsChainHeight, "d.syncStatsChainHeight=", d.syncStatsChainHeight)
 	fmt.Println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 	// Initiate the sync using a concurrent header and content retrieval algorithm
 	pivot := uint64(0)
@@ -1381,6 +1381,9 @@ func (d *Downloader) importBlockResults(results []*fetchResult) error {
 			log.Debug("Downloaded item processing failed", "number", results[index].Header.Number, "hash", results[index].Header.Hash(), "err", err)
 			return errInvalidChain
 		}
+		log.Info(fmt.Sprintf("[ downloader ] ==> importBlockResults() %d --> %d.",
+			blocks[0].NumberU64(), blocks[len(blocks)-1].NumberU64()))
+
 		// Shift the results to the next batch
 		results = results[items:]
 	}
@@ -1469,6 +1472,8 @@ func (d *Downloader) commitFastSyncData(results []*fetchResult, stateSync *state
 			log.Debug("Downloaded item processing failed", "number", results[index].Header.Number, "hash", results[index].Header.Hash(), "err", err)
 			return errInvalidChain
 		}
+		log.Info(fmt.Sprintf("[ downloader ] ==> InsertReceiptChain(), %d --> %d. ",
+			blocks[0].NumberU64(), blocks[len(blocks)-1].NumberU64()))
 		// Shift the results to the next batch
 		results = results[items:]
 	}
@@ -1482,10 +1487,11 @@ func (d *Downloader) commitPivotBlock(result *fetchResult) error {
 	if err := d.syncState(b.Root()).Wait(); err != nil {
 		return err
 	}
-	log.Debug("Committing fast sync pivot as new head", "number", b.Number(), "hash", b.Hash())
+	log.Info("Committing fast sync pivot as new head", "number", b.Number(), "hash", b.Hash())
 	if _, err := d.blockchain.InsertReceiptChain([]*types.Block{b}, []types.Receipts{result.Receipts}); err != nil {
 		return err
 	}
+
 	return d.blockchain.FastSyncCommitHead(b.Hash())
 }
 

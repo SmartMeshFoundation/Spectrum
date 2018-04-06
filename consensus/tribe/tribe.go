@@ -8,6 +8,10 @@ import (
 	"math/rand"
 	"time"
 
+	"crypto/ecdsa"
+	"fmt"
+	"sync/atomic"
+
 	"github.com/SmartMeshFoundation/SMChain/accounts"
 	"github.com/SmartMeshFoundation/SMChain/common"
 	"github.com/SmartMeshFoundation/SMChain/consensus"
@@ -21,9 +25,6 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/params"
 	"github.com/SmartMeshFoundation/SMChain/rlp"
 	"github.com/SmartMeshFoundation/SMChain/rpc"
-	"fmt"
-	"sync/atomic"
-	"crypto/ecdsa"
 	"github.com/hashicorp/golang-lru"
 )
 
@@ -99,13 +100,15 @@ func New(config *params.TribeConfig, db ethdb.Database) *Tribe {
 	if conf.Period <= 0 {
 		conf.Period = blockPeriod
 	}
-	return &Tribe{
+	tribe := &Tribe{
 		config:      &conf,
 		db:          db,
 		Status:      status,
 		sigcache:    sigcache,
 		SealErrorCh: make(chan error, 1),
 	}
+	status.setTribe(tribe)
+	return tribe
 }
 
 func (t *Tribe) Init(hash common.Hash, number *big.Int) {
@@ -254,40 +257,6 @@ func (t *Tribe) verifyCascadingFields(chain consensus.ChainReader, header *types
 		if parent.Time.Uint64()+t.config.Period > header.Time.Uint64() {
 			return ErrInvalidTimestamp
 		}
-		//TODO : ****** 这个地方是临时解决方案，后续需要做很大调整
-		//TODO : ****** 这个地方是临时解决方案，后续需要做很大调整
-		//如果 header.parent != currentBlockNumber , 则等一下，让 blockBody 追赶 header
-		//cn := chain.CurrentHeader().Number.Uint64()
-		//for cn < number-1 {
-		//for cn < number-1 && chain.CurrentHeader().Hash() != header.ParentHash {
-		/*
-		fmt.Println(cn, "--------------------------->")
-		fmt.Println(cn, "=1=> currentNum:", chain.CurrentHeader().Number.Int64(), "currentHash:", chain.CurrentHeader().Hash().Hex())
-		fmt.Println(cn, "=2=> parentNum:", parent.Number.Int64(), "parentHash:", parent.Hash().Hex())
-		fmt.Println(cn, "=3=> headerNum", header.Number.Int64(), "header.parentHex", header.ParentHash.Hex())
-		*/
-		i := 0
-	ENDWAIT:
-		for number > 3 {
-			blk := chain.GetBlock(header.ParentHash, header.Number.Uint64()-1)
-			if blk != nil {
-				//fmt.Println(cn, "=4=>", blk.Number(), blk.Hash().Hex())
-				break ENDWAIT
-			} else {
-				log.Debug("wait block", "number", header.Number.Int64()-1, "hash", header.ParentHash.Hex())
-				<-time.After(time.Millisecond * 10)
-				i++
-			}
-			if i > 100 {
-				log.Error("tribe.verifyCascadingFields : loop_100")
-				return errors.New("loop 100 , may be bad block")
-			}
-		}
-		//fmt.Println(cn, "<---------------------------")
-		//	<-time.After(time.Second*5)
-		//<-time.After(time.Microsecond * 200)
-		//}
-		//fmt.Println("parents.len:", len(parents), "current:", chain.CurrentHeader().Number.Int64(), "header.parent:", parent.Number.Int64(), "header:", header.Number.Int64())
 	} else {
 		parent = chain.GetHeader(header.ParentHash, number-1)
 		if parent.Time.Uint64()+t.config.Period > header.Time.Uint64() {
@@ -303,9 +272,6 @@ func (t *Tribe) verifyCascadingFields(chain consensus.ChainReader, header *types
 		return ErrInvalidTimestamp
 	}
 	*/
-	// All basic checks passed, verify the seal and return
-	err = t.verifySeal(chain, header, parents)
-	log.Debug("loop_verifySeal", "number", number, "err", err)
 	return
 }
 
@@ -349,7 +315,7 @@ func (t *Tribe) verifySeal(chain consensus.ChainReader, header *types.Header, pa
 		difficulty := t.Status.InTurnForVerify(number, header.ParentHash, signer)
 		if difficulty.Cmp(header.Difficulty) != 0 {
 			log.Error("** verifySeal ERROR **", "diff", header.Difficulty.String(), "err", errInvalidDifficulty)
-			log.Error("??is_chiefBlock??","chiefBlock",params.IsChiefBlock(header.Number),"num",header.Number.Int64())
+			log.Error("??is_chiefBlock??", "chiefBlock", params.IsChiefBlock(header.Number), "num", header.Number.Int64())
 			return errInvalidDifficulty
 		}
 	}
@@ -428,7 +394,7 @@ func (t *Tribe) Authorize(signer common.Address, signFn SignerFn) {
 // Seal implements consensus.Engine, attempting to create a sealed block using
 // the local signing credentials.
 func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-chan struct{}) (*types.Block, error) {
-	if err := t.Status.ValidatorBlock(block); err != nil {
+	if err := t.Status.ValidateBlock(block); err != nil {
 		log.Error("Tribe_Seal", "retry", atomic.LoadUint32(&t.SealErrorCounter), "number", block.Number().Int64(), "err", err)
 		t.SealErrorCh <- err
 		return nil, err

@@ -1,20 +1,21 @@
 package tribe
 
 import (
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/accounts"
-	"github.com/SmartMeshFoundation/SMChain/consensus"
 	"crypto/ecdsa"
-	"math/big"
-	"fmt"
-	"sync"
-	"github.com/SmartMeshFoundation/SMChain/params"
-	"github.com/SmartMeshFoundation/SMChain/ethdb"
-	"github.com/hashicorp/golang-lru"
 	"errors"
+	"fmt"
+	"math/big"
+	"sync"
 	"time"
+
+	"github.com/SmartMeshFoundation/SMChain/accounts"
+	"github.com/SmartMeshFoundation/SMChain/common"
 	"github.com/SmartMeshFoundation/SMChain/common/hexutil"
+	"github.com/SmartMeshFoundation/SMChain/consensus"
 	"github.com/SmartMeshFoundation/SMChain/core/types"
+	"github.com/SmartMeshFoundation/SMChain/ethdb"
+	"github.com/SmartMeshFoundation/SMChain/params"
+	"github.com/hashicorp/golang-lru"
 )
 
 const (
@@ -22,7 +23,7 @@ const (
 	LevelNone      = "None"
 	LevelVolunteer = "Volunteer"
 	LevelSigner    = "Signer"
-	LevelSinner = "Sinner"
+	LevelSinner    = "Sinner"
 
 	historyLimit = 2048
 	wiggleTime   = 500 * time.Millisecond // Random delay (per signer) to allow concurrent signers
@@ -135,6 +136,7 @@ type TribeStatus struct {
 	blackList    []common.Address
 	mining       int32 // 1 mining start , 0 mining stop
 	nodeKey      *ecdsa.PrivateKey
+	tribe        *Tribe
 }
 
 type TribeMiner struct {

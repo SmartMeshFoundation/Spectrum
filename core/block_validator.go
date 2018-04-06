@@ -22,11 +22,11 @@ import (
 
 	"github.com/SmartMeshFoundation/SMChain/common/math"
 	"github.com/SmartMeshFoundation/SMChain/consensus"
+	"github.com/SmartMeshFoundation/SMChain/consensus/tribe"
 	"github.com/SmartMeshFoundation/SMChain/core/state"
 	"github.com/SmartMeshFoundation/SMChain/core/types"
-	"github.com/SmartMeshFoundation/SMChain/params"
-	"github.com/SmartMeshFoundation/SMChain/consensus/tribe"
 	"github.com/SmartMeshFoundation/SMChain/log"
+	"github.com/SmartMeshFoundation/SMChain/params"
 )
 
 // BlockValidator is responsible for validating block headers, uncles and
@@ -54,8 +54,8 @@ func NewBlockValidator(config *params.ChainConfig, blockchain *BlockChain, engin
 // validated at this point.
 func (v *BlockValidator) ValidateBody(block *types.Block) error {
 	if tribe, ok := v.engine.(*tribe.Tribe); ok && block.Number().Int64() > 3 {
-		if err := tribe.Status.ValidatorBlock(block) ; err != nil {
-			log.Error("BlockValidator.ValidateBody","number",block.Number().Int64(),"err",err)
+		if err := tribe.Status.ValidateBlock(block); err != nil {
+			log.Error("BlockValidator.ValidateBody", "number", block.Number().Int64(), "err", err)
 			return err
 		}
 	}

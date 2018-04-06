@@ -27,9 +27,12 @@ import (
 	"sync/atomic"
 	"time"
 
+	"crypto/ecdsa"
+
 	"github.com/SmartMeshFoundation/SMChain/common"
 	"github.com/SmartMeshFoundation/SMChain/common/mclock"
 	"github.com/SmartMeshFoundation/SMChain/consensus"
+	"github.com/SmartMeshFoundation/SMChain/consensus/tribe"
 	"github.com/SmartMeshFoundation/SMChain/core/state"
 	"github.com/SmartMeshFoundation/SMChain/core/types"
 	"github.com/SmartMeshFoundation/SMChain/core/vm"
@@ -42,8 +45,6 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/rlp"
 	"github.com/SmartMeshFoundation/SMChain/trie"
 	"github.com/hashicorp/golang-lru"
-	"github.com/SmartMeshFoundation/SMChain/consensus/tribe"
-	"crypto/ecdsa"
 )
 
 var (
@@ -632,7 +633,7 @@ func (bc *BlockChain) procFutureBlocks() {
 
 		// Insert one by one as chain insertion needs contiguous ancestry between blocks
 		for i := range blocks {
-			bc.InsertChain(blocks[i: i+1])
+			bc.InsertChain(blocks[i : i+1])
 		}
 	}
 }
@@ -641,7 +642,7 @@ func (bc *BlockChain) procFutureBlocks() {
 type WriteStatus byte
 
 const (
-	NonStatTy   WriteStatus = iota
+	NonStatTy WriteStatus = iota
 	CanonStatTy
 	SideStatTy
 )
@@ -783,7 +784,7 @@ func (bc *BlockChain) InsertReceiptChain(blockChain types.Blocks, receiptChain [
 	}
 	bc.mu.Unlock()
 
-	log.Info("Imported new block receipts",
+	log.Debug("Imported new block receipts",
 		"count", stats.processed,
 		"elapsed", common.PrettyDuration(time.Since(start)),
 		"bytes", bytes,
@@ -809,13 +810,13 @@ func (bc *BlockChain) WriteBlockAndState(block *types.Block, receipts []*types.R
 		bc.mu.Unlock()
 		if tribe, ok := bc.engine.(*tribe.Tribe); ok {
 			/*
-			for _, t := range block.Transactions() {
-				f := types.GetFromByTx(t)
-				tf := crypto.PubkeyToAddress(bc.nodeKey.PublicKey)
-				if f != nil && tf == *f {
-					params.FixChiefTxNonce(t.To(), 0)
+				for _, t := range block.Transactions() {
+					f := types.GetFromByTx(t)
+					tf := crypto.PubkeyToAddress(bc.nodeKey.PublicKey)
+					if f != nil && tf == *f {
+						params.FixChiefTxNonce(t.To(), 0)
+					}
 				}
-			}
 			*/
 			tribe.Status.Update(bc.currentBlock.Number(), bc.currentBlock.Hash())
 			log.Debug("WriteBlockAndState::tribe.Update -> : done", "num", block.Number().Int64())
@@ -1065,7 +1066,7 @@ func (st *insertStats) report(chain []*types.Block, index int) {
 	if index == len(chain)-1 || elapsed >= statsReportLimit {
 		var (
 			end = chain[index]
-			txs = countTransactions(chain[st.lastIndex: index+1])
+			txs = countTransactions(chain[st.lastIndex : index+1])
 		)
 		context := []interface{}{
 			"blocks", st.processed, "txs", txs, "mgas", float64(st.usedGas) / 1000000,
@@ -1078,7 +1079,7 @@ func (st *insertStats) report(chain []*types.Block, index int) {
 		if st.ignored > 0 {
 			context = append(context, []interface{}{"ignored", st.ignored}...)
 		}
-		log.Info("Imported new chain segment", context...)
+		log.Debug("Imported new chain segment", context...)
 
 		*st = insertStats{startTime: now, lastIndex: index + 1}
 	}

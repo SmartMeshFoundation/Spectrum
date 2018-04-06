@@ -1,20 +1,22 @@
 package tribe
 
 import (
-	"math/big"
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/rpc"
-	"github.com/SmartMeshFoundation/SMChain/core/types"
-	"errors"
-	"github.com/SmartMeshFoundation/SMChain/params"
+	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
+	"math/big"
+	"os"
 	"sync/atomic"
+	"time"
+
+	"github.com/SmartMeshFoundation/SMChain/common"
+	"github.com/SmartMeshFoundation/SMChain/core/types"
 	"github.com/SmartMeshFoundation/SMChain/crypto"
 	"github.com/SmartMeshFoundation/SMChain/ethclient"
-	"time"
-	"context"
-	"os"
 	"github.com/SmartMeshFoundation/SMChain/log"
+	"github.com/SmartMeshFoundation/SMChain/params"
+	"github.com/SmartMeshFoundation/SMChain/rpc"
 )
 
 func (api *API) GetMiner(number *rpc.BlockNumber) (*TribeMiner, error) {
@@ -34,8 +36,8 @@ func (api *API) GetMiner(number *rpc.BlockNumber) (*TribeMiner, error) {
 }
 
 // chief-0.0.3 show blacklist
-func (api *API) GetSinners(hash *common.Hash) ([]common.Address,error) {
-	return api.tribe.Status.blackList,nil
+func (api *API) GetSinners(hash *common.Hash) ([]common.Address, error) {
+	return api.tribe.Status.blackList, nil
 }
 
 func (api *API) GetSigners(hash *common.Hash) ([]*Signer, error) {
@@ -49,7 +51,7 @@ func (api *API) GetSigners(hash *common.Hash) ([]*Signer, error) {
 			h = *hash
 			n = api.chain.GetHeaderByHash(h).Number
 		}
-		api.tribe.Status.LoadSignersFromChief(h,n)
+		api.tribe.Status.LoadSignersFromChief(h, n)
 	}
 	return api.tribe.Status.Signers, nil
 }
@@ -65,7 +67,7 @@ func (api *API) GetStatus(hash *common.Hash) (*TribeStatus, error) {
 			h = *hash
 			n = api.chain.GetHeaderByHash(h).Number
 		}
-		api.tribe.Status.LoadSignersFromChief(h,n)
+		api.tribe.Status.LoadSignersFromChief(h, n)
 	}
 	return api.tribe.Status, nil
 }
@@ -76,6 +78,10 @@ func NewTribeStatus() *TribeStatus {
 		SignerLevel: LevelNone,
 	}
 	return ts
+}
+
+func (self *TribeStatus) setTribe(tribe *Tribe) {
+	self.tribe = tribe
 }
 
 func (self *TribeStatus) GetMinerAddress() common.Address {
@@ -179,7 +185,7 @@ func (self *TribeStatus) InTurnForVerify(number int64, parentHash common.Hash, s
 	//if number > 1 & self.Number != parentNumber {
 	if number > 1 {
 		var err error
-		signers, err = self.GetSignersFromChiefByHash(parentHash,big.NewInt(number))
+		signers, err = self.GetSignersFromChiefByHash(parentHash, big.NewInt(number))
 		if err != nil {
 			log.Warn("InTurn:GetSignersFromChiefByNumber:", "parentNumber", parentNumber, "err", err)
 		}
@@ -227,7 +233,7 @@ func (self *TribeStatus) Update(currentNumber *big.Int, hash common.Hash) {
 		success := <-params.SendToMsgBoxWithNumber("Update", currentNumber)
 		log.Debug("TribeStatus.Update :", "num", currentNumber.Int64(), "success", success)
 	}
-	self.LoadSignersFromChief(hash,currentNumber)
+	self.LoadSignersFromChief(hash, currentNumber)
 	return
 }
 
@@ -238,7 +244,7 @@ func (self *TribeStatus) ValidateSigner(number int64, parentHash common.Hash, si
 		return true
 	}
 	var err error
-	signers, err = self.GetSignersFromChiefByHash(parentHash,big.NewInt(number))
+	signers, err = self.GetSignersFromChiefByHash(parentHash, big.NewInt(number))
 	if err != nil {
 		log.Warn("TribeStatus.ValidateSigner : GetSignersFromChiefByNumber :", "err", err)
 	}
@@ -251,10 +257,33 @@ func (self *TribeStatus) ValidateSigner(number int64, parentHash common.Hash, si
 // every block
 // sync download or mine
 // check chief tx
-func (self *TribeStatus) ValidatorBlock(block *types.Block) error {
+func (self *TribeStatus) ValidateBlock(block *types.Block) error {
 	if block.Number().Int64() < 3 {
 		return nil
 	}
+
+	//TODO : ****** 这个地方是临时解决方案，后续需要做很大调整
+	//TODO : ****** 这个地方是临时解决方案，后续需要做很大调整
+	//如果 header.parent != currentBlockNumber , 则等一下，让 blockBody 追赶 header
+	//cn := chain.CurrentHeader().Number.Uint64()
+	//for cn < number-1 {
+	//for cn < number-1 && chain.CurrentHeader().Hash() != header.ParentHash {
+	/*
+		fmt.Println(cn, "--------------------------->")
+		fmt.Println(cn, "=1=> currentNum:", chain.CurrentHeader().Number.Int64(), "currentHash:", chain.CurrentHeader().Hash().Hex())
+		fmt.Println(cn, "=2=> parentNum:", parent.Number.Int64(), "parentHash:", parent.Hash().Hex())
+		fmt.Println(cn, "=3=> headerNum", header.Number.Int64(), "header.parentHex", header.ParentHash.Hex())
+	*/
+	header := block.Header()
+	number := block.Number().Int64()
+	signer, err := ecrecover(header, self.tribe)
+	if err != nil {
+		return err
+	}
+	if !self.ValidateSigner(number, header.ParentHash, signer) {
+		return errUnauthorized
+	}
+
 	// check first tx , must be chief.tx , and onely one chief.tx in tx list
 	if block != nil && block.Transactions().Len() == 0 {
 		return ErrTribeNotAllowEmptyTxList
@@ -262,7 +291,7 @@ func (self *TribeStatus) ValidatorBlock(block *types.Block) error {
 	var total = 0
 	for _, tx := range block.Transactions() {
 		if tx.To() != nil && params.IsChiefAddress(*tx.To()) {
-			total ++
+			total++
 		}
 	}
 	if total == 0 {
@@ -270,6 +299,7 @@ func (self *TribeStatus) ValidatorBlock(block *types.Block) error {
 	} else if total > 1 {
 		return ErrTribeChiefCannotRepeat
 	}
+	log.Info(fmt.Sprintf("[ tribe ] ==> ValidateBlock() --> %d", block.NumberU64()))
 	return nil
 }
 
