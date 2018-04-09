@@ -54,7 +54,7 @@ func NewBlockValidator(config *params.ChainConfig, blockchain *BlockChain, engin
 // validated at this point.
 func (v *BlockValidator) ValidateBody(block *types.Block) error {
 	if tribe, ok := v.engine.(*tribe.Tribe); ok && block.Number().Int64() > 3 {
-		if err := tribe.Status.ValidateBlock(block); err != nil {
+		if err := tribe.Status.ValidateBlock(block,true); err != nil {
 			log.Error("BlockValidator.ValidateBody", "number", block.Number().Int64(), "err", err)
 			return err
 		}

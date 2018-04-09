@@ -394,7 +394,7 @@ func (t *Tribe) Authorize(signer common.Address, signFn SignerFn) {
 // Seal implements consensus.Engine, attempting to create a sealed block using
 // the local signing credentials.
 func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-chan struct{}) (*types.Block, error) {
-	if err := t.Status.ValidateBlock(block); err != nil {
+	if err := t.Status.ValidateBlock(block,false); err != nil {
 		log.Error("Tribe_Seal", "retry", atomic.LoadUint32(&t.SealErrorCounter), "number", block.Number().Int64(), "err", err)
 		t.SealErrorCh <- err
 		return nil, err
@@ -442,7 +442,8 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 		return nil, err
 	}
 	copy(header.Extra[len(header.Extra)-extraSeal:], sighash)
-	return block.WithSeal(header), nil
+	blk := block.WithSeal(header)
+	return blk,nil
 }
 
 // CalcDifficulty is the difficulty adjustment algorithm. It returns the difficulty

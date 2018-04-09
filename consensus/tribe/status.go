@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"math/big"
 	"os"
 	"sync/atomic"
@@ -257,7 +256,7 @@ func (self *TribeStatus) ValidateSigner(number int64, parentHash common.Hash, si
 // every block
 // sync download or mine
 // check chief tx
-func (self *TribeStatus) ValidateBlock(block *types.Block) error {
+func (self *TribeStatus) ValidateBlock(block *types.Block, validateSigner bool) error {
 	if block.Number().Int64() < 3 {
 		return nil
 	}
@@ -276,14 +275,16 @@ func (self *TribeStatus) ValidateBlock(block *types.Block) error {
 	*/
 	header := block.Header()
 	number := block.Number().Int64()
-	signer, err := ecrecover(header, self.tribe)
-	if err != nil {
-		return err
+	// add by liangc : seal call this func must skip validate signer
+	if (validateSigner) {
+		signer, err := ecrecover(header, self.tribe)
+		if err != nil {
+			return err
+		}
+		if !self.ValidateSigner(number, header.ParentHash, signer) {
+			return errUnauthorized
+		}
 	}
-	if !self.ValidateSigner(number, header.ParentHash, signer) {
-		return errUnauthorized
-	}
-
 	// check first tx , must be chief.tx , and onely one chief.tx in tx list
 	if block != nil && block.Transactions().Len() == 0 {
 		return ErrTribeNotAllowEmptyTxList
@@ -299,7 +300,7 @@ func (self *TribeStatus) ValidateBlock(block *types.Block) error {
 	} else if total > 1 {
 		return ErrTribeChiefCannotRepeat
 	}
-	log.Info(fmt.Sprintf("[ tribe ] ==> ValidateBlock() --> %d", block.NumberU64()))
+	log.Info("ValidateBlockp-->", "num", block.NumberU64(), "check_signer", validateSigner)
 	return nil
 }
 
