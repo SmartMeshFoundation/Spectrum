@@ -27,6 +27,7 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/crypto"
 	"github.com/SmartMeshFoundation/SMChain/rlp"
 	"container/heap"
+	"fmt"
 )
 
 // The values in those tests are from the Transaction Tests
@@ -285,4 +286,40 @@ func TestHeap(t *testing.T) {
 		heap.Pop(&h)
 	}
 
+}
+
+type Foo struct{
+	foobar int
+}
+func (foo *Foo) Bar() int {
+	return foo.foobar
+}
+
+func TestException(t *testing.T) {
+	var foo *Foo
+	t.Log(foo.Bar())
+}
+
+func TestLoopDelete(t *testing.T){
+	list := map[string][]*Foo{
+		"a": {&Foo{100},&Foo{200},&Foo{300}},
+		"b": {&Foo{100},&Foo{200},&Foo{300}},
+	}
+	ch := make(chan string)
+	fmt.Println("start")
+	go func(){
+		fmt.Println("wait")
+		for k := range ch {
+			fmt.Println("revice",k)
+			delete(list,k)
+		}
+	}()
+	fmt.Println("range")
+	for k,v := range list {
+		t.Log(k,v)
+		ch <- k
+		delete(list,k)
+	}
+	close(ch)
+	fmt.Println(list)
 }
