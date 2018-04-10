@@ -259,6 +259,7 @@ type TxPool struct {
 	chainHeadSub event.Subscription
 	signer       types.Signer
 	mu           sync.RWMutex
+	failMu       sync.RWMutex // add by liangc : used on fail map
 
 	currentState  *state.StateDB      // Current state in the blockchain head
 	pendingState  *state.ManagedState // Pending state tracking virtual nonces
@@ -715,6 +716,8 @@ func (pool *TxPool) addChief(tx *types.Transaction) bool {
 
 // log the fail tx on dict, when counter > 32 remove this tx
 func (pool *TxPool) IncFailTx(txHash common.Hash) {
+	pool.failMu.Lock()
+	defer pool.failMu.Unlock()
 	counter, ok := pool.fail[txHash]
 	if ok {
 		pool.fail[txHash] = atomic.AddInt32(&counter, 1)
@@ -726,6 +729,8 @@ func (pool *TxPool) IncFailTx(txHash common.Hash) {
 
 // check counter and remove
 func (pool *TxPool) CheckFailTx() {
+	pool.failMu.Lock()
+	defer pool.failMu.Unlock()
 	if len(pool.fail) > 0 {
 		for k, v := range pool.fail {
 			if v >= FailLimit {
