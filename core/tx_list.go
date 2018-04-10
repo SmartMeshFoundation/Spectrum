@@ -25,6 +25,7 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/common"
 	"github.com/SmartMeshFoundation/SMChain/core/types"
 	"github.com/SmartMeshFoundation/SMChain/log"
+	"sync"
 )
 
 // nonceHeap is a heap.Interface implementation over 64bit unsigned integers for
@@ -50,6 +51,7 @@ func (h *nonceHeap) Pop() interface{} {
 // txSortedMap is a nonce->transaction hash map with a heap based index to allow
 // iterating over the contents in a nonce-incrementing way.
 type txSortedMap struct {
+	sync.RWMutex // add by liangc
 	items map[uint64]*types.Transaction // Hash map storing the transaction data
 	index *nonceHeap                    // Heap of nonces of all the stored transactions (non-strict mode)
 	cache types.Transactions            // Cache of the transactions already sorted
@@ -65,12 +67,16 @@ func newTxSortedMap() *txSortedMap {
 
 // Get retrieves the current transactions associated with the given nonce.
 func (m *txSortedMap) Get(nonce uint64) *types.Transaction {
+	m.RLock()
+	defer m.RUnlock()
 	return m.items[nonce]
 }
 
 // Put inserts a new transaction into the map, also updating the map's nonce
 // index. If a transaction already exists with the same nonce, it's overwritten.
 func (m *txSortedMap) Put(tx *types.Transaction) {
+	m.Lock()
+	defer m.Unlock()
 	nonce := tx.Nonce()
 	if m.items[nonce] == nil {
 		heap.Push(m.index, nonce)
@@ -82,6 +88,8 @@ func (m *txSortedMap) Put(tx *types.Transaction) {
 // provided threshold. Every removed transaction is returned for any post-removal
 // maintenance.
 func (m *txSortedMap) Forward(threshold uint64) types.Transactions {
+	m.Lock()
+	defer m.Unlock()
 	var removed types.Transactions
 
 	// Pop off heap items until the threshold is reached
@@ -100,6 +108,8 @@ func (m *txSortedMap) Forward(threshold uint64) types.Transactions {
 // Filter iterates over the list of transactions and removes all of them for which
 // the specified function evaluates to true.
 func (m *txSortedMap) Filter(filter func(*types.Transaction) bool) types.Transactions {
+	m.Lock()
+	defer m.Unlock()
 	var removed types.Transactions
 
 	// Collect all the transactions to filter out
@@ -125,6 +135,8 @@ func (m *txSortedMap) Filter(filter func(*types.Transaction) bool) types.Transac
 // Cap places a hard limit on the number of items, returning all transactions
 // exceeding that limit.
 func (m *txSortedMap) Cap(threshold int) types.Transactions {
+	m.Lock()
+	defer m.Unlock()
 	// Short circuit if the number of items is under the limit
 	if len(m.items) <= threshold {
 		return nil
@@ -150,6 +162,8 @@ func (m *txSortedMap) Cap(threshold int) types.Transactions {
 // Remove deletes a transaction from the maintained map, returning whether the
 // transaction was found.
 func (m *txSortedMap) Remove(nonce uint64) bool {
+	m.Lock()
+	defer m.Unlock()
 	// Short circuit if no transaction is present
 	_, ok := m.items[nonce]
 	if !ok {
@@ -176,6 +190,8 @@ func (m *txSortedMap) Remove(nonce uint64) bool {
 // prevent getting into and invalid state. This is not something that should ever
 // happen but better to be self correcting than failing!
 func (m *txSortedMap) Ready(start uint64) types.Transactions {
+	m.Lock()
+	defer m.Unlock()
 	// Short circuit if no transactions are available
 	if m.index.Len() == 0 || (*m.index)[0] > start {
 		return nil
@@ -194,6 +210,8 @@ func (m *txSortedMap) Ready(start uint64) types.Transactions {
 
 // Len returns the length of the transaction map.
 func (m *txSortedMap) Len() int {
+	m.RLock()
+	defer m.RUnlock()
 	return len(m.items)
 }
 
@@ -201,6 +219,8 @@ func (m *txSortedMap) Len() int {
 // sorted internal representation. The result of the sorting is cached in case
 // it's requested again before any modifications are made to the contents.
 func (m *txSortedMap) Flatten() types.Transactions {
+	m.Lock()
+	defer m.Unlock()
 	// If the sorting was not cached yet, create and cache it
 	if m.cache == nil {
 		m.cache = make(types.Transactions, 0, len(m.items))
