@@ -35,7 +35,6 @@ import (
 	"gopkg.in/karalabe/cookiejar.v2/collections/prque"
 	"crypto/ecdsa"
 	"github.com/SmartMeshFoundation/SMChain/crypto"
-	"sync/atomic"
 	"runtime/debug"
 )
 
@@ -505,11 +504,15 @@ func (pool *TxPool) reset(oldHead, newHead *types.Header) {
 	for _, kv := range pool.pending.asList() {
 		addr, list := kv.key, kv.val
 		txs := list.Flatten() // Heavy but will be cached and is needed by the miner anyway
-		if tx := txs[len(txs)-1]; tx != nil {
-			n := tx.Nonce()
-			pool.pendingState.SetNonce(addr, n+1)
-		} else {
-			log.Error("cc14514_TODO_001", "addr", addr.Hex(), "len", len(txs))
+		if len(txs) > 0 {
+			if tx := txs[len(txs)-1]; tx != nil {
+				n := tx.Nonce()
+				pool.pendingState.SetNonce(addr, n+1)
+			} else {
+				log.Error("cc14514_TODO_001 : 1", "addr", addr.Hex(), "len", len(txs))
+			}
+		}else{
+			log.Error("cc14514_TODO_001 : 2", "addr", addr.Hex(), "len", len(txs))
 		}
 		//pool.pendingState.SetNonce(addr, txs[len(txs)-1].Nonce()+1)
 	}
@@ -716,6 +719,7 @@ func (pool *TxPool) addChief(tx *types.Transaction) bool {
 
 // log the fail tx on dict, when counter > 32 remove this tx
 func (pool *TxPool) IncFailTx(txHash common.Hash) {
+	/*
 	pool.failMu.Lock()
 	defer pool.failMu.Unlock()
 	counter, ok := pool.fail[txHash]
@@ -725,10 +729,12 @@ func (pool *TxPool) IncFailTx(txHash common.Hash) {
 		pool.fail[txHash] = 1
 	}
 	log.Debug("IncFailTx", "tx", txHash.Hex(), "counter", counter)
+	*/
 }
 
 // check counter and remove
 func (pool *TxPool) CheckFailTx() {
+	/*
 	pool.failMu.Lock()
 	defer pool.failMu.Unlock()
 	if len(pool.fail) > 0 {
@@ -740,6 +746,7 @@ func (pool *TxPool) CheckFailTx() {
 			}
 		}
 	}
+	*/
 }
 
 /*
@@ -774,12 +781,12 @@ func (pool *TxPool) add(tx *types.Transaction, local bool) (bool, error) {
 	// If the transaction is already known, discard it
 	hash := tx.Hash()
 	if pool.all[hash] != nil {
-		log.Trace("Discarding already known transaction", "hash", hash)
+		log.Trace("Discarding already known transaction", "hash", hash.Hex())
 		return false, fmt.Errorf("known transaction: %x", hash)
 	}
 	// If the transaction fails basic validation, discard it
 	if err := pool.validateTx(tx, local); err != nil {
-		log.Trace("Discarding invalid transaction", "hash", hash, "err", err)
+		log.Trace("Discarding invalid transaction", "hash", hash.Hex(), "err", err)
 		invalidTxCounter.Inc(1)
 		return false, err
 	}
@@ -787,14 +794,14 @@ func (pool *TxPool) add(tx *types.Transaction, local bool) (bool, error) {
 	if uint64(len(pool.all)) >= pool.config.GlobalSlots+pool.config.GlobalQueue {
 		// If the new transaction is underpriced, don't accept it
 		if pool.priced.Underpriced(tx, pool.locals) {
-			log.Trace("Discarding underpriced transaction", "hash", hash, "price", tx.GasPrice())
+			log.Trace("Discarding underpriced transaction", "hash", hash.Hex(), "price", tx.GasPrice())
 			underpricedTxCounter.Inc(1)
 			return false, ErrUnderpriced
 		}
 		// New transaction is better than our worse ones, make room for it
 		drop := pool.priced.Discard(len(pool.all)-int(pool.config.GlobalSlots+pool.config.GlobalQueue-1), pool.locals)
 		for _, tx := range drop {
-			log.Trace("Discarding freshly underpriced transaction", "hash", tx.Hash(), "price", tx.GasPrice())
+			log.Trace("Discarding freshly underpriced transaction", "hash", tx.Hash().Hex(), "price", tx.GasPrice())
 			underpricedTxCounter.Inc(1)
 			pool.removeTx(tx.Hash())
 		}

@@ -33,6 +33,7 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/ethdb"
 	"github.com/SmartMeshFoundation/SMChain/event"
 	"github.com/SmartMeshFoundation/SMChain/params"
+	"sync"
 )
 
 // testTxPoolConfig is a transaction pool configuration without stateful disk
@@ -393,7 +394,7 @@ func TestTransactionDoubleNonce(t *testing.T) {
 		t.Errorf("second transaction insert failed (%v) or not reported replacement (%v)", err, replace)
 	}
 	pool.promoteExecutables([]common.Address{addr})
-	_p,ok := pool.pending.get(addr)
+	_p, ok := pool.pending.get(addr)
 	if ok && _p.Len() != 1 {
 		t.Error("expected 1 pending transactions, got", _p.Len())
 	}
@@ -492,7 +493,7 @@ func TestTransactionDropping(t *testing.T) {
 	pool.enqueueTx(tx12.Hash(), tx12)
 
 	// Check that pre and post validations leave the pool as is
-	if _p,ok := pool.pending.get(account); ok && _p.Len() != 3 {
+	if _p, ok := pool.pending.get(account); ok && _p.Len() != 3 {
 		t.Errorf("pending transaction mismatch: have %d, want %d", _p.Len(), 3)
 	}
 	if pool.queue[account].Len() != 3 {
@@ -502,7 +503,7 @@ func TestTransactionDropping(t *testing.T) {
 		t.Errorf("total transaction mismatch: have %d, want %d", len(pool.all), 6)
 	}
 	pool.lockedReset(nil, nil)
-	if _p,ok := pool.pending.get(account); ok && _p.Len() != 3 {
+	if _p, ok := pool.pending.get(account); ok && _p.Len() != 3 {
 		t.Errorf("pending transaction mismatch: have %d, want %d", _p.Len(), 3)
 	}
 	if pool.queue[account].Len() != 3 {
@@ -514,8 +515,8 @@ func TestTransactionDropping(t *testing.T) {
 	// Reduce the balance of the account, and check that invalidated transactions are dropped
 	pool.currentState.AddBalance(account, big.NewInt(-650))
 	pool.lockedReset(nil, nil)
-	_pending,_ := pool.pending.get(account)
-	if _,ok := _pending.txs.items[tx0.Nonce()] ; !ok{
+	_pending, _ := pool.pending.get(account)
+	if _, ok := _pending.txs.items[tx0.Nonce()]; !ok {
 		t.Errorf("funded pending transaction missing: %v", tx0)
 	}
 	if _, ok := _pending.txs.items[tx1.Nonce()]; !ok {
@@ -583,7 +584,7 @@ func TestTransactionPostponing(t *testing.T) {
 		txns = append(txns, tx)
 	}
 	// Check that pre and post validations leave the pool as is
-	pending,_ := pool.pending.get(account)
+	pending, _ := pool.pending.get(account)
 	if pending.Len() != len(txns) {
 		t.Errorf("pending transaction mismatch: have %d, want %d", pending.Len(), len(txns))
 	}
@@ -911,7 +912,7 @@ func TestTransactionPendingLimiting(t *testing.T) {
 		if err := pool.AddRemote(transaction(i, big.NewInt(100000), key)); err != nil {
 			t.Fatalf("tx %d: failed to add transaction: %v", i, err)
 		}
-		pending,_ := pool.pending.get(account)
+		pending, _ := pool.pending.get(account)
 		if pending.Len() != int(i)+1 {
 			t.Errorf("tx %d: pending pool size mismatch: have %d, want %d", i, pending.Len(), i+1)
 		}
@@ -1102,7 +1103,7 @@ func TestTransactionPendingMinimumAllowance(t *testing.T) {
 	pool.AddRemotes(txs)
 
 	for _, kv := range pool.pending.asList() {
-		addr,list := kv.key,kv.val
+		addr, list := kv.key, kv.val
 		if list.Len() != int(config.AccountSlots) {
 			t.Errorf("addr %x: total pending transactions mismatch: have %d, want %d", addr, list.Len(), config.AccountSlots)
 		}
@@ -1760,4 +1761,40 @@ func TestChan(t *testing.T) {
 	<-time.After(time.Second)
 	//close(c)
 	<-time.After(time.Duration(time.Second * 2))
+}
+
+func TestSafekmap(t *testing.T) {
+	type safeMap struct {
+		sync.RWMutex
+		m map[int]int
+	}
+	sm := &safeMap{m: make(map[int]int),}
+	wg := new(sync.WaitGroup)
+	for n := 0; n < 100; n++ {
+		wg.Add(2)
+		//WRITE
+		go func(n int) {
+			for i := 0; i < 10; i++ {
+				sm.Lock()
+				fmt.Println(n,"-->WRITE-->", i)
+				sm.m[i] = n
+				sm.Unlock()
+				<-time.After(time.Second * 1)
+			}
+			wg.Done()
+		}(n)
+		//READ
+		go func() {
+			sm.RLock()
+			fmt.Println("READ---------------> RLock")
+			for k, v := range sm.m {
+				fmt.Println("READ", k, "=", v)
+			}
+			sm.RUnlock()
+			fmt.Println("READ---------------> RUnlock")
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+	fmt.Println("over...")
 }

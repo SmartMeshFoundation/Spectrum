@@ -57,7 +57,7 @@ const (
 // add by liangc
 var failTxCh = make(chan common.Hash,failTxChanSize)
 func appendToFailTx(txHash common.Hash) {
-	failTxCh <- txHash
+	//failTxCh <- txHash
 }
 
 // Agent can register themself with the worker
@@ -601,6 +601,7 @@ func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsB
 				log.Warn("debug:work.commitTransactions->", "tx", tx.Hash().Hex(), "from", types.GetFromByTx(tx), "to", tx.To())
 			}
 			*/
+			log.Debug("cc14514_TODO_004","tx",tx.Hash().Hex(),"err",err)
 			appendToFailTx(tx.Hash())
 		}
 		switch err {
