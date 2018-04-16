@@ -127,6 +127,13 @@ func (self *Signer) String() string {
 	return fmt.Sprintf("%s:%d", self.Address.Hex(), self.Score)
 }
 
+type History struct {
+	Number     int64          `json:"number"`
+	Hash       common.Hash    `json:"hash"`
+	Signer     common.Address `json:"signer"`
+	Difficulty int64          `json:"difficulty"`
+}
+
 type TribeStatus struct {
 	Signers      []*Signer        `json:"signers"`
 	Volunteers   []common.Address `json:"volunteers"`

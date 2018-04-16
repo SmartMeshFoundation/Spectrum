@@ -71,6 +71,21 @@ func (api *API) GetStatus(hash *common.Hash) (*TribeStatus, error) {
 	return api.tribe.Status, nil
 }
 
+func (api *API) GetHistory(last *big.Int) ([]History, error) {
+	s := uint64(16)
+	if last != nil {
+		s = last.Uint64()
+	}
+	cn := api.chain.CurrentHeader().Number.Uint64()
+	history := make([]History, 0)
+	for i := cn; i > cn-s ; i-- {
+		_header := api.chain.GetHeaderByNumber(i)
+		_h := History{_header.Number.Int64(), _header.Hash(), _header.Coinbase, _header.Difficulty.Int64()}
+		history = append(history[:], _h)
+	}
+	return history, nil
+}
+
 func NewTribeStatus() *TribeStatus {
 	ts := &TribeStatus{
 		Signers:     make([]*Signer, 0),
@@ -300,7 +315,7 @@ func (self *TribeStatus) ValidateBlock(block *types.Block, validateSigner bool) 
 	} else if total > 1 {
 		return ErrTribeChiefCannotRepeat
 	}
-	log.Info("ValidateBlockp-->", "num", block.NumberU64(), "check_signer", validateSigner)
+	log.Debug("ValidateBlockp-->", "num", block.NumberU64(), "check_signer", validateSigner)
 	return nil
 }
 

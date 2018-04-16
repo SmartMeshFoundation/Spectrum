@@ -133,6 +133,12 @@ web3._extend({
 			inputFormatter: [null]
 		}),
 		new web3._extend.Method({
+			name: 'getHistory',
+			call: 'tribe_getHistory',
+			params: 1,
+			inputFormatter: [null]
+		}),
+		new web3._extend.Method({
 			name: 'getMiner',
 			call: 'tribe_getMiner',
 			params: 1,
