@@ -1,25 +1,26 @@
 package chief
 
 import (
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/p2p"
-	"github.com/SmartMeshFoundation/SMChain/rpc"
-	"github.com/SmartMeshFoundation/SMChain/node"
-	"github.com/SmartMeshFoundation/SMChain/eth"
-	"github.com/SmartMeshFoundation/SMChain/les"
-	"github.com/SmartMeshFoundation/SMChain/internal/ethapi"
-	"github.com/SmartMeshFoundation/SMChain/params"
-	"time"
 	"context"
-	"github.com/SmartMeshFoundation/SMChain/accounts/abi/bind"
-	"github.com/SmartMeshFoundation/SMChain/log"
+	"errors"
 	"math/big"
-	"github.com/SmartMeshFoundation/SMChain/crypto"
-	"github.com/SmartMeshFoundation/SMChain/ethclient"
 	"os"
+	"time"
+
+	"github.com/SmartMeshFoundation/SMChain/accounts/abi/bind"
+	"github.com/SmartMeshFoundation/SMChain/common"
 	"github.com/SmartMeshFoundation/SMChain/contracts/chief/lib"
 	"github.com/SmartMeshFoundation/SMChain/core/types"
-	"errors"
+	"github.com/SmartMeshFoundation/SMChain/crypto"
+	"github.com/SmartMeshFoundation/SMChain/eth"
+	"github.com/SmartMeshFoundation/SMChain/ethclient"
+	"github.com/SmartMeshFoundation/SMChain/internal/ethapi"
+	"github.com/SmartMeshFoundation/SMChain/les"
+	"github.com/SmartMeshFoundation/SMChain/log"
+	"github.com/SmartMeshFoundation/SMChain/node"
+	"github.com/SmartMeshFoundation/SMChain/p2p"
+	"github.com/SmartMeshFoundation/SMChain/params"
+	"github.com/SmartMeshFoundation/SMChain/rpc"
 )
 
 /*
@@ -155,7 +156,8 @@ func (self *TribeService) update(mbox params.Mbox) {
 	prv := self.server.PrivateKey
 	auth := bind.NewKeyedTransactor(prv)
 	auth.GasPrice = eth.DefaultConfig.GasPrice
-	auth.GasLimit = params.GenesisGasLimit
+	//auth.GasLimit = params.GenesisGasLimit
+	auth.GasLimit = big.NewInt(params.ChiefTxGas.Int64())
 	success := params.MBoxSuccess{Success: false}
 
 	if err := self.initEthclient(); err != nil {

@@ -18,6 +18,7 @@ package core
 
 import (
 	"errors"
+	"fmt"
 	"math/big"
 
 	"github.com/SmartMeshFoundation/SMChain/common"
@@ -170,6 +171,7 @@ func (st *StateTransition) buyGas() error {
 	if mgas.BitLen() > 64 {
 		return vm.ErrOutOfGas
 	}
+	log.Info(fmt.Sprintf("[ state ] ==> buyGas(), st.msg.Gas = %d, st.gp = %d", mgas, (*big.Int)(st.gp).Uint64()))
 
 	mgval := new(big.Int).Mul(mgas, st.gasPrice)
 
@@ -198,18 +200,18 @@ func (st *StateTransition) preCheck() error {
 	if msg.CheckNonce() {
 		nonce := st.state.GetNonce(sender.Address())
 		/*
-		checker := func(err error) error {
-			isChiefTx := msg.To() != nil && *msg.To() == common.HexToAddress(params.ChiefAddress)
-			if isChiefTx && msg.Nonce() == params.ChiefTxNonce + 1 {
-				return nil
+			checker := func(err error) error {
+				isChiefTx := msg.To() != nil && *msg.To() == common.HexToAddress(params.ChiefAddress)
+				if isChiefTx && msg.Nonce() == params.ChiefTxNonce + 1 {
+					return nil
+				}
+				return err
 			}
-			return err
-		}
-		if nonce < msg.Nonce() {
-			return checker(ErrNonceTooHigh)
-		} else if nonce > msg.Nonce() {
-			return checker(ErrNonceTooLow)
-		}
+			if nonce < msg.Nonce() {
+				return checker(ErrNonceTooHigh)
+			} else if nonce > msg.Nonce() {
+				return checker(ErrNonceTooLow)
+			}
 		*/
 		if nonce < msg.Nonce() {
 			return ErrNonceTooHigh
@@ -224,9 +226,13 @@ func (st *StateTransition) preCheck() error {
 // including the required gas for the operation as well as the used gas. It returns an error if it
 // failed. An error indicates a consensus issue.
 func (st *StateTransition) TransitionDb() (ret []byte, requiredGas, usedGas *big.Int, failed bool, err error) {
+	log.Info(fmt.Sprintf("[ state ] ==> TransitionDb(), 1) original -- initialGas = %d, gp = %d", st.initialGas, (*big.Int)(st.gp).Uint64()))
 	if err = st.preCheck(); err != nil {
+		log.Info(fmt.Sprintf("[ state ] ==> TransitionDb(), 2) preCheck failed -- err = %v", err))
 		return
 	}
+	log.Info(fmt.Sprintf("[ state ] ==> TransitionDb(), 2) preCheck -- initialGas = %d, gp = %d, gas = %d", st.initialGas, (*big.Int)(st.gp).Uint64(), st.gasUsed()))
+
 	msg := st.msg
 	sender := st.from() // err checked in preCheck
 
@@ -236,12 +242,14 @@ func (st *StateTransition) TransitionDb() (ret []byte, requiredGas, usedGas *big
 	// Pay intrinsic gas
 	// TODO convert to uint64
 	intrinsicGas := IntrinsicGas(st.data, contractCreation, homestead)
+	log.Info(fmt.Sprintf("[ state ] ==> TransitionDb(), intrinsicGas = %d", intrinsicGas.Uint64()))
 	if intrinsicGas.BitLen() > 64 {
 		return nil, nil, nil, false, vm.ErrOutOfGas
 	}
 	if err = st.useGas(intrinsicGas.Uint64()); err != nil {
 		return nil, nil, nil, false, err
 	}
+	log.Info(fmt.Sprintf("[ state ] ==> TransitionDb(), 3) useGas -- gas used = %d", st.gasUsed()))
 
 	var (
 		evm = st.evm
@@ -266,6 +274,8 @@ func (st *StateTransition) TransitionDb() (ret []byte, requiredGas, usedGas *big
 			return nil, nil, nil, false, vmerr
 		}
 	}
+	log.Info(fmt.Sprintf("[ state ] ==> TransitionDb(), 4) executed -- gas used = %d", st.gasUsed()))
+
 	requiredGas = new(big.Int).Set(st.gasUsed())
 
 	st.refundGas()

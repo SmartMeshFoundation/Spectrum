@@ -1,12 +1,13 @@
 package params
 
 import (
-	"math/big"
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"fmt"
-	"sort"
-	"os"
 	"errors"
+	"fmt"
+	"math/big"
+	"os"
+	"sort"
+
+	"github.com/SmartMeshFoundation/SMChain/common"
 )
 
 type ChiefInfo struct {
@@ -42,6 +43,8 @@ var (
 	MboxChan                       = make(chan Mbox, 32)
 	InitTribeStatus                = make(chan struct{})
 	chiefInfoList    ChiefInfoList = nil
+	// added by cai.zhihong
+	ChiefTxGas = big.NewInt(400000)
 )
 
 // startNumber and address must from chain's config

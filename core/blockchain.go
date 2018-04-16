@@ -809,15 +809,15 @@ func (bc *BlockChain) WriteBlockAndState(block *types.Block, receipts []*types.R
 	defer func() {
 		bc.mu.Unlock()
 		if tribe, ok := bc.engine.(*tribe.Tribe); ok {
-			/*
-				for _, t := range block.Transactions() {
-					f := types.GetFromByTx(t)
-					tf := crypto.PubkeyToAddress(bc.nodeKey.PublicKey)
-					if f != nil && tf == *f {
-						params.FixChiefTxNonce(t.To(), 0)
-					}
+			// added by cai.zhihong
+			for _, receipt := range receipts {
+				tx := block.Transaction(receipt.TxHash)
+				to := tx.To()
+				log.Info(fmt.Sprintf("[ blockchain ] ==> WriteBlockAndState('%d'), addr = 0x%x, gas used = %d", block.NumberU64(), to, receipt.GasUsed))
+				if to != nil && params.IsChiefAddress(*to) {
+					params.ChiefTxGas.SetUint64(receipt.GasUsed.Uint64() * 11 / 10)
 				}
-			*/
+			}
 			tribe.Status.Update(bc.currentBlock.Number(), bc.currentBlock.Hash())
 			log.Debug("WriteBlockAndState::tribe.Update -> : done", "num", block.Number().Int64())
 		}

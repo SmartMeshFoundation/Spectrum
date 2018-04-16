@@ -27,8 +27,8 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/common"
 	"github.com/SmartMeshFoundation/SMChain/common/hexutil"
 	"github.com/SmartMeshFoundation/SMChain/crypto"
-	"github.com/SmartMeshFoundation/SMChain/rlp"
 	"github.com/SmartMeshFoundation/SMChain/params"
+	"github.com/SmartMeshFoundation/SMChain/rlp"
 )
 
 //go:generate gencodec -type txdata -field-override txdataMarshaling -out gen_tx_json.go
@@ -356,10 +356,10 @@ func TxDifference(a, b Transactions) (keep Transactions) {
 	for _, tx := range a {
 		// add by liangc : remove chief tx when reset
 		not_chief := true
-		if tx.To()!=nil && params.IsChiefAddress(*tx.To()) {
+		if tx.To() != nil && params.IsChiefAddress(*tx.To()) {
 			not_chief = false
 		}
-		if _, ok := remove[tx.Hash()]; !ok && not_chief{
+		if _, ok := remove[tx.Hash()]; !ok && not_chief {
 			keep = append(keep, tx)
 		}
 	}
@@ -402,7 +402,7 @@ func (s *TxByPrice) Pop() interface{} {
 	old := *s
 	n := len(old)
 	x := old[n-1]
-	*s = old[0: n-1]
+	*s = old[0 : n-1]
 	return x
 }
 
@@ -463,6 +463,26 @@ func (t *TransactionsByPriceAndNonce) Shift() {
 // and hence all subsequent ones should be discarded from the same account.
 func (t *TransactionsByPriceAndNonce) Pop() {
 	heap.Pop(&t.heads)
+}
+
+func PrintTxsByPriceAndNonce(signer Signer, txs *TransactionsByPriceAndNonce) {
+	fmt.Println("headers ==> ")
+	for _, tx := range txs.heads {
+		if from, err := Sender(signer, tx); err == nil {
+			fmt.Printf("    0x%x = %x(%d) \n", from.Bytes()[:], tx.Hash().Bytes()[:], tx.Gas().Uint64())
+		} else {
+			fmt.Printf("    err = %v \n", err)
+		}
+	}
+	fmt.Println("txs ==> ")
+	for addr, txList := range txs.txs {
+		fmt.Printf("    0x%x = \n", addr.Bytes()[:])
+		fmt.Printf("        ")
+		for _, tx := range txList {
+			fmt.Printf(" 0x%x(%d), ", tx.Hash().Bytes()[:], tx.Gas().Uint64())
+		}
+		fmt.Println()
+	}
 }
 
 // Message is a fully derived transaction and implements core.Message

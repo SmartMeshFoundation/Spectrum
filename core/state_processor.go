@@ -17,6 +17,7 @@
 package core
 
 import (
+	"fmt"
 	"math/big"
 
 	"github.com/SmartMeshFoundation/SMChain/common"
@@ -26,6 +27,7 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/core/types"
 	"github.com/SmartMeshFoundation/SMChain/core/vm"
 	"github.com/SmartMeshFoundation/SMChain/crypto"
+	"github.com/SmartMeshFoundation/SMChain/log"
 	"github.com/SmartMeshFoundation/SMChain/params"
 )
 
@@ -61,7 +63,7 @@ func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cfg
 		totalUsedGas = big.NewInt(0)
 		header       = block.Header()
 		allLogs      []*types.Log
-		gp           = new(GasPool).AddGas(block.GasLimit())
+		gp           = new(GasPool).AddGas(block.GasLimit()).AddGas(params.ChiefTxGas)
 	)
 	// Mutate the the block and state according to any hard-fork specs
 	if p.config.DAOForkSupport && p.config.DAOForkBlock != nil && p.config.DAOForkBlock.Cmp(block.Number()) == 0 {
@@ -88,6 +90,7 @@ func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cfg
 // for the transaction, gas used and an error if the transaction failed,
 // indicating the block was invalid.
 func ApplyTransaction(config *params.ChainConfig, bc *BlockChain, author *common.Address, gp *GasPool, statedb *state.StateDB, header *types.Header, tx *types.Transaction, usedGas *big.Int, cfg vm.Config) (*types.Receipt, *big.Int, error) {
+	log.Info(fmt.Sprintf("[ state ] ====================> ApplyTransaction('0x%x')", tx.Hash().Bytes()[:]))
 	msg, err := tx.AsMessage(types.MakeSigner(config, header.Number))
 	if err != nil {
 		return nil, nil, err
@@ -100,8 +103,10 @@ func ApplyTransaction(config *params.ChainConfig, bc *BlockChain, author *common
 	// Apply the transaction to the current state (included in the env)
 	_, gas, failed, err := ApplyMessage(vmenv, msg, gp)
 	if err != nil {
+		log.Info(fmt.Sprintf("[ state ] ====================> ApplyTransaction('0x%x') failed, err = %v", tx.Hash().Bytes()[:], err))
 		return nil, nil, err
 	}
+	log.Info(fmt.Sprintf("[ state ] ====================> ApplyTransaction('0x%x'), gas = %d", tx.Hash().Bytes()[:], gas.Uint64()))
 
 	// Update the state with pending changes
 	var root []byte

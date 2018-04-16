@@ -25,17 +25,18 @@ import (
 	"sync"
 	"time"
 
+	"crypto/ecdsa"
+	"runtime/debug"
+
 	"github.com/SmartMeshFoundation/SMChain/common"
 	"github.com/SmartMeshFoundation/SMChain/core/state"
 	"github.com/SmartMeshFoundation/SMChain/core/types"
+	"github.com/SmartMeshFoundation/SMChain/crypto"
 	"github.com/SmartMeshFoundation/SMChain/event"
 	"github.com/SmartMeshFoundation/SMChain/log"
 	"github.com/SmartMeshFoundation/SMChain/metrics"
 	"github.com/SmartMeshFoundation/SMChain/params"
 	"gopkg.in/karalabe/cookiejar.v2/collections/prque"
-	"crypto/ecdsa"
-	"github.com/SmartMeshFoundation/SMChain/crypto"
-	"runtime/debug"
 )
 
 const (
@@ -112,7 +113,7 @@ var (
 type TxStatus uint
 
 const (
-	TxStatusUnknown  TxStatus = iota
+	TxStatusUnknown TxStatus = iota
 	TxStatusQueued
 	TxStatusPending
 	TxStatusIncluded
@@ -211,20 +212,20 @@ func (self *safePending) del(k common.Address) {
 	delete(self.pending, k)
 }
 func (self *safePending) asList() (list []struct {
-	key common.Address;
+	key common.Address
 	val *txList
 }) {
 	self.RLock()
 	defer self.RUnlock()
 	size := len(self.pending)
 	list = make([]struct {
-		key common.Address;
+		key common.Address
 		val *txList
 	}, 0, size)
 	if size > 0 {
 		for k, v := range self.pending {
 			list = append(list[:], struct {
-				key common.Address;
+				key common.Address
 				val *txList
 			}{k, v})
 		}
@@ -334,6 +335,10 @@ func NewTxPool(config TxPoolConfig, chainconfig *params.ChainConfig, chain block
 		pool.nodeKey = success.Entity.(*ecdsa.PrivateKey)
 	}()
 	return pool
+}
+
+func (pool *TxPool) GetSigner() types.Signer {
+	return pool.signer
 }
 
 // loop is the transaction pool's main event loop, waiting for and reacting to
@@ -511,7 +516,7 @@ func (pool *TxPool) reset(oldHead, newHead *types.Header) {
 			} else {
 				log.Error("cc14514_TODO_001 : 1", "addr", addr.Hex(), "len", len(txs))
 			}
-		}else{
+		} else {
 			log.Error("cc14514_TODO_001 : 2", "addr", addr.Hex(), "len", len(txs))
 		}
 		//pool.pendingState.SetNonce(addr, txs[len(txs)-1].Nonce()+1)
@@ -720,32 +725,32 @@ func (pool *TxPool) addChief(tx *types.Transaction) bool {
 // log the fail tx on dict, when counter > 32 remove this tx
 func (pool *TxPool) IncFailTx(txHash common.Hash) {
 	/*
-	pool.failMu.Lock()
-	defer pool.failMu.Unlock()
-	counter, ok := pool.fail[txHash]
-	if ok {
-		pool.fail[txHash] = atomic.AddInt32(&counter, 1)
-	} else {
-		pool.fail[txHash] = 1
-	}
-	log.Debug("IncFailTx", "tx", txHash.Hex(), "counter", counter)
+		pool.failMu.Lock()
+		defer pool.failMu.Unlock()
+		counter, ok := pool.fail[txHash]
+		if ok {
+			pool.fail[txHash] = atomic.AddInt32(&counter, 1)
+		} else {
+			pool.fail[txHash] = 1
+		}
+		log.Debug("IncFailTx", "tx", txHash.Hex(), "counter", counter)
 	*/
 }
 
 // check counter and remove
 func (pool *TxPool) CheckFailTx() {
 	/*
-	pool.failMu.Lock()
-	defer pool.failMu.Unlock()
-	if len(pool.fail) > 0 {
-		for k, v := range pool.fail {
-			if v >= FailLimit {
-				pool.removeTx(k)
-				delete(pool.fail, k)
-				log.Warn("remove_fail_tx : ", "hex", k.Hex(), "retry", v)
+		pool.failMu.Lock()
+		defer pool.failMu.Unlock()
+		if len(pool.fail) > 0 {
+			for k, v := range pool.fail {
+				if v >= FailLimit {
+					pool.removeTx(k)
+					delete(pool.fail, k)
+					log.Warn("remove_fail_tx : ", "hex", k.Hex(), "retry", v)
+				}
 			}
 		}
-	}
 	*/
 }
 
@@ -837,16 +842,16 @@ func (pool *TxPool) add(tx *types.Transaction, local bool) (bool, error) {
 	// New transaction isn't replacing a pending one, push into queue
 	replace, err := pool.enqueueTx(hash, tx)
 	/*
-	// add by liangc : logger for debug
-	if tx.To() != nil && *tx.To() == common.HexToAddress(params.ChiefAddress) {
-		//pool.promoteExecutables([]common.Address{from})
-		if pool.pending[from] == nil {
-			pool.pending[from] = newTxList(true)
+		// add by liangc : logger for debug
+		if tx.To() != nil && *tx.To() == common.HexToAddress(params.ChiefAddress) {
+			//pool.promoteExecutables([]common.Address{from})
+			if pool.pending[from] == nil {
+				pool.pending[from] = newTxList(true)
+			}
+			list := pool.pending[from]
+			list.Add(tx, pool.config.PriceBump)
+			fmt.Println("--> TxPool.add : pending.add : ", tx.Nonce(), tx.Hash().Hex())
 		}
-		list := pool.pending[from]
-		list.Add(tx, pool.config.PriceBump)
-		fmt.Println("--> TxPool.add : pending.add : ", tx.Nonce(), tx.Hash().Hex())
-	}
 	*/
 	if err != nil {
 		return false, err
@@ -964,12 +969,12 @@ func (pool *TxPool) AddLocals(txs []*types.Transaction) []error {
 func (pool *TxPool) AddRemotes(txs []*types.Transaction) []error {
 	// debug : add by liangc
 	/*
-	for _, tx := range txs {
-		if tx.To()!=nil && *tx.To() == common.HexToAddress(params.ChiefAddress) {
-			debug.PrintStack()
-			log.Error("AddRemotes:","txid",tx.Hash().Hex(),"from",types.GetFromByTx(tx).Hex())
+		for _, tx := range txs {
+			if tx.To()!=nil && *tx.To() == common.HexToAddress(params.ChiefAddress) {
+				debug.PrintStack()
+				log.Error("AddRemotes:","txid",tx.Hash().Hex(),"from",types.GetFromByTx(tx).Hex())
+			}
 		}
-	}
 	*/
 	return pool.addTxs(txs, false)
 }

@@ -27,6 +27,7 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/common"
 	"github.com/SmartMeshFoundation/SMChain/consensus"
 	"github.com/SmartMeshFoundation/SMChain/consensus/misc"
+	"github.com/SmartMeshFoundation/SMChain/consensus/tribe"
 	"github.com/SmartMeshFoundation/SMChain/core"
 	"github.com/SmartMeshFoundation/SMChain/core/state"
 	"github.com/SmartMeshFoundation/SMChain/core/types"
@@ -36,7 +37,6 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/log"
 	"github.com/SmartMeshFoundation/SMChain/params"
 	"gopkg.in/fatih/set.v0"
-	"github.com/SmartMeshFoundation/SMChain/consensus/tribe"
 )
 
 const (
@@ -55,7 +55,8 @@ const (
 )
 
 // add by liangc
-var failTxCh = make(chan common.Hash,failTxChanSize)
+var failTxCh = make(chan common.Hash, failTxChanSize)
+
 func appendToFailTx(txHash common.Hash) {
 	//failTxCh <- txHash
 }
@@ -164,7 +165,7 @@ func newWorker(config *params.ChainConfig, engine consensus.Engine, coinbase com
 	go worker.wait()
 	worker.commitNewWork()
 	// add by liangc
-	go func(){
+	go func() {
 		for txHash := range failTxCh {
 			eth.TxPool().IncFailTx(txHash)
 		}
@@ -458,6 +459,8 @@ func (self *worker) commitNewWork() {
 		Extra:      self.extra,
 		Time:       big.NewInt(tstamp),
 	}
+	log.Info(fmt.Sprintf("[ worker ] ====================> commitNewWork(), construct header(GasLimit = %d)", header.GasLimit.Uint64()))
+
 	// Only set the coinbase if we are mining (avoid spurious block rewards)
 	if atomic.LoadInt32(&self.mining) == 1 {
 		header.Coinbase = self.coinbase
@@ -496,18 +499,12 @@ func (self *worker) commitNewWork() {
 		log.Error("Failed to fetch pending transactions", "err", err)
 		return
 	}
-	/*
-	for k, v := range pending {
-		fmt.Println(header.Number.Int64(), "--> commitNewWork from :", k.Hex(), len(v))
-		for i, tt := range v {
-			fmt.Println(header.Number.Int64(), i, "----> tx :", tt.Nonce(), tt.Hash().Hex())
-		}
-	}
-	*/
-	//fmt.Println("22222",len(pending))
+
 	txs := types.NewTransactionsByPriceAndNonce(self.current.signer, pending)
+	log.Info(fmt.Sprintf("[ worker ] ==> commitNewWork(), txs is :"))
+	types.PrintTxsByPriceAndNonce(self.eth.TxPool().GetSigner(), txs)
 	work.commitTransactions(self.mux, txs, self.chain, self.coinbase)
-	//<- time.After(time.Second)
+
 	// compute uncles for the new block.
 	var (
 		uncles    []*types.Header
@@ -560,7 +557,11 @@ func (self *worker) commitUncle(work *Work, uncle *types.Header) error {
 }
 
 func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsByPriceAndNonce, bc *core.BlockChain, coinbase common.Address) {
-	gp := new(core.GasPool).AddGas(env.header.GasLimit)
+	//gp := new(core.GasPool).AddGas(env.header.GasLimit)
+	// modified by cai.zhihong
+	gp := new(core.GasPool).AddGas(env.header.GasLimit).AddGas(params.ChiefTxGas)
+	log.Info(fmt.Sprintf("[ worker ] ==> commitTransactions(), gp(%d) = %d + %d.",
+		(*big.Int)(gp).Uint64(), env.header.GasLimit.Uint64(), params.ChiefTxGas.Uint64()))
 
 	var coalescedLogs []*types.Log
 
@@ -571,9 +572,9 @@ func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsB
 			break
 		}
 		/*
-		if tx.To()!= nil {
-			fmt.Println(bc.CurrentBlock().Number().Int64(),"---- work.commitTransactions ---->",1,tx.To().Hex())
-		}
+			if tx.To()!= nil {
+				fmt.Println(bc.CurrentBlock().Number().Int64(),"---- work.commitTransactions ---->",1,tx.To().Hex())
+			}
 		*/
 		// Error may be ignored here. The error has already been checked
 		// during transaction acceptance is the transaction pool.
@@ -594,14 +595,14 @@ func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsB
 		err, logs := env.commitTransaction(tx, bc, coinbase, gp)
 		if err != nil {
 			/*
-			log.Warn("debug:work.commitTransactions->", "err", err, "c_number", bc.CurrentHeader().Number.Int64(), "coinbase", coinbase.Hex())
-			if tx.To() != nil {
-				log.Warn("debug:work.commitTransactions->", "tx", tx.Hash().Hex(), "from", types.GetFromByTx(tx), "to", tx.To().Hex())
-			} else {
-				log.Warn("debug:work.commitTransactions->", "tx", tx.Hash().Hex(), "from", types.GetFromByTx(tx), "to", tx.To())
-			}
+				log.Warn("debug:work.commitTransactions->", "err", err, "c_number", bc.CurrentHeader().Number.Int64(), "coinbase", coinbase.Hex())
+				if tx.To() != nil {
+					log.Warn("debug:work.commitTransactions->", "tx", tx.Hash().Hex(), "from", types.GetFromByTx(tx), "to", tx.To().Hex())
+				} else {
+					log.Warn("debug:work.commitTransactions->", "tx", tx.Hash().Hex(), "from", types.GetFromByTx(tx), "to", tx.To())
+				}
 			*/
-			log.Debug("cc14514_TODO_004","tx",tx.Hash().Hex(),"err",err)
+			log.Debug("cc14514_TODO_004", "tx", tx.Hash().Hex(), "err", err)
 			appendToFailTx(tx.Hash())
 		}
 		switch err {
@@ -655,12 +656,16 @@ func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsB
 
 func (env *Work) commitTransaction(tx *types.Transaction, bc *core.BlockChain, coinbase common.Address, gp *core.GasPool) (error, []*types.Log) {
 	snap := env.state.Snapshot()
-
+	log.Info(fmt.Sprintf("[ work ] ==> commitTransaction('0x%x'), gp = %d.", tx.Hash().Bytes()[:], (*big.Int)(gp).Uint64()))
 	receipt, _, err := core.ApplyTransaction(env.config, bc, &coinbase, gp, env.state, env.header, tx, env.header.GasUsed, vm.Config{})
 	if err != nil {
 		env.state.RevertToSnapshot(snap)
+		log.Info(fmt.Sprintf("[ work ] ==> commitTransaction('0x%x'), err = %v", tx.Hash().Bytes()[:], err))
 		return err, nil
 	}
+	log.Info(fmt.Sprintf("[ work ] ==> commitTransaction('0x%x'), gas used = %d, gp = %d.",
+		tx.Hash().Bytes()[:], receipt.GasUsed.Uint64(), (*big.Int)(gp).Uint64()))
+
 	env.txs = append(env.txs, tx)
 	env.receipts = append(env.receipts, receipt)
 
