@@ -157,7 +157,7 @@ func (self *TribeService) update(mbox params.Mbox) {
 	auth := bind.NewKeyedTransactor(prv)
 	auth.GasPrice = eth.DefaultConfig.GasPrice
 	//auth.GasLimit = params.GenesisGasLimit
-	auth.GasLimit = big.NewInt(params.ChiefTxGas.Int64())
+	//auth.GasLimit = big.NewInt(params.ChiefTxGas.Int64())
 	success := params.MBoxSuccess{Success: false}
 
 	if err := self.initEthclient(); err != nil {
@@ -182,6 +182,8 @@ func (self *TribeService) update(mbox params.Mbox) {
 	// not nil
 	if n, ok := mbox.Params["number"]; ok {
 		blockNumber = n.(*big.Int)
+		_h,_ := self.client.HeaderByNumber(context.Background(),blockNumber)
+		auth.GasLimit = _h.GasLimit
 		log.Debug("-> TribeService.update", "blockNumber", blockNumber.Int64())
 	} else {
 		success.Entity = errors.New("TribeService.update : blockNumber not nil")
