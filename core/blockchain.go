@@ -809,7 +809,7 @@ func (bc *BlockChain) WriteBlockAndState(block *types.Block, receipts []*types.R
 	defer func() {
 		bc.mu.Unlock()
 		if tribe, ok := bc.engine.(*tribe.Tribe); ok {
-			// added by cai.zhihong
+			/*
 			for _, receipt := range receipts {
 				tx := block.Transaction(receipt.TxHash)
 				to := tx.To()
@@ -818,6 +818,7 @@ func (bc *BlockChain) WriteBlockAndState(block *types.Block, receipts []*types.R
 					params.ChiefTxGas.SetUint64(receipt.GasUsed.Uint64() * 11 / 10)
 				}
 			}
+			*/
 			tribe.Status.Update(bc.currentBlock.Number(), bc.currentBlock.Hash())
 			log.Debug("WriteBlockAndState::tribe.Update -> : done", "num", block.Number().Int64())
 		}

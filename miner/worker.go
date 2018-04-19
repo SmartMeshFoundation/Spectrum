@@ -459,7 +459,6 @@ func (self *worker) commitNewWork() {
 		Extra:      self.extra,
 		Time:       big.NewInt(tstamp),
 	}
-	log.Info(fmt.Sprintf("[ worker ] ====================> commitNewWork(), construct header(GasLimit = %d)", header.GasLimit.Uint64()))
 
 	// Only set the coinbase if we are mining (avoid spurious block rewards)
 	if atomic.LoadInt32(&self.mining) == 1 {
@@ -501,7 +500,6 @@ func (self *worker) commitNewWork() {
 	}
 
 	txs := types.NewTransactionsByPriceAndNonce(self.current.signer, pending)
-	log.Info(fmt.Sprintf("[ worker ] ==> commitNewWork(), txs is :"))
 	types.PrintTxsByPriceAndNonce(self.eth.TxPool().GetSigner(), txs)
 	work.commitTransactions(self.mux, txs, self.chain, self.coinbase)
 
@@ -559,9 +557,7 @@ func (self *worker) commitUncle(work *Work, uncle *types.Header) error {
 func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsByPriceAndNonce, bc *core.BlockChain, coinbase common.Address) {
 	//gp := new(core.GasPool).AddGas(env.header.GasLimit)
 	// modified by cai.zhihong
-	gp := new(core.GasPool).AddGas(env.header.GasLimit).AddGas(params.ChiefTxGas)
-	log.Info(fmt.Sprintf("[ worker ] ==> commitTransactions(), gp(%d) = %d + %d.",
-		(*big.Int)(gp).Uint64(), env.header.GasLimit.Uint64(), params.ChiefTxGas.Uint64()))
+	gp := new(core.GasPool).AddGas(env.header.GasLimit)
 
 	var coalescedLogs []*types.Log
 

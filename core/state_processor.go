@@ -17,7 +17,6 @@
 package core
 
 import (
-	"fmt"
 	"math/big"
 
 	"github.com/SmartMeshFoundation/SMChain/common"
@@ -63,7 +62,7 @@ func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cfg
 		totalUsedGas = big.NewInt(0)
 		header       = block.Header()
 		allLogs      []*types.Log
-		gp           = new(GasPool).AddGas(block.GasLimit()).AddGas(params.ChiefTxGas)
+		gp           = new(GasPool).AddGas(block.GasLimit())
 	)
 	// Mutate the the block and state according to any hard-fork specs
 	if p.config.DAOForkSupport && p.config.DAOForkBlock != nil && p.config.DAOForkBlock.Cmp(block.Number()) == 0 {

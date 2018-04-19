@@ -44,7 +44,7 @@ var (
 	InitTribeStatus                = make(chan struct{})
 	chiefInfoList    ChiefInfoList = nil
 	// added by cai.zhihong
-	ChiefTxGas = big.NewInt(400000)
+	// ChiefTxGas = big.NewInt(400000)
 )
 
 // startNumber and address must from chain's config
