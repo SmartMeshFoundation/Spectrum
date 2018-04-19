@@ -271,7 +271,6 @@ func (st *StateTransition) TransitionDb() (ret []byte, requiredGas, usedGas *big
 
 	st.refundGas()
 	st.state.AddBalance(st.evm.Coinbase, new(big.Int).Mul(st.gasUsed(), st.gasPrice))
-
 	return ret, requiredGas, st.gasUsed(), vmerr != nil, err
 }
 
@@ -295,5 +294,11 @@ func (st *StateTransition) refundGas() {
 }
 
 func (st *StateTransition) gasUsed() *big.Int {
-	return new(big.Int).Sub(st.initialGas, new(big.Int).SetUint64(st.gas))
+	// add by liangc if chief tx ,skip sub gas
+	g := new(big.Int).SetUint64(st.gas)
+	if st.msg.To()!=nil && params.IsChiefAddress(*st.msg.To()) {
+		log.Debug("skip_sub_gas_on_chiefTx","to",st.msg.To())
+		g = big.NewInt(0)
+	}
+	return new(big.Int).Sub(st.initialGas, g)
 }

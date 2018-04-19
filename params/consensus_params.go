@@ -8,6 +8,7 @@ import (
 	"sort"
 
 	"github.com/SmartMeshFoundation/SMChain/common"
+	"github.com/SmartMeshFoundation/SMChain/log"
 )
 
 type ChiefInfo struct {
@@ -112,6 +113,10 @@ func IsChiefAddress(addr common.Address) bool {
 	return isChiefAddress(chiefAddressList(), addr)
 }
 func isChiefAddress(list ChiefInfoList, addr common.Address) bool {
+	if addr == common.HexToAddress("0x") {
+		log.Warn("--> isChiefAddress :: address_not_be_empty","addr",addr)
+		return false
+	}
 	for _, ci := range list {
 		if ci.Addr == addr {
 			return true
