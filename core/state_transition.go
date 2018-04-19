@@ -18,7 +18,6 @@ package core
 
 import (
 	"errors"
-	"fmt"
 	"math/big"
 
 	"github.com/SmartMeshFoundation/SMChain/common"
