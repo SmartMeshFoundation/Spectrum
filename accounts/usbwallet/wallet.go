@@ -25,11 +25,11 @@ import (
 	"sync"
 	"time"
 
-	ethereum "github.com/SmartMeshFoundation/SMChain"
-	"github.com/SmartMeshFoundation/SMChain/accounts"
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/core/types"
-	"github.com/SmartMeshFoundation/SMChain/log"
+	ethereum "github.com/SmartMeshFoundation/Spectrum"
+	"github.com/SmartMeshFoundation/Spectrum/accounts"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/core/types"
+	"github.com/SmartMeshFoundation/Spectrum/log"
 	"github.com/karalabe/hid"
 )
 

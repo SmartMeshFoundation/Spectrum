@@ -28,7 +28,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
+	"github.com/SmartMeshFoundation/Spectrum/common"
 )
 
 // In this test, nodes try to randomly resolve each other.

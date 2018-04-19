@@ -27,9 +27,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/accounts"
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/log"
+	"github.com/SmartMeshFoundation/Spectrum/accounts"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/log"
 	"gopkg.in/fatih/set.v0"
 )
 

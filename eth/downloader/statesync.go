@@ -23,12 +23,12 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/core/state"
-	"github.com/SmartMeshFoundation/SMChain/crypto/sha3"
-	"github.com/SmartMeshFoundation/SMChain/ethdb"
-	"github.com/SmartMeshFoundation/SMChain/log"
-	"github.com/SmartMeshFoundation/SMChain/trie"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/core/state"
+	"github.com/SmartMeshFoundation/Spectrum/crypto/sha3"
+	"github.com/SmartMeshFoundation/Spectrum/ethdb"
+	"github.com/SmartMeshFoundation/Spectrum/log"
+	"github.com/SmartMeshFoundation/Spectrum/trie"
 )
 
 // stateReq represents a batch of state fetch requests groupped together into

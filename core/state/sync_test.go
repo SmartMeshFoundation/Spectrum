@@ -21,10 +21,10 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/crypto"
-	"github.com/SmartMeshFoundation/SMChain/ethdb"
-	"github.com/SmartMeshFoundation/SMChain/trie"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/crypto"
+	"github.com/SmartMeshFoundation/Spectrum/ethdb"
+	"github.com/SmartMeshFoundation/Spectrum/trie"
 )
 
 // testAccount is the data associated with an account used by the state tests.

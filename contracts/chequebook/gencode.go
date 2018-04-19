@@ -25,11 +25,11 @@ import (
 	"io/ioutil"
 	"math/big"
 
-	"github.com/SmartMeshFoundation/SMChain/accounts/abi/bind"
-	"github.com/SmartMeshFoundation/SMChain/accounts/abi/bind/backends"
-	"github.com/SmartMeshFoundation/SMChain/contracts/chequebook/contract"
-	"github.com/SmartMeshFoundation/SMChain/core"
-	"github.com/SmartMeshFoundation/SMChain/crypto"
+	"github.com/SmartMeshFoundation/Spectrum/accounts/abi/bind"
+	"github.com/SmartMeshFoundation/Spectrum/accounts/abi/bind/backends"
+	"github.com/SmartMeshFoundation/Spectrum/contracts/chequebook/contract"
+	"github.com/SmartMeshFoundation/Spectrum/core"
+	"github.com/SmartMeshFoundation/Spectrum/crypto"
 )
 
 var (

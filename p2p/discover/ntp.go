@@ -25,7 +25,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/log"
+	"github.com/SmartMeshFoundation/Spectrum/log"
 )
 
 const (

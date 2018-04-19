@@ -21,9 +21,9 @@ import (
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/core/state"
-	"github.com/SmartMeshFoundation/SMChain/ethdb"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/core/state"
+	"github.com/SmartMeshFoundation/Spectrum/ethdb"
 )
 
 var dumper = spew.ConfigState{Indent: "    "}

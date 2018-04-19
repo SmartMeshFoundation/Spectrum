@@ -20,10 +20,10 @@ import (
 	"fmt"
 	"sync/atomic"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/common/math"
-	"github.com/SmartMeshFoundation/SMChain/crypto"
-	"github.com/SmartMeshFoundation/SMChain/params"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/common/math"
+	"github.com/SmartMeshFoundation/Spectrum/crypto"
+	"github.com/SmartMeshFoundation/Spectrum/params"
 )
 
 // Config are the configuration options for the Interpreter

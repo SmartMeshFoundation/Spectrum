@@ -24,13 +24,13 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/common/math"
-	"github.com/SmartMeshFoundation/SMChain/consensus"
-	//"github.com/SmartMeshFoundation/SMChain/consensus/misc"
-	"github.com/SmartMeshFoundation/SMChain/core/state"
-	"github.com/SmartMeshFoundation/SMChain/core/types"
-	"github.com/SmartMeshFoundation/SMChain/params"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/common/math"
+	"github.com/SmartMeshFoundation/Spectrum/consensus"
+	//"github.com/SmartMeshFoundation/Spectrum/consensus/misc"
+	"github.com/SmartMeshFoundation/Spectrum/core/state"
+	"github.com/SmartMeshFoundation/Spectrum/core/types"
+	"github.com/SmartMeshFoundation/Spectrum/params"
 	set "gopkg.in/fatih/set.v0"
 )
 

@@ -22,7 +22,7 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
+	"github.com/SmartMeshFoundation/Spectrum/common"
 )
 
 // A BigInt represents a signed multi-precision integer.

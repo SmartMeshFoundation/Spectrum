@@ -19,7 +19,7 @@ package vm
 import (
 	"fmt"
 
-	"github.com/SmartMeshFoundation/SMChain/params"
+	"github.com/SmartMeshFoundation/Spectrum/params"
 )
 
 func makeStackFunc(pop, push int) stackValidationFunc {

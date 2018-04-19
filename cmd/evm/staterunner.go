@@ -23,10 +23,10 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/SmartMeshFoundation/SMChain/core/state"
-	"github.com/SmartMeshFoundation/SMChain/core/vm"
-	"github.com/SmartMeshFoundation/SMChain/log"
-	"github.com/SmartMeshFoundation/SMChain/tests"
+	"github.com/SmartMeshFoundation/Spectrum/core/state"
+	"github.com/SmartMeshFoundation/Spectrum/core/vm"
+	"github.com/SmartMeshFoundation/Spectrum/log"
+	"github.com/SmartMeshFoundation/Spectrum/tests"
 
 	cli "gopkg.in/urfave/cli.v1"
 )

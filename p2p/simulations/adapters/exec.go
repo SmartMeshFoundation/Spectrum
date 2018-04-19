@@ -36,11 +36,11 @@ import (
 	"time"
 
 	"github.com/docker/docker/pkg/reexec"
-	"github.com/SmartMeshFoundation/SMChain/log"
-	"github.com/SmartMeshFoundation/SMChain/node"
-	"github.com/SmartMeshFoundation/SMChain/p2p"
-	"github.com/SmartMeshFoundation/SMChain/p2p/discover"
-	"github.com/SmartMeshFoundation/SMChain/rpc"
+	"github.com/SmartMeshFoundation/Spectrum/log"
+	"github.com/SmartMeshFoundation/Spectrum/node"
+	"github.com/SmartMeshFoundation/Spectrum/p2p"
+	"github.com/SmartMeshFoundation/Spectrum/p2p/discover"
+	"github.com/SmartMeshFoundation/Spectrum/rpc"
 	"golang.org/x/net/websocket"
 )
 

@@ -33,11 +33,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/accounts"
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/core/types"
-	"github.com/SmartMeshFoundation/SMChain/crypto"
-	"github.com/SmartMeshFoundation/SMChain/event"
+	"github.com/SmartMeshFoundation/Spectrum/accounts"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/core/types"
+	"github.com/SmartMeshFoundation/Spectrum/crypto"
+	"github.com/SmartMeshFoundation/Spectrum/event"
 )
 
 var (

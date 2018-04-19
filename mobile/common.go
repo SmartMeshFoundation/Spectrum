@@ -24,7 +24,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
+	"github.com/SmartMeshFoundation/Spectrum/common"
 )
 
 // Hash represents the 32 byte Keccak256 hash of arbitrary data.

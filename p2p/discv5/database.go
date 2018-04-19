@@ -28,9 +28,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/crypto"
-	"github.com/SmartMeshFoundation/SMChain/log"
-	"github.com/SmartMeshFoundation/SMChain/rlp"
+	"github.com/SmartMeshFoundation/Spectrum/crypto"
+	"github.com/SmartMeshFoundation/Spectrum/log"
+	"github.com/SmartMeshFoundation/Spectrum/rlp"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/errors"
 	"github.com/syndtr/goleveldb/leveldb/iterator"

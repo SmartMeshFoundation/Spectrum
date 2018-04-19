@@ -19,7 +19,7 @@ package vm
 import (
 	"math/big"
 
-	"github.com/SmartMeshFoundation/SMChain/params"
+	"github.com/SmartMeshFoundation/Spectrum/params"
 )
 
 const (

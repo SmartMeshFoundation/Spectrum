@@ -24,12 +24,12 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/SmartMeshFoundation/SMChain"
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/common/hexutil"
-	"github.com/SmartMeshFoundation/SMChain/core/types"
-	"github.com/SmartMeshFoundation/SMChain/rlp"
-	"github.com/SmartMeshFoundation/SMChain/rpc"
+	"github.com/SmartMeshFoundation/Spectrum"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/common/hexutil"
+	"github.com/SmartMeshFoundation/Spectrum/core/types"
+	"github.com/SmartMeshFoundation/Spectrum/rlp"
+	"github.com/SmartMeshFoundation/Spectrum/rpc"
 )
 
 // Client defines typed wrappers for the Ethereum RPC API.

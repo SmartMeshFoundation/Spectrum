@@ -20,9 +20,9 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/ethdb"
-	"github.com/SmartMeshFoundation/SMChain/trie"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/ethdb"
+	"github.com/SmartMeshFoundation/Spectrum/trie"
 	lru "github.com/hashicorp/golang-lru"
 )
 

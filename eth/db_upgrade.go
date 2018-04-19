@@ -21,11 +21,11 @@ import (
 	"bytes"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/core"
-	"github.com/SmartMeshFoundation/SMChain/ethdb"
-	"github.com/SmartMeshFoundation/SMChain/log"
-	"github.com/SmartMeshFoundation/SMChain/rlp"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/core"
+	"github.com/SmartMeshFoundation/Spectrum/ethdb"
+	"github.com/SmartMeshFoundation/Spectrum/log"
+	"github.com/SmartMeshFoundation/Spectrum/rlp"
 )
 
 var deduplicateData = []byte("dbUpgrade_20170714deduplicateData")

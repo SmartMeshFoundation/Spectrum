@@ -20,8 +20,8 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/core/types"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/core/types"
 )
 
 // senderFromServer is a types.Signer that remembers the sender address returned by the RPC

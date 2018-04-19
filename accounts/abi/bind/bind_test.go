@@ -26,7 +26,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
+	"github.com/SmartMeshFoundation/Spectrum/common"
 	"golang.org/x/tools/imports"
 )
 

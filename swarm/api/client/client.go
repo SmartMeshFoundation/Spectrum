@@ -33,7 +33,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/SmartMeshFoundation/SMChain/swarm/api"
+	"github.com/SmartMeshFoundation/Spectrum/swarm/api"
 )
 
 var (

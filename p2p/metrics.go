@@ -21,7 +21,7 @@ package p2p
 import (
 	"net"
 
-	"github.com/SmartMeshFoundation/SMChain/metrics"
+	"github.com/SmartMeshFoundation/Spectrum/metrics"
 )
 
 var (

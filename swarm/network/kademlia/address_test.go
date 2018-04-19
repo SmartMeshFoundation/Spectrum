@@ -21,7 +21,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
+	"github.com/SmartMeshFoundation/Spectrum/common"
 )
 
 func (Address) Generate(rand *rand.Rand, size int) reflect.Value {

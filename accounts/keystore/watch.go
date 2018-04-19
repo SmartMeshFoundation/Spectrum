@@ -21,7 +21,7 @@ package keystore
 import (
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/log"
+	"github.com/SmartMeshFoundation/Spectrum/log"
 	"github.com/rjeczalik/notify"
 )
 

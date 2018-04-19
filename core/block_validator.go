@@ -20,13 +20,13 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/SmartMeshFoundation/SMChain/common/math"
-	"github.com/SmartMeshFoundation/SMChain/consensus"
-	"github.com/SmartMeshFoundation/SMChain/consensus/tribe"
-	"github.com/SmartMeshFoundation/SMChain/core/state"
-	"github.com/SmartMeshFoundation/SMChain/core/types"
-	"github.com/SmartMeshFoundation/SMChain/log"
-	"github.com/SmartMeshFoundation/SMChain/params"
+	"github.com/SmartMeshFoundation/Spectrum/common/math"
+	"github.com/SmartMeshFoundation/Spectrum/consensus"
+	"github.com/SmartMeshFoundation/Spectrum/consensus/tribe"
+	"github.com/SmartMeshFoundation/Spectrum/core/state"
+	"github.com/SmartMeshFoundation/Spectrum/core/types"
+	"github.com/SmartMeshFoundation/Spectrum/log"
+	"github.com/SmartMeshFoundation/Spectrum/params"
 )
 
 // BlockValidator is responsible for validating block headers, uncles and

@@ -24,17 +24,17 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/SmartMeshFoundation/SMChain/core"
-	"github.com/SmartMeshFoundation/SMChain/eth"
-	"github.com/SmartMeshFoundation/SMChain/eth/downloader"
-	"github.com/SmartMeshFoundation/SMChain/ethclient"
-	"github.com/SmartMeshFoundation/SMChain/ethstats"
-	"github.com/SmartMeshFoundation/SMChain/les"
-	"github.com/SmartMeshFoundation/SMChain/node"
-	"github.com/SmartMeshFoundation/SMChain/p2p"
-	"github.com/SmartMeshFoundation/SMChain/p2p/nat"
-	"github.com/SmartMeshFoundation/SMChain/params"
-	whisper "github.com/SmartMeshFoundation/SMChain/whisper/whisperv5"
+	"github.com/SmartMeshFoundation/Spectrum/core"
+	"github.com/SmartMeshFoundation/Spectrum/eth"
+	"github.com/SmartMeshFoundation/Spectrum/eth/downloader"
+	"github.com/SmartMeshFoundation/Spectrum/ethclient"
+	"github.com/SmartMeshFoundation/Spectrum/ethstats"
+	"github.com/SmartMeshFoundation/Spectrum/les"
+	"github.com/SmartMeshFoundation/Spectrum/node"
+	"github.com/SmartMeshFoundation/Spectrum/p2p"
+	"github.com/SmartMeshFoundation/Spectrum/p2p/nat"
+	"github.com/SmartMeshFoundation/Spectrum/params"
+	whisper "github.com/SmartMeshFoundation/Spectrum/whisper/whisperv5"
 )
 
 // NodeConfig represents the collection of configuration values to fine tune the Geth

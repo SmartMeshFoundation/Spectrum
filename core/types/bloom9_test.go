@@ -54,7 +54,7 @@ func TestBloom(t *testing.T) {
 import (
 	"testing"
 
-	"github.com/SmartMeshFoundation/SMChain/core/state"
+	"github.com/SmartMeshFoundation/Spectrum/core/state"
 )
 
 func TestBloom9(t *testing.T) {

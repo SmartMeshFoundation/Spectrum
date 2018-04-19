@@ -21,9 +21,9 @@ package geth
 import (
 	"math/big"
 
-	"github.com/SmartMeshFoundation/SMChain/core/types"
-	"github.com/SmartMeshFoundation/SMChain/ethclient"
-	"github.com/SmartMeshFoundation/SMChain/common"
+	"github.com/SmartMeshFoundation/Spectrum/core/types"
+	"github.com/SmartMeshFoundation/Spectrum/ethclient"
+	"github.com/SmartMeshFoundation/Spectrum/common"
 )
 
 // EthereumClient provides access to the Ethereum APIs.

@@ -31,7 +31,7 @@ import (
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/SmartMeshFoundation/SMChain/log"
+	"github.com/SmartMeshFoundation/Spectrum/log"
 )
 
 func TestClientRequest(t *testing.T) {

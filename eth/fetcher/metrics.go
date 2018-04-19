@@ -19,7 +19,7 @@
 package fetcher
 
 import (
-	"github.com/SmartMeshFoundation/SMChain/metrics"
+	"github.com/SmartMeshFoundation/Spectrum/metrics"
 )
 
 var (

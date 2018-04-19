@@ -21,8 +21,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/common/mclock"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/common/mclock"
 )
 
 func TestTopicRadius(t *testing.T) {

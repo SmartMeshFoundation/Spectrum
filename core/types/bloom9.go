@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/SmartMeshFoundation/SMChain/common/hexutil"
-	"github.com/SmartMeshFoundation/SMChain/crypto"
+	"github.com/SmartMeshFoundation/Spectrum/common/hexutil"
+	"github.com/SmartMeshFoundation/Spectrum/crypto"
 )
 
 type bytesBacked interface {

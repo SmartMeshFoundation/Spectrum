@@ -7,8 +7,8 @@ import (
 	"os"
 	"sort"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/log"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/log"
 )
 
 type ChiefInfo struct {

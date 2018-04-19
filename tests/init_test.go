@@ -29,7 +29,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/SmartMeshFoundation/SMChain/params"
+	"github.com/SmartMeshFoundation/Spectrum/params"
 )
 
 var (

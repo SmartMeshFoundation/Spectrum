@@ -27,16 +27,16 @@ import (
 
 	goruntime "runtime"
 
-	"github.com/SmartMeshFoundation/SMChain/cmd/evm/internal/compiler"
-	"github.com/SmartMeshFoundation/SMChain/cmd/utils"
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/core"
-	"github.com/SmartMeshFoundation/SMChain/core/state"
-	"github.com/SmartMeshFoundation/SMChain/core/vm"
-	"github.com/SmartMeshFoundation/SMChain/core/vm/runtime"
-	"github.com/SmartMeshFoundation/SMChain/ethdb"
-	"github.com/SmartMeshFoundation/SMChain/log"
-	"github.com/SmartMeshFoundation/SMChain/params"
+	"github.com/SmartMeshFoundation/Spectrum/cmd/evm/internal/compiler"
+	"github.com/SmartMeshFoundation/Spectrum/cmd/utils"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/core"
+	"github.com/SmartMeshFoundation/Spectrum/core/state"
+	"github.com/SmartMeshFoundation/Spectrum/core/vm"
+	"github.com/SmartMeshFoundation/Spectrum/core/vm/runtime"
+	"github.com/SmartMeshFoundation/Spectrum/ethdb"
+	"github.com/SmartMeshFoundation/Spectrum/log"
+	"github.com/SmartMeshFoundation/Spectrum/params"
 	cli "gopkg.in/urfave/cli.v1"
 )
 

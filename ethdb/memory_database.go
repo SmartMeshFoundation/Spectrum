@@ -20,7 +20,7 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
+	"github.com/SmartMeshFoundation/Spectrum/common"
 )
 
 /*

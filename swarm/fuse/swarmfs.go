@@ -17,7 +17,7 @@
 package fuse
 
 import (
-	"github.com/SmartMeshFoundation/SMChain/swarm/api"
+	"github.com/SmartMeshFoundation/Spectrum/swarm/api"
 	"sync"
 	"time"
 )

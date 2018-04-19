@@ -22,14 +22,14 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/contracts/ens"
-	"github.com/SmartMeshFoundation/SMChain/crypto"
-	"github.com/SmartMeshFoundation/SMChain/log"
-	"github.com/SmartMeshFoundation/SMChain/node"
-	"github.com/SmartMeshFoundation/SMChain/swarm/network"
-	"github.com/SmartMeshFoundation/SMChain/swarm/services/swap"
-	"github.com/SmartMeshFoundation/SMChain/swarm/storage"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/contracts/ens"
+	"github.com/SmartMeshFoundation/Spectrum/crypto"
+	"github.com/SmartMeshFoundation/Spectrum/log"
+	"github.com/SmartMeshFoundation/Spectrum/node"
+	"github.com/SmartMeshFoundation/Spectrum/swarm/network"
+	"github.com/SmartMeshFoundation/Spectrum/swarm/services/swap"
+	"github.com/SmartMeshFoundation/Spectrum/swarm/storage"
 )
 
 const (

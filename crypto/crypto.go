@@ -28,10 +28,10 @@ import (
 	"math/big"
 	"os"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/common/math"
-	"github.com/SmartMeshFoundation/SMChain/crypto/sha3"
-	"github.com/SmartMeshFoundation/SMChain/rlp"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/common/math"
+	"github.com/SmartMeshFoundation/Spectrum/crypto/sha3"
+	"github.com/SmartMeshFoundation/Spectrum/rlp"
 )
 
 var (

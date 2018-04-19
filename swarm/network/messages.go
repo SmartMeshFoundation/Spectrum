@@ -21,11 +21,11 @@ import (
 	"net"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/contracts/chequebook"
-	"github.com/SmartMeshFoundation/SMChain/p2p/discover"
-	"github.com/SmartMeshFoundation/SMChain/swarm/network/kademlia"
-	"github.com/SmartMeshFoundation/SMChain/swarm/services/swap"
-	"github.com/SmartMeshFoundation/SMChain/swarm/storage"
+	"github.com/SmartMeshFoundation/Spectrum/contracts/chequebook"
+	"github.com/SmartMeshFoundation/Spectrum/p2p/discover"
+	"github.com/SmartMeshFoundation/Spectrum/swarm/network/kademlia"
+	"github.com/SmartMeshFoundation/Spectrum/swarm/services/swap"
+	"github.com/SmartMeshFoundation/Spectrum/swarm/storage"
 )
 
 /*

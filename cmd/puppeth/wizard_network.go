@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/SmartMeshFoundation/SMChain/log"
+	"github.com/SmartMeshFoundation/Spectrum/log"
 )
 
 // manageServers displays a list of servers the user can disconnect from, and an

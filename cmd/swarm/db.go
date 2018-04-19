@@ -22,9 +22,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/SmartMeshFoundation/SMChain/cmd/utils"
-	"github.com/SmartMeshFoundation/SMChain/log"
-	"github.com/SmartMeshFoundation/SMChain/swarm/storage"
+	"github.com/SmartMeshFoundation/Spectrum/cmd/utils"
+	"github.com/SmartMeshFoundation/Spectrum/log"
+	"github.com/SmartMeshFoundation/Spectrum/swarm/storage"
 	"gopkg.in/urfave/cli.v1"
 )
 

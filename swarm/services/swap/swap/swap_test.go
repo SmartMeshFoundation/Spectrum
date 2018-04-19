@@ -21,7 +21,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
+	"github.com/SmartMeshFoundation/Spectrum/common"
 )
 
 type testInPayment struct {

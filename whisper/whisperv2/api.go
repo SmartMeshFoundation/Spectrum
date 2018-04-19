@@ -22,9 +22,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/common/hexutil"
-	"github.com/SmartMeshFoundation/SMChain/crypto"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/common/hexutil"
+	"github.com/SmartMeshFoundation/Spectrum/crypto"
 )
 
 // PublicWhisperAPI provides the whisper RPC service.

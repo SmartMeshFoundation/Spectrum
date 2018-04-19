@@ -24,7 +24,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/SmartMeshFoundation/SMChain/swarm/testutil"
+	"github.com/SmartMeshFoundation/Spectrum/swarm/testutil"
 )
 
 func TestError(t *testing.T) {

@@ -24,17 +24,17 @@ import (
 	"math"
 	"sync"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/core"
-	"github.com/SmartMeshFoundation/SMChain/core/types"
-	"github.com/SmartMeshFoundation/SMChain/eth"
-	"github.com/SmartMeshFoundation/SMChain/ethdb"
-	"github.com/SmartMeshFoundation/SMChain/les/flowcontrol"
-	"github.com/SmartMeshFoundation/SMChain/light"
-	"github.com/SmartMeshFoundation/SMChain/log"
-	"github.com/SmartMeshFoundation/SMChain/p2p"
-	"github.com/SmartMeshFoundation/SMChain/p2p/discv5"
-	"github.com/SmartMeshFoundation/SMChain/rlp"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/core"
+	"github.com/SmartMeshFoundation/Spectrum/core/types"
+	"github.com/SmartMeshFoundation/Spectrum/eth"
+	"github.com/SmartMeshFoundation/Spectrum/ethdb"
+	"github.com/SmartMeshFoundation/Spectrum/les/flowcontrol"
+	"github.com/SmartMeshFoundation/Spectrum/light"
+	"github.com/SmartMeshFoundation/Spectrum/log"
+	"github.com/SmartMeshFoundation/Spectrum/p2p"
+	"github.com/SmartMeshFoundation/Spectrum/p2p/discv5"
+	"github.com/SmartMeshFoundation/Spectrum/rlp"
 )
 
 type LesServer struct {

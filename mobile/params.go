@@ -21,9 +21,9 @@ package geth
 import (
 	"encoding/json"
 
-	"github.com/SmartMeshFoundation/SMChain/core"
-	"github.com/SmartMeshFoundation/SMChain/p2p/discv5"
-	"github.com/SmartMeshFoundation/SMChain/params"
+	"github.com/SmartMeshFoundation/Spectrum/core"
+	"github.com/SmartMeshFoundation/Spectrum/p2p/discv5"
+	"github.com/SmartMeshFoundation/Spectrum/params"
 )
 
 // MainnetGenesis returns the JSON spec to use for the main Ethereum network. It

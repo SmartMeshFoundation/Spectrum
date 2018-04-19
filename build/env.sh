@@ -11,10 +11,10 @@ fi
 workspace="$PWD/build/_workspace"
 root="$PWD"
 ethdir="$workspace/src/github.com/SmartMeshFoundation"
-if [ ! -L "$ethdir/SMChain" ]; then
+if [ ! -L "$ethdir/Spectrum" ]; then
     mkdir -p "$ethdir"
     cd "$ethdir"
-    ln -s ../../../../../. SMChain
+    ln -s ../../../../../. Spectrum
     cd "$root"
 fi
 
@@ -23,8 +23,8 @@ GOPATH="$workspace"
 export GOPATH
 
 # Run the command inside the workspace.
-cd "$ethdir/SMChain"
-PWD="$ethdir/SMChain"
+cd "$ethdir/Spectrum"
+PWD="$ethdir/Spectrum"
 
 # Launch the arguments with the configured environment.
 exec "$@"

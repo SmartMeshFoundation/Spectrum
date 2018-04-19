@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/SmartMeshFoundation/SMChain/crypto"
+	"github.com/SmartMeshFoundation/Spectrum/crypto"
 )
 
 // Method represents a callable given a `Name` and whether the method is a constant.

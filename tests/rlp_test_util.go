@@ -24,7 +24,7 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/SmartMeshFoundation/SMChain/rlp"
+	"github.com/SmartMeshFoundation/Spectrum/rlp"
 )
 
 // RLPTest is the JSON structure of a single RLP test.

@@ -42,7 +42,7 @@ import (
 	"fmt"
 	"hash"
 
-	ethcrypto "github.com/SmartMeshFoundation/SMChain/crypto"
+	ethcrypto "github.com/SmartMeshFoundation/Spectrum/crypto"
 )
 
 var (

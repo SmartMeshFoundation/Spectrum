@@ -21,7 +21,7 @@ package whisperv2
 import (
 	"crypto/ecdsa"
 
-	"github.com/SmartMeshFoundation/SMChain/event/filter"
+	"github.com/SmartMeshFoundation/Spectrum/event/filter"
 )
 
 // Filter is used to subscribe to specific types of whisper messages.

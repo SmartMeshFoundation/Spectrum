@@ -19,7 +19,7 @@ package downloader
 import (
 	"fmt"
 
-	"github.com/SmartMeshFoundation/SMChain/core/types"
+	"github.com/SmartMeshFoundation/Spectrum/core/types"
 )
 
 // peerDropFn is a callback type for dropping a peer detected as malicious.

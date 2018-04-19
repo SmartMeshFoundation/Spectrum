@@ -22,10 +22,10 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/internal/ethapi"
-	"github.com/SmartMeshFoundation/SMChain/params"
-	"github.com/SmartMeshFoundation/SMChain/rpc"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/internal/ethapi"
+	"github.com/SmartMeshFoundation/Spectrum/params"
+	"github.com/SmartMeshFoundation/Spectrum/rpc"
 )
 
 var maxPrice = big.NewInt(500 * params.Shannon)

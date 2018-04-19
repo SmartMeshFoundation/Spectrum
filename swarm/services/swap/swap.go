@@ -26,14 +26,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/accounts/abi/bind"
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/contracts/chequebook"
-	"github.com/SmartMeshFoundation/SMChain/contracts/chequebook/contract"
-	"github.com/SmartMeshFoundation/SMChain/core/types"
-	"github.com/SmartMeshFoundation/SMChain/crypto"
-	"github.com/SmartMeshFoundation/SMChain/log"
-	"github.com/SmartMeshFoundation/SMChain/swarm/services/swap/swap"
+	"github.com/SmartMeshFoundation/Spectrum/accounts/abi/bind"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/contracts/chequebook"
+	"github.com/SmartMeshFoundation/Spectrum/contracts/chequebook/contract"
+	"github.com/SmartMeshFoundation/Spectrum/core/types"
+	"github.com/SmartMeshFoundation/Spectrum/crypto"
+	"github.com/SmartMeshFoundation/Spectrum/log"
+	"github.com/SmartMeshFoundation/Spectrum/swarm/services/swap/swap"
 )
 
 // SwAP       Swarm Accounting Protocol with

@@ -20,7 +20,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
+	"github.com/SmartMeshFoundation/Spectrum/common"
 )
 
 // Tests that the node iterator indeed walks over the entire database contents.

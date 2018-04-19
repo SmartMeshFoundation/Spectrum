@@ -9,13 +9,14 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/core/types"
-	"github.com/SmartMeshFoundation/SMChain/crypto"
-	"github.com/SmartMeshFoundation/SMChain/ethclient"
-	"github.com/SmartMeshFoundation/SMChain/log"
-	"github.com/SmartMeshFoundation/SMChain/params"
-	"github.com/SmartMeshFoundation/SMChain/rpc"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/core/types"
+	"github.com/SmartMeshFoundation/Spectrum/crypto"
+	"github.com/SmartMeshFoundation/Spectrum/ethclient"
+	"github.com/SmartMeshFoundation/Spectrum/log"
+	"github.com/SmartMeshFoundation/Spectrum/params"
+	"github.com/SmartMeshFoundation/Spectrum/rpc"
+	"fmt"
 )
 
 func (api *API) GetMiner(number *rpc.BlockNumber) (*TribeMiner, error) {
@@ -71,19 +72,24 @@ func (api *API) GetStatus(hash *common.Hash) (*TribeStatus, error) {
 	return api.tribe.Status, nil
 }
 
-func (api *API) GetHistory(last *big.Int) ([]History, error) {
+func (api *API) GetHistory(last *big.Int) ([]map[string]string, error) {
 	s := uint64(16)
 	if last != nil {
 		s = last.Uint64()
 	}
 	cn := api.chain.CurrentHeader().Number.Uint64()
-	history := make([]History, 0)
+	//history := make([]History, 0)
+	_history := make([]map[string]string,0)
 	for i := cn; i > cn-s ; i-- {
 		_header := api.chain.GetHeaderByNumber(i)
-		_h := History{_header.Number.Int64(), _header.Hash(), _header.Coinbase, _header.Difficulty.Int64()}
-		history = append(history[:], _h)
+		//_h := History{_header.Number.Int64(), _header.Hash(), _header.Coinbase, _header.Difficulty.Int64()}
+		//history = append(history[:], _h)
+		k := fmt.Sprintf("%d",_header.Number.Int64())
+		v := fmt.Sprintf("%d -> %s",_header.Difficulty.Int64(),_header.Coinbase.Hex())
+		_h := map[string]string{k:v}
+		_history = append(_history,_h)
 	}
-	return history, nil
+	return _history, nil
 }
 
 func NewTribeStatus() *TribeStatus {

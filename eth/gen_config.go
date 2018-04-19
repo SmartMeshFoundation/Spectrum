@@ -5,12 +5,12 @@ package eth
 import (
 	"math/big"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/common/hexutil"
-	"github.com/SmartMeshFoundation/SMChain/consensus/ethash"
-	"github.com/SmartMeshFoundation/SMChain/core"
-	"github.com/SmartMeshFoundation/SMChain/eth/downloader"
-	"github.com/SmartMeshFoundation/SMChain/eth/gasprice"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/common/hexutil"
+	"github.com/SmartMeshFoundation/Spectrum/consensus/ethash"
+	"github.com/SmartMeshFoundation/Spectrum/core"
+	"github.com/SmartMeshFoundation/Spectrum/eth/downloader"
+	"github.com/SmartMeshFoundation/Spectrum/eth/gasprice"
 )
 
 func (c Config) MarshalTOML() (interface{}, error) {

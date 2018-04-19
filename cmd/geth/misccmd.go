@@ -23,10 +23,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/SmartMeshFoundation/SMChain/cmd/utils"
-	"github.com/SmartMeshFoundation/SMChain/consensus/ethash"
-	"github.com/SmartMeshFoundation/SMChain/eth"
-	"github.com/SmartMeshFoundation/SMChain/params"
+	"github.com/SmartMeshFoundation/Spectrum/cmd/utils"
+	"github.com/SmartMeshFoundation/Spectrum/consensus/ethash"
+	"github.com/SmartMeshFoundation/Spectrum/eth"
+	"github.com/SmartMeshFoundation/Spectrum/params"
 	"gopkg.in/urfave/cli.v1"
 )
 

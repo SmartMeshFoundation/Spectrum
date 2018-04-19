@@ -23,8 +23,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/rlp"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/rlp"
 )
 
 // from bcValidBlockTest.json, "SimpleTx"

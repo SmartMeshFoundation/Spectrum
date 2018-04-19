@@ -19,7 +19,7 @@ package tests
 import (
 	"testing"
 
-	"github.com/SmartMeshFoundation/SMChain/core/vm"
+	"github.com/SmartMeshFoundation/Spectrum/core/vm"
 )
 
 func TestVM(t *testing.T) {

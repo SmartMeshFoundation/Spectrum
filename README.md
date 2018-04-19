@@ -1,16 +1,16 @@
-# SMChain
+# Spectrum
 
-SmartMesh Chain is an [Ethereum-based](https://github.com/SmartMeshFoundation/SMChain) project. It uses a new consensus and new block reward for SmartMesh ecosystem devices and IOT. 
+SmartMesh Chain is an [Ethereum-based](https://github.com/SmartMeshFoundation/Spectrum) project. It uses a new consensus and new block reward for SmartMesh ecosystem devices and IOT. 
 
-SMChain is still in the development stage, and this version is just for testing.
+Spectrum is still in the development stage, and this version is just for testing.
 
 ## Installation on Linux/macOS 
 
 Building SmartMesh Chain requires both Go Language(Version 1.9.2 or later) and C Language. You can install them using your favourite package manager. Once the dependencies have been installed, run
 
-    $ git clone https://github.com/SmartMeshFoundation/SMChain.git
+    $ git clone https://github.com/SmartMeshFoundation/Spectrum.git
 
-    $ cd ./SMChain
+    $ cd ./Spectrum
 
     $ make geth
 

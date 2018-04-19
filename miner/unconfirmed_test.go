@@ -19,8 +19,8 @@ package miner
 import (
 	"testing"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/core/types"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/core/types"
 )
 
 // noopHeaderRetriever is an implementation of headerRetriever that always

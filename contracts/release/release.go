@@ -25,15 +25,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/accounts/abi/bind"
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/eth"
-	"github.com/SmartMeshFoundation/SMChain/internal/ethapi"
-	"github.com/SmartMeshFoundation/SMChain/les"
-	"github.com/SmartMeshFoundation/SMChain/log"
-	"github.com/SmartMeshFoundation/SMChain/node"
-	"github.com/SmartMeshFoundation/SMChain/p2p"
-	"github.com/SmartMeshFoundation/SMChain/rpc"
+	"github.com/SmartMeshFoundation/Spectrum/accounts/abi/bind"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/eth"
+	"github.com/SmartMeshFoundation/Spectrum/internal/ethapi"
+	"github.com/SmartMeshFoundation/Spectrum/les"
+	"github.com/SmartMeshFoundation/Spectrum/log"
+	"github.com/SmartMeshFoundation/Spectrum/node"
+	"github.com/SmartMeshFoundation/Spectrum/p2p"
+	"github.com/SmartMeshFoundation/Spectrum/rpc"
 )
 
 // Interval to check for new releases
@@ -149,7 +149,7 @@ func (r *ReleaseService) checkVersion() {
 
 		warning := fmt.Sprintf("Client v%d.%d.%d-%x seems older than the latest upstream release v%d.%d.%d-%x",
 			r.config.Major, r.config.Minor, r.config.Patch, r.config.Commit[:4], version.Major, version.Minor, version.Patch, version.Commit[:4])
-		howtofix := fmt.Sprintf("Please check https://github.com/SmartMeshFoundation/SMChain/releases for new releases")
+		howtofix := fmt.Sprintf("Please check https://github.com/SmartMeshFoundation/Spectrum/releases for new releases")
 		separator := strings.Repeat("-", len(warning))
 
 		log.Warn(separator)

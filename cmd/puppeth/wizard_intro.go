@@ -26,7 +26,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/SmartMeshFoundation/SMChain/log"
+	"github.com/SmartMeshFoundation/Spectrum/log"
 )
 
 // makeWizard creates and returns a new puppeth wizard.

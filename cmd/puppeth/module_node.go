@@ -26,8 +26,8 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/log"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/log"
 )
 
 // nodeDockerfile is the Dockerfile required to run an Ethereum node.

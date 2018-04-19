@@ -27,13 +27,13 @@ import (
 	"time"
 
 	"github.com/docker/docker/pkg/reexec"
-	"github.com/SmartMeshFoundation/SMChain/accounts"
-	"github.com/SmartMeshFoundation/SMChain/accounts/keystore"
-	"github.com/SmartMeshFoundation/SMChain/internal/cmdtest"
-	"github.com/SmartMeshFoundation/SMChain/node"
-	"github.com/SmartMeshFoundation/SMChain/p2p"
-	"github.com/SmartMeshFoundation/SMChain/rpc"
-	"github.com/SmartMeshFoundation/SMChain/swarm"
+	"github.com/SmartMeshFoundation/Spectrum/accounts"
+	"github.com/SmartMeshFoundation/Spectrum/accounts/keystore"
+	"github.com/SmartMeshFoundation/Spectrum/internal/cmdtest"
+	"github.com/SmartMeshFoundation/Spectrum/node"
+	"github.com/SmartMeshFoundation/Spectrum/p2p"
+	"github.com/SmartMeshFoundation/Spectrum/rpc"
+	"github.com/SmartMeshFoundation/Spectrum/swarm"
 )
 
 func init() {

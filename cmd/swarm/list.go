@@ -22,8 +22,8 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/SmartMeshFoundation/SMChain/cmd/utils"
-	swarm "github.com/SmartMeshFoundation/SMChain/swarm/api/client"
+	"github.com/SmartMeshFoundation/Spectrum/cmd/utils"
+	swarm "github.com/SmartMeshFoundation/Spectrum/swarm/api/client"
 	"gopkg.in/urfave/cli.v1"
 )
 

@@ -20,7 +20,7 @@ import (
 	"html/template"
 	"path"
 
-	"github.com/SmartMeshFoundation/SMChain/swarm/api"
+	"github.com/SmartMeshFoundation/Spectrum/swarm/api"
 )
 
 type htmlListData struct {

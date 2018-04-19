@@ -20,7 +20,7 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/SmartMeshFoundation/SMChain/params"
+	"github.com/SmartMeshFoundation/Spectrum/params"
 )
 
 type (

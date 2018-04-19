@@ -21,8 +21,8 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/log"
-	"github.com/SmartMeshFoundation/SMChain/swarm/storage"
+	"github.com/SmartMeshFoundation/Spectrum/log"
+	"github.com/SmartMeshFoundation/Spectrum/swarm/storage"
 )
 
 const requesterCount = 3

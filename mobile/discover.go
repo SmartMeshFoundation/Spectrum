@@ -22,7 +22,7 @@ package geth
 import (
 	"errors"
 
-	"github.com/SmartMeshFoundation/SMChain/p2p/discv5"
+	"github.com/SmartMeshFoundation/Spectrum/p2p/discv5"
 )
 
 // Enode represents a host on the network.

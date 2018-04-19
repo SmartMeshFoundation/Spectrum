@@ -24,8 +24,8 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/SmartMeshFoundation/SMChain/crypto"
-	"github.com/SmartMeshFoundation/SMChain/p2p"
+	"github.com/SmartMeshFoundation/Spectrum/crypto"
+	"github.com/SmartMeshFoundation/Spectrum/p2p"
 )
 
 // Tests that datadirs can be successfully created, be them manually configured

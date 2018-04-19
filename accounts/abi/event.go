@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/crypto"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/crypto"
 )
 
 // Event is an event potentially triggered by the EVM's LOG mechanism. The Event

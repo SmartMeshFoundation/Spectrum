@@ -19,7 +19,7 @@
 
 package whisperv2
 
-import "github.com/SmartMeshFoundation/SMChain/crypto"
+import "github.com/SmartMeshFoundation/Spectrum/crypto"
 
 // Topic represents a cryptographically secure, probabilistic partial
 // classifications of a message, determined as the first (left) 4 bytes of the

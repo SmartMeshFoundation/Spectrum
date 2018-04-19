@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/SmartMeshFoundation/SMChain/log"
+	"github.com/SmartMeshFoundation/Spectrum/log"
 )
 
 // deployEthstats queries the user for various input on deploying an ethstats

@@ -21,7 +21,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/SmartMeshFoundation/SMChain/eth/tracers/internal/tracers"
+	"github.com/SmartMeshFoundation/Spectrum/eth/tracers/internal/tracers"
 )
 
 // all contains all the built in JavaScript tracers by name.

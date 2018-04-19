@@ -22,7 +22,7 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/SmartMeshFoundation/SMChain/core/asm"
+	"github.com/SmartMeshFoundation/Spectrum/core/asm"
 	cli "gopkg.in/urfave/cli.v1"
 )
 

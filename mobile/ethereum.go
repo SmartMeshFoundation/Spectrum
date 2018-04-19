@@ -22,8 +22,8 @@ import (
 	"errors"
 	"math/big"
 
-	ethereum "github.com/SmartMeshFoundation/SMChain"
-	"github.com/SmartMeshFoundation/SMChain/common"
+	ethereum "github.com/SmartMeshFoundation/Spectrum"
+	"github.com/SmartMeshFoundation/Spectrum/common"
 )
 
 // Subscription represents an event subscription where events are

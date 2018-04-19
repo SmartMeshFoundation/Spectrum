@@ -17,8 +17,8 @@
 package eth
 
 import (
-	"github.com/SmartMeshFoundation/SMChain/metrics"
-	"github.com/SmartMeshFoundation/SMChain/p2p"
+	"github.com/SmartMeshFoundation/Spectrum/metrics"
+	"github.com/SmartMeshFoundation/Spectrum/p2p"
 )
 
 var (

@@ -2,7 +2,7 @@ package tribe
 
 import (
 	"testing"
-	"github.com/SmartMeshFoundation/SMChain/common"
+	"github.com/SmartMeshFoundation/Spectrum/common"
 	"fmt"
 )
 

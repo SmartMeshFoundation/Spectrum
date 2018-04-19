@@ -25,13 +25,13 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/log"
-	"github.com/SmartMeshFoundation/SMChain/node"
-	"github.com/SmartMeshFoundation/SMChain/p2p"
-	"github.com/SmartMeshFoundation/SMChain/p2p/discover"
-	"github.com/SmartMeshFoundation/SMChain/p2p/simulations"
-	"github.com/SmartMeshFoundation/SMChain/p2p/simulations/adapters"
-	"github.com/SmartMeshFoundation/SMChain/rpc"
+	"github.com/SmartMeshFoundation/Spectrum/log"
+	"github.com/SmartMeshFoundation/Spectrum/node"
+	"github.com/SmartMeshFoundation/Spectrum/p2p"
+	"github.com/SmartMeshFoundation/Spectrum/p2p/discover"
+	"github.com/SmartMeshFoundation/Spectrum/p2p/simulations"
+	"github.com/SmartMeshFoundation/Spectrum/p2p/simulations/adapters"
+	"github.com/SmartMeshFoundation/Spectrum/rpc"
 )
 
 var adapterType = flag.String("adapter", "sim", `node adapter to use (one of "sim", "exec" or "docker")`)

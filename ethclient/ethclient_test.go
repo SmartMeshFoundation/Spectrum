@@ -16,7 +16,7 @@
 
 package ethclient
 
-import "github.com/SmartMeshFoundation/SMChain"
+import "github.com/SmartMeshFoundation/Spectrum"
 
 // Verify that Client implements the ethereum interfaces.
 var (

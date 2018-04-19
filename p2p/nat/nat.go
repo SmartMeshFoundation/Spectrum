@@ -25,7 +25,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/log"
+	"github.com/SmartMeshFoundation/Spectrum/log"
 	"github.com/jackpal/go-nat-pmp"
 )
 

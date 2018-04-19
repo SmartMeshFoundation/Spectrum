@@ -19,7 +19,7 @@ package vm
 import (
 	"math/big"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
+	"github.com/SmartMeshFoundation/Spectrum/common"
 )
 
 // ContractRef is a reference to the contract's backing object

@@ -22,8 +22,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/log"
-	"github.com/SmartMeshFoundation/SMChain/swarm/storage"
+	"github.com/SmartMeshFoundation/Spectrum/log"
+	"github.com/SmartMeshFoundation/Spectrum/swarm/storage"
 )
 
 // Handler for storage/retrieval related protocol requests

@@ -26,11 +26,11 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/swarm/api"
-	swarm "github.com/SmartMeshFoundation/SMChain/swarm/api/client"
-	"github.com/SmartMeshFoundation/SMChain/swarm/storage"
-	"github.com/SmartMeshFoundation/SMChain/swarm/testutil"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/swarm/api"
+	swarm "github.com/SmartMeshFoundation/Spectrum/swarm/api/client"
+	"github.com/SmartMeshFoundation/Spectrum/swarm/storage"
+	"github.com/SmartMeshFoundation/Spectrum/swarm/testutil"
 )
 
 func TestBzzGetPath(t *testing.T) {

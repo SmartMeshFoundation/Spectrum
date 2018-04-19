@@ -26,8 +26,8 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/internal/jsre/deps"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/internal/jsre/deps"
 	"github.com/robertkrimen/otto"
 )
 

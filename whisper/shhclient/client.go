@@ -19,10 +19,10 @@ package shhclient
 import (
 	"context"
 
-	"github.com/SmartMeshFoundation/SMChain"
-	"github.com/SmartMeshFoundation/SMChain/common/hexutil"
-	"github.com/SmartMeshFoundation/SMChain/rpc"
-	whisper "github.com/SmartMeshFoundation/SMChain/whisper/whisperv5"
+	"github.com/SmartMeshFoundation/Spectrum"
+	"github.com/SmartMeshFoundation/Spectrum/common/hexutil"
+	"github.com/SmartMeshFoundation/Spectrum/rpc"
+	whisper "github.com/SmartMeshFoundation/Spectrum/whisper/whisperv5"
 )
 
 // Client defines typed wrappers for the Whisper v5 RPC API.

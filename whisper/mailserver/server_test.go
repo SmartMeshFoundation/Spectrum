@@ -24,9 +24,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/crypto"
-	whisper "github.com/SmartMeshFoundation/SMChain/whisper/whisperv5"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/crypto"
+	whisper "github.com/SmartMeshFoundation/Spectrum/whisper/whisperv5"
 )
 
 const powRequirement = 0.00001

@@ -24,7 +24,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
+	"github.com/SmartMeshFoundation/Spectrum/common"
 )
 
 func TestPack(t *testing.T) {

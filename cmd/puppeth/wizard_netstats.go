@@ -23,8 +23,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/SmartMeshFoundation/SMChain/core"
-	"github.com/SmartMeshFoundation/SMChain/log"
+	"github.com/SmartMeshFoundation/Spectrum/core"
+	"github.com/SmartMeshFoundation/Spectrum/log"
 	"github.com/olekukonko/tablewriter"
 )
 

@@ -19,8 +19,8 @@ package les
 import (
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/common/bitutil"
-	"github.com/SmartMeshFoundation/SMChain/light"
+	"github.com/SmartMeshFoundation/Spectrum/common/bitutil"
+	"github.com/SmartMeshFoundation/Spectrum/light"
 )
 
 const (

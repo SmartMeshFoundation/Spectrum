@@ -19,7 +19,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/SmartMeshFoundation/SMChain/log"
+	"github.com/SmartMeshFoundation/Spectrum/log"
 )
 
 // deployDashboard queries the user for various input on deploying a web-service

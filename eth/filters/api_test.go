@@ -21,8 +21,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/rpc"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/rpc"
 )
 
 func TestUnmarshalJSONNewFilterArgs(t *testing.T) {

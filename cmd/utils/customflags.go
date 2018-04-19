@@ -27,7 +27,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/SmartMeshFoundation/SMChain/common/math"
+	"github.com/SmartMeshFoundation/Spectrum/common/math"
 	"gopkg.in/urfave/cli.v1"
 )
 

@@ -20,7 +20,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/SmartMeshFoundation/SMChain/params"
+	"github.com/SmartMeshFoundation/Spectrum/params"
 )
 
 func TestTransaction(t *testing.T) {

@@ -30,8 +30,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/crypto"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/crypto"
 )
 
 // Node represents a host on the network.

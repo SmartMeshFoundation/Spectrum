@@ -27,8 +27,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/SmartMeshFoundation/SMChain/swarm/api"
-	"github.com/SmartMeshFoundation/SMChain/swarm/storage"
+	"github.com/SmartMeshFoundation/Spectrum/swarm/api"
+	"github.com/SmartMeshFoundation/Spectrum/swarm/storage"
 )
 
 type fileInfo struct {

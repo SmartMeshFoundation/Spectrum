@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/SmartMeshFoundation/SMChain/log"
+	"github.com/SmartMeshFoundation/Spectrum/log"
 )
 
 // CreateIPCListener creates an listener, on Unix platforms this is a unix socket, on

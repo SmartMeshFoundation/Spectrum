@@ -21,7 +21,7 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/SmartMeshFoundation/SMChain/event"
+	"github.com/SmartMeshFoundation/Spectrum/event"
 )
 
 // Manager is an overarching account manager that can communicate with various

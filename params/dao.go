@@ -19,7 +19,7 @@ package params
 import (
 	"math/big"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
+	"github.com/SmartMeshFoundation/Spectrum/common"
 )
 
 // DAOForkBlockExtra is the block header extra-data field to set for the DAO fork

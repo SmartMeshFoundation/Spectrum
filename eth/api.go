@@ -25,17 +25,17 @@ import (
 	"os"
 	"strings"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/common/hexutil"
-	"github.com/SmartMeshFoundation/SMChain/core"
-	"github.com/SmartMeshFoundation/SMChain/core/state"
-	"github.com/SmartMeshFoundation/SMChain/core/types"
-	"github.com/SmartMeshFoundation/SMChain/log"
-	"github.com/SmartMeshFoundation/SMChain/miner"
-	"github.com/SmartMeshFoundation/SMChain/params"
-	"github.com/SmartMeshFoundation/SMChain/rlp"
-	"github.com/SmartMeshFoundation/SMChain/rpc"
-	"github.com/SmartMeshFoundation/SMChain/trie"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/common/hexutil"
+	"github.com/SmartMeshFoundation/Spectrum/core"
+	"github.com/SmartMeshFoundation/Spectrum/core/state"
+	"github.com/SmartMeshFoundation/Spectrum/core/types"
+	"github.com/SmartMeshFoundation/Spectrum/log"
+	"github.com/SmartMeshFoundation/Spectrum/miner"
+	"github.com/SmartMeshFoundation/Spectrum/params"
+	"github.com/SmartMeshFoundation/Spectrum/rlp"
+	"github.com/SmartMeshFoundation/Spectrum/rpc"
+	"github.com/SmartMeshFoundation/Spectrum/trie"
 )
 
 // PublicEthereumAPI provides an API to access Ethereum full node-related

@@ -25,8 +25,8 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/SmartMeshFoundation/SMChain/swarm/api"
-	"github.com/SmartMeshFoundation/SMChain/swarm/testutil"
+	"github.com/SmartMeshFoundation/Spectrum/swarm/api"
+	"github.com/SmartMeshFoundation/Spectrum/swarm/testutil"
 )
 
 // TestClientUploadDownloadRaw test uploading and downloading raw data to swarm

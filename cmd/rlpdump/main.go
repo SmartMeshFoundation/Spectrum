@@ -26,7 +26,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/SmartMeshFoundation/SMChain/rlp"
+	"github.com/SmartMeshFoundation/Spectrum/rlp"
 )
 
 var (

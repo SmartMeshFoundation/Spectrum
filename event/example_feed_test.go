@@ -19,7 +19,7 @@ package event_test
 import (
 	"fmt"
 
-	"github.com/SmartMeshFoundation/SMChain/event"
+	"github.com/SmartMeshFoundation/Spectrum/event"
 )
 
 func ExampleFeed_acknowledgedEvents() {

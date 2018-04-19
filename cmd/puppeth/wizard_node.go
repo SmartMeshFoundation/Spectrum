@@ -21,9 +21,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/accounts/keystore"
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/log"
+	"github.com/SmartMeshFoundation/Spectrum/accounts/keystore"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/log"
 )
 
 // deployNode creates a new node configuration based on some user input.

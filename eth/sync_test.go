@@ -21,9 +21,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/eth/downloader"
-	"github.com/SmartMeshFoundation/SMChain/p2p"
-	"github.com/SmartMeshFoundation/SMChain/p2p/discover"
+	"github.com/SmartMeshFoundation/Spectrum/eth/downloader"
+	"github.com/SmartMeshFoundation/Spectrum/p2p"
+	"github.com/SmartMeshFoundation/Spectrum/p2p/discover"
 )
 
 // Tests that fast sync gets disabled as soon as a real block is successfully

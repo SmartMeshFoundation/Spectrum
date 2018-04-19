@@ -26,8 +26,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/common/bitutil"
-	"github.com/SmartMeshFoundation/SMChain/crypto"
+	"github.com/SmartMeshFoundation/Spectrum/common/bitutil"
+	"github.com/SmartMeshFoundation/Spectrum/crypto"
 )
 
 // bloomIndexes represents the bit indexes inside the bloom filter that belong

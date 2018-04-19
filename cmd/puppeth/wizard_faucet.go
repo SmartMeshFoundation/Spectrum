@@ -20,8 +20,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/SmartMeshFoundation/SMChain/accounts/keystore"
-	"github.com/SmartMeshFoundation/SMChain/log"
+	"github.com/SmartMeshFoundation/Spectrum/accounts/keystore"
+	"github.com/SmartMeshFoundation/Spectrum/log"
 )
 
 // deployFaucet queries the user for various input on deploying a faucet, after

@@ -21,8 +21,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/crypto"
-	"github.com/SmartMeshFoundation/SMChain/crypto/ecies"
+	"github.com/SmartMeshFoundation/Spectrum/crypto"
+	"github.com/SmartMeshFoundation/Spectrum/crypto/ecies"
 )
 
 func TestEnvelopeOpen(t *testing.T) {

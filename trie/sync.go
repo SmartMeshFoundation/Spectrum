@@ -20,7 +20,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
+	"github.com/SmartMeshFoundation/Spectrum/common"
 	"gopkg.in/karalabe/cookiejar.v2/collections/prque"
 )
 

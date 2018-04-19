@@ -21,7 +21,7 @@ package geth
 import (
 	"errors"
 
-	"github.com/SmartMeshFoundation/SMChain/p2p"
+	"github.com/SmartMeshFoundation/Spectrum/p2p"
 )
 
 // NodeInfo represents pi short summary of the information known about the host.

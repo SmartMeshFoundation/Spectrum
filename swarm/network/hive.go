@@ -22,12 +22,12 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/log"
-	"github.com/SmartMeshFoundation/SMChain/p2p/discover"
-	"github.com/SmartMeshFoundation/SMChain/p2p/netutil"
-	"github.com/SmartMeshFoundation/SMChain/swarm/network/kademlia"
-	"github.com/SmartMeshFoundation/SMChain/swarm/storage"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/log"
+	"github.com/SmartMeshFoundation/Spectrum/p2p/discover"
+	"github.com/SmartMeshFoundation/Spectrum/p2p/netutil"
+	"github.com/SmartMeshFoundation/Spectrum/swarm/network/kademlia"
+	"github.com/SmartMeshFoundation/Spectrum/swarm/storage"
 )
 
 // Hive is the logistic manager of the swarm

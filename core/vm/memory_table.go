@@ -19,7 +19,7 @@ package vm
 import (
 	"math/big"
 
-	"github.com/SmartMeshFoundation/SMChain/common/math"
+	"github.com/SmartMeshFoundation/Spectrum/common/math"
 )
 
 func memorySha3(stack *Stack) *big.Int {

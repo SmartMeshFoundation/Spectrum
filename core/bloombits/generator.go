@@ -19,7 +19,7 @@ package bloombits
 import (
 	"errors"
 
-	"github.com/SmartMeshFoundation/SMChain/core/types"
+	"github.com/SmartMeshFoundation/Spectrum/core/types"
 )
 
 // errSectionOutOfBounds is returned if the user tried to add more bloom filters

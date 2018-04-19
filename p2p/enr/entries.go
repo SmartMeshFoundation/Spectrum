@@ -22,8 +22,8 @@ import (
 	"io"
 	"net"
 
-	"github.com/SmartMeshFoundation/SMChain/crypto"
-	"github.com/SmartMeshFoundation/SMChain/rlp"
+	"github.com/SmartMeshFoundation/Spectrum/crypto"
+	"github.com/SmartMeshFoundation/Spectrum/rlp"
 )
 
 // Entry is implemented by known node record entry types.

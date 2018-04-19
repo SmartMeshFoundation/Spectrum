@@ -28,8 +28,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/log"
-	"github.com/SmartMeshFoundation/SMChain/swarm/api"
+	"github.com/SmartMeshFoundation/Spectrum/log"
+	"github.com/SmartMeshFoundation/Spectrum/swarm/api"
 )
 
 //templateMap holds a mapping of an HTTP error code to a template

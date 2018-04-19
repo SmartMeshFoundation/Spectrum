@@ -20,17 +20,17 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/SmartMeshFoundation/SMChain/log"
+	"github.com/SmartMeshFoundation/Spectrum/log"
 )
 
 /*
 http roundtripper to register for bzz url scheme
-see https://github.com/SmartMeshFoundation/SMChain/issues/2040
+see https://github.com/SmartMeshFoundation/Spectrum/issues/2040
 Usage:
 
 import (
- "github.com/SmartMeshFoundation/SMChain/common/httpclient"
- "github.com/SmartMeshFoundation/SMChain/swarm/api/http"
+ "github.com/SmartMeshFoundation/Spectrum/common/httpclient"
+ "github.com/SmartMeshFoundation/Spectrum/swarm/api/http"
 )
 client := httpclient.New()
 // for (private) swarm proxy running locally

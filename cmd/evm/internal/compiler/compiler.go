@@ -20,7 +20,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/SmartMeshFoundation/SMChain/core/asm"
+	"github.com/SmartMeshFoundation/Spectrum/core/asm"
 )
 
 func Compile(fn string, src []byte, debug bool) (string, error) {

@@ -36,7 +36,7 @@ import (
 	"math/big"
 	"unsafe"
 
-	"github.com/SmartMeshFoundation/SMChain/common/math"
+	"github.com/SmartMeshFoundation/Spectrum/common/math"
 )
 
 /*

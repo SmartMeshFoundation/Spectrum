@@ -25,7 +25,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/SmartMeshFoundation/SMChain/log"
+	"github.com/SmartMeshFoundation/Spectrum/log"
 )
 
 // walletDockerfile is the Dockerfile required to run a web wallet.

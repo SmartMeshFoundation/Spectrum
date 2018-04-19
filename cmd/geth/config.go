@@ -28,15 +28,15 @@ import (
 
 	"gopkg.in/urfave/cli.v1"
 
-	"github.com/SmartMeshFoundation/SMChain/cmd/utils"
-	"github.com/SmartMeshFoundation/SMChain/contracts/release"
-	"github.com/SmartMeshFoundation/SMChain/dashboard"
-	"github.com/SmartMeshFoundation/SMChain/eth"
-	"github.com/SmartMeshFoundation/SMChain/node"
-	"github.com/SmartMeshFoundation/SMChain/params"
-	whisper "github.com/SmartMeshFoundation/SMChain/whisper/whisperv5"
+	"github.com/SmartMeshFoundation/Spectrum/cmd/utils"
+	"github.com/SmartMeshFoundation/Spectrum/contracts/release"
+	"github.com/SmartMeshFoundation/Spectrum/dashboard"
+	"github.com/SmartMeshFoundation/Spectrum/eth"
+	"github.com/SmartMeshFoundation/Spectrum/node"
+	"github.com/SmartMeshFoundation/Spectrum/params"
+	whisper "github.com/SmartMeshFoundation/Spectrum/whisper/whisperv5"
 	"github.com/naoina/toml"
-	"github.com/SmartMeshFoundation/SMChain/contracts/chief"
+	"github.com/SmartMeshFoundation/Spectrum/contracts/chief"
 )
 
 var (

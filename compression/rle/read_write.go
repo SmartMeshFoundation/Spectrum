@@ -21,7 +21,7 @@ import (
 	"bytes"
 	"errors"
 
-	"github.com/SmartMeshFoundation/SMChain/crypto"
+	"github.com/SmartMeshFoundation/Spectrum/crypto"
 )
 
 const (

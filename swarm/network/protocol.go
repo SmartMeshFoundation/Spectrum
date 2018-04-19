@@ -37,12 +37,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/contracts/chequebook"
-	"github.com/SmartMeshFoundation/SMChain/log"
-	"github.com/SmartMeshFoundation/SMChain/p2p"
-	bzzswap "github.com/SmartMeshFoundation/SMChain/swarm/services/swap"
-	"github.com/SmartMeshFoundation/SMChain/swarm/services/swap/swap"
-	"github.com/SmartMeshFoundation/SMChain/swarm/storage"
+	"github.com/SmartMeshFoundation/Spectrum/contracts/chequebook"
+	"github.com/SmartMeshFoundation/Spectrum/log"
+	"github.com/SmartMeshFoundation/Spectrum/p2p"
+	bzzswap "github.com/SmartMeshFoundation/Spectrum/swarm/services/swap"
+	"github.com/SmartMeshFoundation/Spectrum/swarm/services/swap/swap"
+	"github.com/SmartMeshFoundation/Spectrum/swarm/storage"
 )
 
 const (

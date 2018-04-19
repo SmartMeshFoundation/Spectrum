@@ -17,8 +17,8 @@
 package core
 
 import (
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/core/types"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/core/types"
 )
 
 // TxPreEvent is posted when a transaction enters the transaction pool.

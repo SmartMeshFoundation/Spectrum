@@ -5,11 +5,11 @@ import (
 	"crypto/ecdsa"
 	"crypto/rand"
 	mrand "math/rand"
-	"github.com/SmartMeshFoundation/SMChain/crypto"
+	"github.com/SmartMeshFoundation/Spectrum/crypto"
 	"crypto/elliptic"
 	"time"
 	"encoding/hex"
-	"github.com/SmartMeshFoundation/SMChain/accounts/keystore"
+	"github.com/SmartMeshFoundation/Spectrum/accounts/keystore"
 	"fmt"
 )
 

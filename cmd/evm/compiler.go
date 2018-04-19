@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/SmartMeshFoundation/SMChain/cmd/evm/internal/compiler"
+	"github.com/SmartMeshFoundation/Spectrum/cmd/evm/internal/compiler"
 
 	cli "gopkg.in/urfave/cli.v1"
 )

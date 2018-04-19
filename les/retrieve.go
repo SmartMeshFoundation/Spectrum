@@ -26,7 +26,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/common/mclock"
+	"github.com/SmartMeshFoundation/Spectrum/common/mclock"
 )
 
 var (

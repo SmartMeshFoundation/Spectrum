@@ -4,7 +4,7 @@ import (
 	"testing"
 	"sort"
 	"math/big"
-	"github.com/SmartMeshFoundation/SMChain/common"
+	"github.com/SmartMeshFoundation/Spectrum/common"
 )
 
 var data = ChiefInfoList{

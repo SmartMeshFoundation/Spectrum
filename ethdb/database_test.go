@@ -25,7 +25,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/SmartMeshFoundation/SMChain/ethdb"
+	"github.com/SmartMeshFoundation/Spectrum/ethdb"
 )
 
 func newTestLDB() (*ethdb.LDBDatabase, func()) {

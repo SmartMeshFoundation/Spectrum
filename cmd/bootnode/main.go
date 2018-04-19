@@ -23,13 +23,13 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/SmartMeshFoundation/SMChain/cmd/utils"
-	"github.com/SmartMeshFoundation/SMChain/crypto"
-	"github.com/SmartMeshFoundation/SMChain/log"
-	"github.com/SmartMeshFoundation/SMChain/p2p/discover"
-	"github.com/SmartMeshFoundation/SMChain/p2p/discv5"
-	"github.com/SmartMeshFoundation/SMChain/p2p/nat"
-	"github.com/SmartMeshFoundation/SMChain/p2p/netutil"
+	"github.com/SmartMeshFoundation/Spectrum/cmd/utils"
+	"github.com/SmartMeshFoundation/Spectrum/crypto"
+	"github.com/SmartMeshFoundation/Spectrum/log"
+	"github.com/SmartMeshFoundation/Spectrum/p2p/discover"
+	"github.com/SmartMeshFoundation/Spectrum/p2p/discv5"
+	"github.com/SmartMeshFoundation/Spectrum/p2p/nat"
+	"github.com/SmartMeshFoundation/Spectrum/p2p/netutil"
 )
 
 func main() {

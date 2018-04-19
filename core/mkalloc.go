@@ -34,8 +34,8 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/SmartMeshFoundation/SMChain/core"
-	"github.com/SmartMeshFoundation/SMChain/rlp"
+	"github.com/SmartMeshFoundation/Spectrum/core"
+	"github.com/SmartMeshFoundation/Spectrum/rlp"
 )
 
 type allocItem struct{ Addr, Balance *big.Int }

@@ -19,10 +19,10 @@ package les
 import (
 	"context"
 
-	"github.com/SmartMeshFoundation/SMChain/core"
-	"github.com/SmartMeshFoundation/SMChain/ethdb"
-	"github.com/SmartMeshFoundation/SMChain/light"
-	"github.com/SmartMeshFoundation/SMChain/log"
+	"github.com/SmartMeshFoundation/Spectrum/core"
+	"github.com/SmartMeshFoundation/Spectrum/ethdb"
+	"github.com/SmartMeshFoundation/Spectrum/light"
+	"github.com/SmartMeshFoundation/Spectrum/log"
 )
 
 // LesOdr implements light.OdrBackend

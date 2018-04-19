@@ -20,7 +20,7 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
+	"github.com/SmartMeshFoundation/Spectrum/common"
 )
 
 const Version = "1.0"

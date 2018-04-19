@@ -24,12 +24,12 @@ import (
 	"net"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/crypto"
-	"github.com/SmartMeshFoundation/SMChain/log"
-	"github.com/SmartMeshFoundation/SMChain/p2p/nat"
-	"github.com/SmartMeshFoundation/SMChain/p2p/netutil"
-	"github.com/SmartMeshFoundation/SMChain/rlp"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/crypto"
+	"github.com/SmartMeshFoundation/Spectrum/log"
+	"github.com/SmartMeshFoundation/Spectrum/p2p/nat"
+	"github.com/SmartMeshFoundation/Spectrum/p2p/netutil"
+	"github.com/SmartMeshFoundation/Spectrum/rlp"
 )
 
 const Version = 4

@@ -21,7 +21,7 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/SmartMeshFoundation/SMChain/core/vm"
+	"github.com/SmartMeshFoundation/Spectrum/core/vm"
 )
 
 // Iterator for disassembled EVM instructions

@@ -21,7 +21,7 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/SmartMeshFoundation/SMChain/common/hexutil"
+	"github.com/SmartMeshFoundation/Spectrum/common/hexutil"
 )
 
 // Tests that data bitset encoding and decoding works and is bijective.

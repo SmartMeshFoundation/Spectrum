@@ -25,7 +25,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
+	"github.com/SmartMeshFoundation/Spectrum/common"
 	"crypto/elliptic"
 )
 

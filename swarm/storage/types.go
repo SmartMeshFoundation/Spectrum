@@ -24,9 +24,9 @@ import (
 	"io"
 	"sync"
 
-	"github.com/SmartMeshFoundation/SMChain/bmt"
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/crypto/sha3"
+	"github.com/SmartMeshFoundation/Spectrum/bmt"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/crypto/sha3"
 )
 
 type Hasher func() hash.Hash

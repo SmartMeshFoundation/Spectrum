@@ -19,7 +19,7 @@ package state
 import (
 	"math/big"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
+	"github.com/SmartMeshFoundation/Spectrum/common"
 )
 
 type journalEntry interface {

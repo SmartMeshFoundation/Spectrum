@@ -27,7 +27,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/p2p/discover"
+	"github.com/SmartMeshFoundation/Spectrum/p2p/discover"
 )
 
 func TestMocker(t *testing.T) {

@@ -24,8 +24,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/SmartMeshFoundation/SMChain/accounts/abi/bind"
-	"github.com/SmartMeshFoundation/SMChain/common/compiler"
+	"github.com/SmartMeshFoundation/Spectrum/accounts/abi/bind"
+	"github.com/SmartMeshFoundation/Spectrum/common/compiler"
 )
 
 const VSN = "0.0.2"

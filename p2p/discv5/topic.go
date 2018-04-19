@@ -23,8 +23,8 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/common/mclock"
-	"github.com/SmartMeshFoundation/SMChain/log"
+	"github.com/SmartMeshFoundation/Spectrum/common/mclock"
+	"github.com/SmartMeshFoundation/Spectrum/log"
 )
 
 const (

@@ -3,9 +3,9 @@ InstallDir "$InstDir"
 OutFile "${OUTPUTFILE}" # set through command line arguments
 
 # Links for "Add/Remove Programs"
-!define HELPURL "https://github.com/SmartMeshFoundation/SMChain/issues"
-!define UPDATEURL "https://github.com/SmartMeshFoundation/SMChain/releases"
-!define ABOUTURL "https://github.com/SmartMeshFoundation/SMChain#ethereum-go"
+!define HELPURL "https://github.com/SmartMeshFoundation/Spectrum/issues"
+!define UPDATEURL "https://github.com/SmartMeshFoundation/Spectrum/releases"
+!define ABOUTURL "https://github.com/SmartMeshFoundation/Spectrum#ethereum-go"
 !define /date NOW "%Y%m%d"
 
 PageEx license

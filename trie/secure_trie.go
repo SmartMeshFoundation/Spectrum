@@ -19,8 +19,8 @@ package trie
 import (
 	"fmt"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/log"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/log"
 )
 
 var secureKeyPrefix = []byte("secure-key-")

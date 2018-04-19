@@ -22,8 +22,8 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/SmartMeshFoundation/SMChain/p2p"
-	"github.com/SmartMeshFoundation/SMChain/p2p/nat"
+	"github.com/SmartMeshFoundation/Spectrum/p2p"
+	"github.com/SmartMeshFoundation/Spectrum/p2p/nat"
 )
 
 const (
@@ -53,11 +53,11 @@ func DefaultDataDir() string {
 	home := homeDir()
 	if home != "" {
 		if runtime.GOOS == "darwin" {
-			return filepath.Join(home, "Library", "SMChain")
+			return filepath.Join(home, "Library", "Spectrum")
 		} else if runtime.GOOS == "windows" {
-			return filepath.Join(home, "AppData", "Roaming", "SMChain")
+			return filepath.Join(home, "AppData", "Roaming", "Spectrum")
 		} else {
-			return filepath.Join(home, ".smchain")
+			return filepath.Join(home, ".spectrum")
 		}
 	}
 	// As we cannot guess a stable location, return empty and handle later
@@ -69,11 +69,11 @@ func TestDataDir() string {
 	if home != "" {
 		testnet := "testnet"
 		if runtime.GOOS == "darwin" {
-			return filepath.Join(home, "Library", "SMChain", testnet)
+			return filepath.Join(home, "Library", "Spectrum", testnet)
 		} else if runtime.GOOS == "windows" {
-			return filepath.Join(home, "AppData", "Roaming", "SMChain", testnet)
+			return filepath.Join(home, "AppData", "Roaming", "Spectrum", testnet)
 		} else {
-			return filepath.Join(home, ".smchain", testnet)
+			return filepath.Join(home, ".spectrum", testnet)
 		}
 	}
 	return ""

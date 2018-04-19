@@ -22,7 +22,7 @@ import (
 	"math/big"
 	"os"
 
-	"github.com/SmartMeshFoundation/SMChain/cmd/utils"
+	"github.com/SmartMeshFoundation/Spectrum/cmd/utils"
 	"gopkg.in/urfave/cli.v1"
 )
 

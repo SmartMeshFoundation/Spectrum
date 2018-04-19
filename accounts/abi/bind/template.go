@@ -16,7 +16,7 @@
 
 package bind
 
-import "github.com/SmartMeshFoundation/SMChain/accounts/abi"
+import "github.com/SmartMeshFoundation/Spectrum/accounts/abi"
 
 // tmplData is the data structure required to fill the binding template.
 type tmplData struct {

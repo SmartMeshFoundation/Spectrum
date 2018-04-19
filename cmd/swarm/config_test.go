@@ -25,9 +25,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/rpc"
-	"github.com/SmartMeshFoundation/SMChain/swarm"
-	"github.com/SmartMeshFoundation/SMChain/swarm/api"
+	"github.com/SmartMeshFoundation/Spectrum/rpc"
+	"github.com/SmartMeshFoundation/Spectrum/swarm"
+	"github.com/SmartMeshFoundation/Spectrum/swarm/api"
 
 	"github.com/docker/docker/pkg/reexec"
 )

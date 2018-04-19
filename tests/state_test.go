@@ -22,7 +22,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/SmartMeshFoundation/SMChain/core/vm"
+	"github.com/SmartMeshFoundation/Spectrum/core/vm"
 )
 
 func TestState(t *testing.T) {

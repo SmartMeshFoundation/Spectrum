@@ -23,7 +23,7 @@ const (
 // locationTrims are trimmed for display to avoid unwieldy log lines.
 var (
 	locationTrims = []string{
-		"github.com/SmartMeshFoundation/SMChain/",
+		"github.com/SmartMeshFoundation/Spectrum/",
 	}
 	is_debug = false
 )

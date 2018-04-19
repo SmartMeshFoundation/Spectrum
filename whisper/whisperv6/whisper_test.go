@@ -24,7 +24,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
+	"github.com/SmartMeshFoundation/Spectrum/common"
 	"golang.org/x/crypto/pbkdf2"
 )
 

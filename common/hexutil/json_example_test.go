@@ -20,7 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/SmartMeshFoundation/SMChain/common/hexutil"
+	"github.com/SmartMeshFoundation/Spectrum/common/hexutil"
 )
 
 type MyType [5]byte

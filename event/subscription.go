@@ -21,7 +21,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/common/mclock"
+	"github.com/SmartMeshFoundation/Spectrum/common/mclock"
 )
 
 // Subscription represents a stream of events. The carrier of the events is typically a

@@ -27,9 +27,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/SmartMeshFoundation/SMChain/internal/jsre"
-	"github.com/SmartMeshFoundation/SMChain/internal/web3ext"
-	"github.com/SmartMeshFoundation/SMChain/rpc"
+	"github.com/SmartMeshFoundation/Spectrum/internal/jsre"
+	"github.com/SmartMeshFoundation/Spectrum/internal/web3ext"
+	"github.com/SmartMeshFoundation/Spectrum/rpc"
 	"github.com/mattn/go-colorable"
 	"github.com/peterh/liner"
 	"github.com/robertkrimen/otto"

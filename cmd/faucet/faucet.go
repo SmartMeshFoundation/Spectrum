@@ -40,23 +40,23 @@ import (
 	"sync"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/accounts"
-	"github.com/SmartMeshFoundation/SMChain/accounts/keystore"
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/core"
-	"github.com/SmartMeshFoundation/SMChain/core/types"
-	"github.com/SmartMeshFoundation/SMChain/eth"
-	"github.com/SmartMeshFoundation/SMChain/eth/downloader"
-	"github.com/SmartMeshFoundation/SMChain/ethclient"
-	"github.com/SmartMeshFoundation/SMChain/ethstats"
-	"github.com/SmartMeshFoundation/SMChain/les"
-	"github.com/SmartMeshFoundation/SMChain/log"
-	"github.com/SmartMeshFoundation/SMChain/node"
-	"github.com/SmartMeshFoundation/SMChain/p2p"
-	"github.com/SmartMeshFoundation/SMChain/p2p/discover"
-	"github.com/SmartMeshFoundation/SMChain/p2p/discv5"
-	"github.com/SmartMeshFoundation/SMChain/p2p/nat"
-	"github.com/SmartMeshFoundation/SMChain/params"
+	"github.com/SmartMeshFoundation/Spectrum/accounts"
+	"github.com/SmartMeshFoundation/Spectrum/accounts/keystore"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/core"
+	"github.com/SmartMeshFoundation/Spectrum/core/types"
+	"github.com/SmartMeshFoundation/Spectrum/eth"
+	"github.com/SmartMeshFoundation/Spectrum/eth/downloader"
+	"github.com/SmartMeshFoundation/Spectrum/ethclient"
+	"github.com/SmartMeshFoundation/Spectrum/ethstats"
+	"github.com/SmartMeshFoundation/Spectrum/les"
+	"github.com/SmartMeshFoundation/Spectrum/log"
+	"github.com/SmartMeshFoundation/Spectrum/node"
+	"github.com/SmartMeshFoundation/Spectrum/p2p"
+	"github.com/SmartMeshFoundation/Spectrum/p2p/discover"
+	"github.com/SmartMeshFoundation/Spectrum/p2p/discv5"
+	"github.com/SmartMeshFoundation/Spectrum/p2p/nat"
+	"github.com/SmartMeshFoundation/Spectrum/params"
 	"golang.org/x/net/websocket"
 )
 
@@ -450,7 +450,7 @@ func (f *faucet) apiHandler(conn *websocket.Conn) {
 		case *noauthFlag:
 			username, avatar, address, err = authNoAuth(msg.URL)
 		default:
-			err = errors.New("Something funky happened, please open an issue at https://github.com/SmartMeshFoundation/SMChain/issues")
+			err = errors.New("Something funky happened, please open an issue at https://github.com/SmartMeshFoundation/Spectrum/issues")
 		}
 		if err != nil {
 			if err = sendError(conn, err); err != nil {

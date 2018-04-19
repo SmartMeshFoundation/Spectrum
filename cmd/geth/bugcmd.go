@@ -26,10 +26,10 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/SmartMeshFoundation/SMChain/cmd/internal/browser"
-	"github.com/SmartMeshFoundation/SMChain/params"
+	"github.com/SmartMeshFoundation/Spectrum/cmd/internal/browser"
+	"github.com/SmartMeshFoundation/Spectrum/params"
 
-	"github.com/SmartMeshFoundation/SMChain/cmd/utils"
+	"github.com/SmartMeshFoundation/Spectrum/cmd/utils"
 	cli "gopkg.in/urfave/cli.v1"
 )
 
@@ -41,7 +41,7 @@ var bugCommand = cli.Command{
 	Category:  "MISCELLANEOUS COMMANDS",
 }
 
-const issueUrl = "https://github.com/SmartMeshFoundation/SMChain/issues/new"
+const issueUrl = "https://github.com/SmartMeshFoundation/Spectrum/issues/new"
 
 // reportBug reports a bug by opening a new URL to the go-ethereum GH issue
 // tracker and setting default values as the issue body.

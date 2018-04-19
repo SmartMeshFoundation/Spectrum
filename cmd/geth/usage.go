@@ -22,8 +22,8 @@ import (
 	"io"
 	"sort"
 
-	"github.com/SmartMeshFoundation/SMChain/cmd/utils"
-	"github.com/SmartMeshFoundation/SMChain/internal/debug"
+	"github.com/SmartMeshFoundation/Spectrum/cmd/utils"
+	"github.com/SmartMeshFoundation/Spectrum/internal/debug"
 	"gopkg.in/urfave/cli.v1"
 	"strings"
 )

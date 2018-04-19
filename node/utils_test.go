@@ -22,8 +22,8 @@ package node
 import (
 	"reflect"
 
-	"github.com/SmartMeshFoundation/SMChain/p2p"
-	"github.com/SmartMeshFoundation/SMChain/rpc"
+	"github.com/SmartMeshFoundation/Spectrum/p2p"
+	"github.com/SmartMeshFoundation/Spectrum/rpc"
 )
 
 // NoopService is a trivial implementation of the Service interface.

@@ -23,7 +23,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/SmartMeshFoundation/SMChain/common/hexutil"
+	"github.com/SmartMeshFoundation/Spectrum/common/hexutil"
 	"gopkg.in/fatih/set.v0"
 )
 

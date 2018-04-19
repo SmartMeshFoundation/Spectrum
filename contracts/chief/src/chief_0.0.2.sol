@@ -1,5 +1,5 @@
 // Copyright 2018 The Smartmesh Chain Authors
-// This file is part of the SMChain library.
+// This file is part of the Spectrum library.
 pragma solidity ^0.4.19;
 
 

@@ -20,7 +20,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/SmartMeshFoundation/SMChain/core/types"
+	"github.com/SmartMeshFoundation/Spectrum/core/types"
 )
 
 // Tests that ethash works correctly in test mode.

@@ -25,7 +25,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/SmartMeshFoundation/SMChain/log"
+	"github.com/SmartMeshFoundation/Spectrum/log"
 )
 
 // explorerDockerfile is the Dockerfile required to run a block explorer.

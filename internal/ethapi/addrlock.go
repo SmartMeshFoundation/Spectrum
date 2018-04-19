@@ -19,7 +19,7 @@ package ethapi
 import (
 	"sync"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
+	"github.com/SmartMeshFoundation/Spectrum/common"
 )
 
 type AddrLocker struct {

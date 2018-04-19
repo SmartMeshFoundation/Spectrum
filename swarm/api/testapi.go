@@ -17,7 +17,7 @@
 package api
 
 import (
-	"github.com/SmartMeshFoundation/SMChain/swarm/network"
+	"github.com/SmartMeshFoundation/Spectrum/swarm/network"
 )
 
 type Control struct {

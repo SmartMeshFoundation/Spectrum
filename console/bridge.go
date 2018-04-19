@@ -23,9 +23,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/accounts/usbwallet"
-	"github.com/SmartMeshFoundation/SMChain/log"
-	"github.com/SmartMeshFoundation/SMChain/rpc"
+	"github.com/SmartMeshFoundation/Spectrum/accounts/usbwallet"
+	"github.com/SmartMeshFoundation/Spectrum/log"
+	"github.com/SmartMeshFoundation/Spectrum/rpc"
 	"github.com/robertkrimen/otto"
 )
 

@@ -27,7 +27,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/log"
+	"github.com/SmartMeshFoundation/Spectrum/log"
 	"golang.org/x/net/websocket"
 	"gopkg.in/fatih/set.v0"
 )

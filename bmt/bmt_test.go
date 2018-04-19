@@ -28,7 +28,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/crypto/sha3"
+	"github.com/SmartMeshFoundation/Spectrum/crypto/sha3"
 )
 
 const (

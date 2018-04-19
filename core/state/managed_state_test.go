@@ -19,8 +19,8 @@ package state
 import (
 	"testing"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/ethdb"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/ethdb"
 )
 
 var addr = common.BytesToAddress([]byte("test"))

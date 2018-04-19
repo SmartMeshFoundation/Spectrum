@@ -21,7 +21,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/common/mclock"
+	"github.com/SmartMeshFoundation/Spectrum/common/mclock"
 )
 
 const rcConst = 1000000

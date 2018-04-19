@@ -23,8 +23,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/SmartMeshFoundation/SMChain/common/math"
-	"github.com/SmartMeshFoundation/SMChain/core/vm"
+	"github.com/SmartMeshFoundation/Spectrum/common/math"
+	"github.com/SmartMeshFoundation/Spectrum/core/vm"
 )
 
 // Compiler contains information about the parsed source

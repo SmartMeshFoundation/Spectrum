@@ -20,9 +20,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/core"
-	"github.com/SmartMeshFoundation/SMChain/eth/downloader"
-	"github.com/SmartMeshFoundation/SMChain/light"
+	"github.com/SmartMeshFoundation/Spectrum/core"
+	"github.com/SmartMeshFoundation/Spectrum/eth/downloader"
+	"github.com/SmartMeshFoundation/Spectrum/light"
 )
 
 const (

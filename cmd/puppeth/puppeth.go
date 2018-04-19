@@ -22,7 +22,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/log"
+	"github.com/SmartMeshFoundation/Spectrum/log"
 	"gopkg.in/urfave/cli.v1"
 )
 

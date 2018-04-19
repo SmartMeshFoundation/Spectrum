@@ -19,7 +19,7 @@ package whisperv5
 import (
 	"testing"
 
-	"github.com/SmartMeshFoundation/SMChain/crypto"
+	"github.com/SmartMeshFoundation/Spectrum/crypto"
 )
 
 func BenchmarkDeriveKeyMaterial(b *testing.B) {

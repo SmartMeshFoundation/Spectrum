@@ -22,7 +22,7 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/SmartMeshFoundation/SMChain/rpc"
+	"github.com/SmartMeshFoundation/Spectrum/rpc"
 )
 
 // In this example, our client whishes to track the latest 'block number'

@@ -21,8 +21,8 @@ import (
 
 	"sync/atomic"
 
-	"github.com/SmartMeshFoundation/SMChain/consensus"
-	"github.com/SmartMeshFoundation/SMChain/log"
+	"github.com/SmartMeshFoundation/Spectrum/consensus"
+	"github.com/SmartMeshFoundation/Spectrum/log"
 )
 
 type CpuAgent struct {

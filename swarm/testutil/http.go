@@ -22,9 +22,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/SmartMeshFoundation/SMChain/swarm/api"
-	httpapi "github.com/SmartMeshFoundation/SMChain/swarm/api/http"
-	"github.com/SmartMeshFoundation/SMChain/swarm/storage"
+	"github.com/SmartMeshFoundation/Spectrum/swarm/api"
+	httpapi "github.com/SmartMeshFoundation/Spectrum/swarm/api/http"
+	"github.com/SmartMeshFoundation/Spectrum/swarm/storage"
 )
 
 func NewTestSwarmServer(t *testing.T) *TestSwarmServer {

@@ -20,8 +20,8 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/SmartMeshFoundation/SMChain/common"
-	"github.com/SmartMeshFoundation/SMChain/ethdb"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/ethdb"
 )
 
 // makeTestTrie create a sample test trie to test node-wise reconstruction.
