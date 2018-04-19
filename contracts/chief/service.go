@@ -21,6 +21,7 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/p2p"
 	"github.com/SmartMeshFoundation/SMChain/params"
 	"github.com/SmartMeshFoundation/SMChain/rpc"
+	"github.com/SmartMeshFoundation/SMChain/core"
 )
 
 /*
@@ -182,8 +183,8 @@ func (self *TribeService) update(mbox params.Mbox) {
 	// not nil
 	if n, ok := mbox.Params["number"]; ok {
 		blockNumber = n.(*big.Int)
-		_h,_ := self.client.HeaderByNumber(context.Background(),blockNumber)
-		auth.GasLimit = _h.GasLimit
+		_b,_ := self.client.BlockByNumber(context.Background(),blockNumber)
+		auth.GasLimit = core.CalcGasLimit(_b)
 		log.Debug("-> TribeService.update", "blockNumber", blockNumber.Int64())
 	} else {
 		success.Entity = errors.New("TribeService.update : blockNumber not nil")
