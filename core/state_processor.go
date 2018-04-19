@@ -90,7 +90,6 @@ func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cfg
 // for the transaction, gas used and an error if the transaction failed,
 // indicating the block was invalid.
 func ApplyTransaction(config *params.ChainConfig, bc *BlockChain, author *common.Address, gp *GasPool, statedb *state.StateDB, header *types.Header, tx *types.Transaction, usedGas *big.Int, cfg vm.Config) (*types.Receipt, *big.Int, error) {
-	log.Info(fmt.Sprintf("[ state ] ====================> ApplyTransaction('0x%x')", tx.Hash().Bytes()[:]))
 	msg, err := tx.AsMessage(types.MakeSigner(config, header.Number))
 	if err != nil {
 		return nil, nil, err
@@ -103,10 +102,13 @@ func ApplyTransaction(config *params.ChainConfig, bc *BlockChain, author *common
 	// Apply the transaction to the current state (included in the env)
 	_, gas, failed, err := ApplyMessage(vmenv, msg, gp)
 	if err != nil {
-		log.Info(fmt.Sprintf("[ state ] ====================> ApplyTransaction('0x%x') failed, err = %v", tx.Hash().Bytes()[:], err))
 		return nil, nil, err
 	}
-	log.Info(fmt.Sprintf("[ state ] ====================> ApplyTransaction('0x%x'), gas = %d", tx.Hash().Bytes()[:], gas.Uint64()))
+	// add by liangc : fit gaslimt
+	if tx.To()!=nil && params.IsChiefAddress(*tx.To()) {
+		log.Debug("⛽️ --> pay_back_chief_gas","txid",tx.Hash().Hex(),"gas",gas)
+		gp.AddGas(gas)
+	}
 
 	// Update the state with pending changes
 	var root []byte

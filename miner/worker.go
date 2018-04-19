@@ -594,14 +594,6 @@ func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsB
 		env.state.Prepare(tx.Hash(), common.Hash{}, env.tcount)
 		err, logs := env.commitTransaction(tx, bc, coinbase, gp)
 		if err != nil {
-			/*
-				log.Warn("debug:work.commitTransactions->", "err", err, "c_number", bc.CurrentHeader().Number.Int64(), "coinbase", coinbase.Hex())
-				if tx.To() != nil {
-					log.Warn("debug:work.commitTransactions->", "tx", tx.Hash().Hex(), "from", types.GetFromByTx(tx), "to", tx.To().Hex())
-				} else {
-					log.Warn("debug:work.commitTransactions->", "tx", tx.Hash().Hex(), "from", types.GetFromByTx(tx), "to", tx.To())
-				}
-			*/
 			log.Debug("cc14514_TODO_004", "tx", tx.Hash().Hex(), "err", err)
 			appendToFailTx(tx.Hash())
 		}
@@ -656,16 +648,11 @@ func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsB
 
 func (env *Work) commitTransaction(tx *types.Transaction, bc *core.BlockChain, coinbase common.Address, gp *core.GasPool) (error, []*types.Log) {
 	snap := env.state.Snapshot()
-	log.Info(fmt.Sprintf("[ work ] ==> commitTransaction('0x%x'), gp = %d.", tx.Hash().Bytes()[:], (*big.Int)(gp).Uint64()))
 	receipt, _, err := core.ApplyTransaction(env.config, bc, &coinbase, gp, env.state, env.header, tx, env.header.GasUsed, vm.Config{})
 	if err != nil {
 		env.state.RevertToSnapshot(snap)
-		log.Info(fmt.Sprintf("[ work ] ==> commitTransaction('0x%x'), err = %v", tx.Hash().Bytes()[:], err))
 		return err, nil
 	}
-	log.Info(fmt.Sprintf("[ work ] ==> commitTransaction('0x%x'), gas used = %d, gp = %d.",
-		tx.Hash().Bytes()[:], receipt.GasUsed.Uint64(), (*big.Int)(gp).Uint64()))
-
 	env.txs = append(env.txs, tx)
 	env.receipts = append(env.receipts, receipt)
 
