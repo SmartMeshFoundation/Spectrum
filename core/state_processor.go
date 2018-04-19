@@ -112,7 +112,6 @@ func ApplyTransaction(config *params.ChainConfig, bc *BlockChain, author *common
 	} else {
 		root = statedb.IntermediateRoot(config.IsEIP158(header.Number)).Bytes()
 	}
-	usedGas.Add(usedGas, gas)
 
 	// Create a new receipt for the transaction, storing the intermediate root and gas used by the tx
 	// based on the eip phase, we're passing wether the root touch-delete accounts.
@@ -124,6 +123,7 @@ func ApplyTransaction(config *params.ChainConfig, bc *BlockChain, author *common
 		gp.AddGas(gas)
 	} else {
 		receipt.GasUsed = new(big.Int).Set(gas)
+		usedGas.Add(usedGas, gas)
 	}
 	// if the transaction created a contract, store the creation address in the receipt.
 	if msg.To() == nil {
