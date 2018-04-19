@@ -113,10 +113,7 @@ func (v *BlockValidator) ValidateState(block, parent *types.Block, statedb *stat
 // This is miner strategy, not consensus protocol.
 func CalcGasLimit(parent *types.Block) *big.Int {
 	// contrib = (parentGasUsed * 3 / 2) / 1024
-	// add by liangc : debug miner.start() panic
-	if parent.GasUsed()==nil {
-		log.Warn("--> :: parent.gas_not_nil :: parent-->","gas",parent.GasUsed(),"num",parent.Number(),"hash",parent.Hash().Hex())
-	}
+
 	contrib := new(big.Int).Mul(parent.GasUsed(), big.NewInt(3))
 	contrib = contrib.Div(contrib, big.NewInt(2))
 	contrib = contrib.Div(contrib, params.GasLimitBoundDivisor)

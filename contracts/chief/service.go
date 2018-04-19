@@ -22,6 +22,7 @@ import (
 	"github.com/SmartMeshFoundation/SMChain/params"
 	"github.com/SmartMeshFoundation/SMChain/rpc"
 	"github.com/SmartMeshFoundation/SMChain/core"
+	"fmt"
 )
 
 /*
@@ -183,7 +184,13 @@ func (self *TribeService) update(mbox params.Mbox) {
 	// not nil
 	if n, ok := mbox.Params["number"]; ok {
 		blockNumber = n.(*big.Int)
-		_b,_ := self.client.BlockByNumber(context.Background(),blockNumber)
+		_b, _e := self.client.BlockByNumber(context.Background(), blockNumber)
+		if _b == nil || _e != nil {
+			log.Error("Tribe.update : getBlockError", "err", _e, "num", blockNumber.Int64())
+			success.Entity = errors.New(fmt.Sprintf("TribeService.update : get_block_error : %d", blockNumber))
+			mbox.Rtn <- success
+			return
+		}
 		auth.GasLimit = core.CalcGasLimit(_b)
 		log.Debug("-> TribeService.update", "blockNumber", blockNumber.Int64())
 	} else {
