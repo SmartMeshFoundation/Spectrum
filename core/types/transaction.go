@@ -465,26 +465,6 @@ func (t *TransactionsByPriceAndNonce) Pop() {
 	heap.Pop(&t.heads)
 }
 
-func PrintTxsByPriceAndNonce(signer Signer, txs *TransactionsByPriceAndNonce) {
-	fmt.Println("headers ==> ")
-	for _, tx := range txs.heads {
-		if from, err := Sender(signer, tx); err == nil {
-			fmt.Printf("    0x%x = %x(%d) \n", from.Bytes()[:], tx.Hash().Bytes()[:], tx.Gas().Uint64())
-		} else {
-			fmt.Printf("    err = %v \n", err)
-		}
-	}
-	fmt.Println("txs ==> ")
-	for addr, txList := range txs.txs {
-		fmt.Printf("    0x%x = \n", addr.Bytes()[:])
-		fmt.Printf("        ")
-		for _, tx := range txList {
-			fmt.Printf(" 0x%x(%d), ", tx.Hash().Bytes()[:], tx.Gas().Uint64())
-		}
-		fmt.Println()
-	}
-}
-
 // Message is a fully derived transaction and implements core.Message
 //
 // NOTE: In a future PR this will be removed.

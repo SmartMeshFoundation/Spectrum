@@ -500,7 +500,6 @@ func (self *worker) commitNewWork() {
 	}
 
 	txs := types.NewTransactionsByPriceAndNonce(self.current.signer, pending)
-	types.PrintTxsByPriceAndNonce(self.eth.TxPool().GetSigner(), txs)
 	work.commitTransactions(self.mux, txs, self.chain, self.coinbase)
 
 	// compute uncles for the new block.
