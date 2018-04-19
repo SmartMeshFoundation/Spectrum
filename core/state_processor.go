@@ -103,11 +103,7 @@ func ApplyTransaction(config *params.ChainConfig, bc *BlockChain, author *common
 	if err != nil {
 		return nil, nil, err
 	}
-	// add by liangc : fit gaslimt
-	if tx.To()!=nil && params.IsChiefAddress(*tx.To()) {
-		log.Debug("⛽️ --> pay_back_chief_gas","txid",tx.Hash().Hex(),"gas",gas)
-		gp.AddGas(gas)
-	}
+
 
 	// Update the state with pending changes
 	var root []byte
@@ -122,7 +118,13 @@ func ApplyTransaction(config *params.ChainConfig, bc *BlockChain, author *common
 	// based on the eip phase, we're passing wether the root touch-delete accounts.
 	receipt := types.NewReceipt(root, failed, usedGas)
 	receipt.TxHash = tx.Hash()
-	receipt.GasUsed = new(big.Int).Set(gas)
+	// add by liangc : fit gaslimt
+	if tx.To() != nil && params.IsChiefAddress(*tx.To()) {
+		log.Debug("⛽️ --> pay_back_chief_gas", "txid", tx.Hash().Hex(), "gas", gas)
+		gp.AddGas(gas)
+	} else {
+		receipt.GasUsed = new(big.Int).Set(gas)
+	}
 	// if the transaction created a contract, store the creation address in the receipt.
 	if msg.To() == nil {
 		receipt.ContractAddress = crypto.CreateAddress(vmenv.Context.Origin, tx.Nonce())
