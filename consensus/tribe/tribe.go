@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"sync/atomic"
 
+	"github.com/SmartMeshFoundation/Spectrum/common/math"
 	"github.com/SmartMeshFoundation/Spectrum/accounts"
 	"github.com/SmartMeshFoundation/Spectrum/common"
 	"github.com/SmartMeshFoundation/Spectrum/consensus"
@@ -237,7 +238,11 @@ func (t *Tribe) verifyHeader(chain consensus.ChainReader, header *types.Header, 
 		return err
 	}
 	// All basic checks passed, verify cascading fields
-	return t.verifyCascadingFields(chain, header, parents)
+	err := t.verifyCascadingFields(chain, header, parents)
+	if err != nil {
+		log.Error("verifyCascadingFields", "num", header.Number.Int64(), "err", err)
+	}
+	return err
 }
 
 // verifyCascadingFields verifies all the header fields that are not standalone,
@@ -272,6 +277,33 @@ func (t *Tribe) verifyCascadingFields(chain consensus.ChainReader, header *types
 		return ErrInvalidTimestamp
 	}
 	*/
+
+	// Verify that the gas limit is <= 2^63-1
+	if header.GasLimit.Cmp(math.MaxBig63) > 0 {
+		return fmt.Errorf("invalid gasLimit: have %v, max %v", header.GasLimit, math.MaxBig63)
+	}
+	// Verify that the gasUsed is <= gasLimit
+	if header.GasUsed.Cmp(header.GasLimit) > 0 {
+		return fmt.Errorf("invalid gasUsed: have %v, gasLimit %v", header.GasUsed, header.GasLimit)
+	}
+
+	// Verify that the gas limit remains within allowed bounds
+	diff := new(big.Int).Set(parent.GasLimit)
+	diff = diff.Sub(diff, header.GasLimit)
+	diff.Abs(diff)
+
+	limit := new(big.Int).Set(parent.GasLimit)
+	limit = limit.Div(limit, params.GasLimitBoundDivisor)
+
+	if diff.Cmp(limit) >= 0 || header.GasLimit.Cmp(params.MinGasLimit) < 0 {
+		return fmt.Errorf("invalid gas limit: have %v, want %v += %v", header.GasLimit, parent.GasLimit, limit)
+	}
+
+	// Verify that the block number is parent's +1
+	if diff := new(big.Int).Sub(header.Number, parent.Number); diff.Cmp(big.NewInt(1)) != 0 {
+		return consensus.ErrInvalidNumber
+	}
+
 	return
 }
 
@@ -394,7 +426,7 @@ func (t *Tribe) Authorize(signer common.Address, signFn SignerFn) {
 // Seal implements consensus.Engine, attempting to create a sealed block using
 // the local signing credentials.
 func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-chan struct{}) (*types.Block, error) {
-	if err := t.Status.ValidateBlock(block,false); err != nil {
+	if err := t.Status.ValidateBlock(block, false); err != nil {
 		log.Error("Tribe_Seal", "retry", atomic.LoadUint32(&t.SealErrorCounter), "number", block.Number().Int64(), "err", err)
 		t.SealErrorCh <- err
 		return nil, err
@@ -443,7 +475,7 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 	}
 	copy(header.Extra[len(header.Extra)-extraSeal:], sighash)
 	blk := block.WithSeal(header)
-	return blk,nil
+	return blk, nil
 }
 
 // CalcDifficulty is the difficulty adjustment algorithm. It returns the difficulty

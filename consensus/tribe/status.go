@@ -84,8 +84,11 @@ func (api *API) GetHistory(last *big.Int) ([]map[string]string, error) {
 		_header := api.chain.GetHeaderByNumber(i)
 		//_h := History{_header.Number.Int64(), _header.Hash(), _header.Coinbase, _header.Difficulty.Int64()}
 		//history = append(history[:], _h)
-		k := fmt.Sprintf("%d",_header.Number.Int64())
-		v := fmt.Sprintf("%d -> %s",_header.Difficulty.Int64(),_header.Coinbase.Hex())
+		k := "🔨"
+		v := fmt.Sprintf("%d -> %s",_header.Number.Int64(), _header.Coinbase.Hex())
+		if _header.Difficulty.Int64() == 1 {
+			k = "👿"
+		}
 		_h := map[string]string{k:v}
 		_history = append(_history,_h)
 	}
