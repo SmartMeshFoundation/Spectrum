@@ -136,6 +136,7 @@ func NewProtocolManager(config *params.ChainConfig, mode downloader.SyncMode, ne
 			Version: version,
 			Length:  ProtocolLengths[i],
 			Run: func(p *p2p.Peer, rw p2p.MsgReadWriter) error {
+				log.Info(fmt.Sprintf("[ ProtocolManager ] ==> establish a conn with %v", p.RemoteAddr()))
 				peer := manager.newPeer(int(version), p, rw)
 				select {
 				case manager.newPeerCh <- peer:
@@ -259,9 +260,10 @@ func (pm *ProtocolManager) handle(p *peer) error {
 	// Execute the Ethereum handshake
 	td, head, genesis := pm.blockchain.Status()
 	if err := p.Handshake(pm.networkId, td, head, genesis); err != nil {
-		p.Log().Debug("Ethereum handshake failed", "err", err)
+		p.Log().Debug("Ethereum handshake failed", "peer", p.RemoteAddr(), "err", err)
 		return err
 	}
+	p.Log().Debug("Ethereum hanshake success", "peer", p.RemoteAddr())
 	if rw, ok := p.rw.(*meteredMsgReadWriter); ok {
 		rw.Init(p.version)
 	}
@@ -666,15 +668,15 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 			}
 
 			// add by liangc
-			if tx.To()!=nil && params.IsChiefAddress(*tx.To()) {
-				log.Error("chief.tx can't broadcast","peer",p.id)
+			if tx.To() != nil && params.IsChiefAddress(*tx.To()) {
+				log.Error("chief.tx can't broadcast", "peer", p.id)
 				return errResp(ErrDecode, "chief.tx can't broadcast : %d", i)
 			}
 			/*
-			fmt.Println(">-----DEBUG----->")
-			fmt.Println("id:",p.ID().String())
-			fmt.Println("info:",p.Info())
-			fmt.Println("txid:",tx.Hash().Hex())
+				fmt.Println(">-----DEBUG----->")
+				fmt.Println("id:",p.ID().String())
+				fmt.Println("info:",p.Info())
+				fmt.Println("txid:",tx.Hash().Hex())
 			*/
 			p.MarkTransaction(tx.Hash())
 		}
@@ -748,7 +750,7 @@ func (self *ProtocolManager) txBroadcastLoop() {
 		select {
 		case event := <-self.txCh:
 			// add by liangc
-			if event.Tx.To()==nil || !params.IsChiefAddress(*event.Tx.To()) {
+			if event.Tx.To() == nil || !params.IsChiefAddress(*event.Tx.To()) {
 				self.BroadcastTx(event.Tx.Hash(), event.Tx)
 			}
 		// Err() channel will be closed when unsubscribing.

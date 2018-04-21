@@ -161,6 +161,7 @@ func NewBlockChain(chainDb ethdb.Database, config *params.ChainConfig, engine co
 	}
 	// Check the current state of the block hashes and make sure that we do not have any of the bad blocks in our chain
 	for hash := range BadHashes {
+		log.Info(fmt.Sprintf("[ blockchain ] ==> bad hashes ==> 0x%x", hash))
 		if header := bc.GetHeaderByHash(hash); header != nil {
 			// get the canonical block corresponding to the offending header's number
 			headerByNumber := bc.GetHeaderByNumber(header.Number.Uint64())
@@ -810,14 +811,14 @@ func (bc *BlockChain) WriteBlockAndState(block *types.Block, receipts []*types.R
 		bc.mu.Unlock()
 		if tribe, ok := bc.engine.(*tribe.Tribe); ok {
 			/*
-			for _, receipt := range receipts {
-				tx := block.Transaction(receipt.TxHash)
-				to := tx.To()
-				log.Info(fmt.Sprintf("[ blockchain ] ==> WriteBlockAndState('%d'), addr = 0x%x, gas used = %d", block.NumberU64(), to, receipt.GasUsed))
-				if to != nil && params.IsChiefAddress(*to) {
-					params.ChiefTxGas.SetUint64(receipt.GasUsed.Uint64() * 11 / 10)
+				for _, receipt := range receipts {
+					tx := block.Transaction(receipt.TxHash)
+					to := tx.To()
+					log.Info(fmt.Sprintf("[ blockchain ] ==> WriteBlockAndState('%d'), addr = 0x%x, gas used = %d", block.NumberU64(), to, receipt.GasUsed))
+					if to != nil && params.IsChiefAddress(*to) {
+						params.ChiefTxGas.SetUint64(receipt.GasUsed.Uint64() * 11 / 10)
+					}
 				}
-			}
 			*/
 			tribe.Status.Update(bc.currentBlock.Number(), bc.currentBlock.Hash())
 			log.Debug("WriteBlockAndState::tribe.Update -> : done", "num", block.Number().Int64())

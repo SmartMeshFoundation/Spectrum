@@ -723,6 +723,7 @@ func (d *Downloader) findAncestor(p *peerConnection, height uint64) (uint64, err
 		start = uint64(floor)
 	}
 	for start+1 < end {
+		log.Info(fmt.Sprintf("[ downloader ] ==> findAncestor() %d --> %d ", start, end))
 		// Split our chain interval in two, and request the hash to cross check
 		check := (start + end) / 2
 
@@ -753,7 +754,10 @@ func (d *Downloader) findAncestor(p *peerConnection, height uint64) (uint64, err
 
 				// Modify the search interval based on the response
 				if (d.mode == FullSync && !d.blockchain.HasBlockAndState(headers[0].Hash())) || (d.mode != FullSync && !d.lightchain.HasHeader(headers[0].Hash(), headers[0].Number.Uint64())) {
-					end = check
+					//end = check
+					// modified by cai.zhihong
+					start = check
+					log.Info(fmt.Sprintf("[ downloader ] ==> findAncestor() matched block found, set start = %v", start))
 					break
 				}
 				header := d.lightchain.GetHeaderByHash(headers[0].Hash()) // Independent of sync mode, header surely exists
@@ -761,7 +765,11 @@ func (d *Downloader) findAncestor(p *peerConnection, height uint64) (uint64, err
 					p.log.Debug("Received non requested header", "number", header.Number, "hash", header.Hash(), "request", check)
 					return 0, errBadPeer
 				}
-				start = check
+
+				//start = check
+				// modified by cai.zhihong
+				end = check
+				log.Info(fmt.Sprintf("[ downloader ] ==> findAncestor() matched block not found, set end = %v", end))
 
 			case <-timeout:
 				p.log.Debug("Waiting for search header timed out", "elapsed", ttl)
