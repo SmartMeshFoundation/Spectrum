@@ -264,6 +264,11 @@ func (t *Tribe) verifyCascadingFields(chain consensus.ChainReader, header *types
 		}
 	} else {
 		parent = chain.GetHeader(header.ParentHash, number-1)
+		if parent == nil || parent.Time == nil {
+			e := errors.New(fmt.Sprintf("nil_parent_current_num=%d",header.Number.Int64()))
+			log.Error("-->bad_block-->","err",e)
+			return e
+		}
 		if parent.Time.Uint64()+t.config.Period > header.Time.Uint64() {
 			return ErrInvalidTimestamp
 		}
