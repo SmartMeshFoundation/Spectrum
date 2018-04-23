@@ -136,7 +136,7 @@ func NewProtocolManager(config *params.ChainConfig, mode downloader.SyncMode, ne
 			Version: version,
 			Length:  ProtocolLengths[i],
 			Run: func(p *p2p.Peer, rw p2p.MsgReadWriter) error {
-				log.Info(fmt.Sprintf("[ ProtocolManager ] ==> establish a conn with %v", p.RemoteAddr()))
+				log.Debug(fmt.Sprintf("[ ProtocolManager ] ==> establish a conn with %v", p.RemoteAddr()))
 				peer := manager.newPeer(int(version), p, rw)
 				select {
 				case manager.newPeerCh <- peer:

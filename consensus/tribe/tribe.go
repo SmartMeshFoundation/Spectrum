@@ -155,9 +155,9 @@ func (t *Tribe) SetMining(i int32, currentNumber *big.Int, currentBlockHash comm
 	atomic.StoreInt32(&t.Status.mining, i)
 	if i == 1 {
 		if currentNumber.Int64() >= CHIEF_NUMBER {
-			fmt.Println(currentNumber.Int64(), "><> tribe.SetMining -> Status.Update : may be pending")
+			log.Debug("><> tribe.SetMining -> Status.Update : may be pending")
 			t.Status.Update(currentNumber, currentBlockHash)
-			fmt.Println(currentNumber.Int64(), "><> tribe.SetMining -> Status.Update : done")
+			log.Debug("><> tribe.SetMining -> Status.Update : done")
 		}
 	}
 	log.Debug("tribe.setMining_unlock", "mining", i)
@@ -174,9 +174,8 @@ func (t *Tribe) Author(header *types.Header) (a common.Address, e error) {
 func (t *Tribe) VerifyHeader(chain consensus.ChainReader, header *types.Header, seal bool) error {
 	err := t.verifyHeader(chain, header, nil)
 	if err == nil {
-		fmt.Println("----> FFFFFFFFFFFFFFFFF",header.Number.Int64())
 		p := chain.GetHeaderByHash(header.ParentHash)
-		t.Status.LoadSignersFromChief(p.Hash(),p.Number)
+		t.Status.LoadSignersFromChief(p.Hash(), p.Number)
 	}
 	return err
 }
@@ -208,7 +207,7 @@ func (t *Tribe) VerifyHeaders(chain consensus.ChainReader, headers []*types.Head
 // a batch of new headers.
 func (t *Tribe) verifyHeader(chain consensus.ChainReader, header *types.Header, parents []*types.Header) error {
 	if !t.isInit && header.Number.Int64() >= CHIEF_NUMBER {
-		t.Init(header.Hash(),header.Number)
+		t.Init(header.Hash(), header.Number)
 	}
 
 	if header.Number == nil {
@@ -278,8 +277,8 @@ func (t *Tribe) verifyCascadingFields(chain consensus.ChainReader, header *types
 	} else {
 		parent = chain.GetHeader(header.ParentHash, number-1)
 		if parent == nil || parent.Time == nil {
-			e := errors.New(fmt.Sprintf("nil_parent_current_num=%d",header.Number.Int64()))
-			log.Error("-->bad_block-->","err",e)
+			e := errors.New(fmt.Sprintf("nil_parent_current_num=%d", header.Number.Int64()))
+			log.Error("-->bad_block-->", "err", e)
 			return e
 		}
 		if parent.Time.Uint64()+t.config.Period > header.Time.Uint64() {
