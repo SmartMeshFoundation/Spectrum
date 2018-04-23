@@ -754,9 +754,7 @@ func (d *Downloader) findAncestor(p *peerConnection, height uint64) (uint64, err
 
 				// Modify the search interval based on the response
 				if (d.mode == FullSync && !d.blockchain.HasBlockAndState(headers[0].Hash())) || (d.mode != FullSync && !d.lightchain.HasHeader(headers[0].Hash(), headers[0].Number.Uint64())) {
-					//end = check
-					// modified by cai.zhihong
-					start = check
+					end = check
 					log.Info(fmt.Sprintf("[ downloader ] ==> findAncestor() matched block found, set start = %v", start))
 					break
 				}
@@ -766,9 +764,7 @@ func (d *Downloader) findAncestor(p *peerConnection, height uint64) (uint64, err
 					return 0, errBadPeer
 				}
 
-				//start = check
-				// modified by cai.zhihong
-				end = check
+				start = check
 				log.Info(fmt.Sprintf("[ downloader ] ==> findAncestor() matched block not found, set end = %v", end))
 
 			case <-timeout:
