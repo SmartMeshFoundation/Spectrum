@@ -170,7 +170,13 @@ func (t *Tribe) Author(header *types.Header) (a common.Address, e error) {
 
 // VerifyHeader checks whether a header conforms to the consensus rules.
 func (t *Tribe) VerifyHeader(chain consensus.ChainReader, header *types.Header, seal bool) error {
-	return t.verifyHeader(chain, header, nil)
+	err := t.verifyHeader(chain, header, nil)
+	if err == nil {
+		fmt.Println("----> FFFFFFFFFFFFFFFFF",header.Number.Int64())
+		p := chain.GetHeaderByHash(header.ParentHash)
+		t.Status.LoadSignersFromChief(p.Hash(),p.Number)
+	}
+	return err
 }
 
 // VerifyHeaders is similar to VerifyHeader, but verifies a batch of headers. The
