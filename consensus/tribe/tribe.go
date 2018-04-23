@@ -113,6 +113,7 @@ func New(config *params.TribeConfig, db ethdb.Database) *Tribe {
 }
 
 func (t *Tribe) Init(hash common.Hash, number *big.Int) {
+	t.isInit = true
 	go func() {
 		log.Info("init tribe.status when chiefservice start end.")
 		<-params.InitTribeStatus
@@ -198,6 +199,10 @@ func (t *Tribe) VerifyHeaders(chain consensus.ChainReader, headers []*types.Head
 // looking those up from the database. This is useful for concurrently verifying
 // a batch of new headers.
 func (t *Tribe) verifyHeader(chain consensus.ChainReader, header *types.Header, parents []*types.Header) error {
+	if !t.isInit && header.Number.Int64() >= CHIEF_NUMBER {
+		t.Init(header.Hash(),header.Number)
+	}
+
 	if header.Number == nil {
 		return errUnknownBlock
 	}

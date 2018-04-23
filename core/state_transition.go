@@ -50,15 +50,16 @@ The state transitioning model does all all the necessary work to work out a vali
 6) Derive new state root
 */
 type StateTransition struct {
-	gp         *GasPool
-	msg        Message
-	gas        uint64
-	gasPrice   *big.Int
-	initialGas *big.Int
-	value      *big.Int
-	data       []byte
-	state      vm.StateDB
-	evm        *vm.EVM
+	gp          *GasPool
+	msg         Message
+	gas         uint64
+	gasPrice    *big.Int
+	initialGas  *big.Int
+	value       *big.Int
+	data        []byte
+	state       vm.StateDB
+	evm         *vm.EVM
+	blockNumber *big.Int
 }
 
 // Message represents a message sent to a contract.
@@ -105,16 +106,17 @@ func IntrinsicGas(data []byte, contractCreation, homestead bool) *big.Int {
 }
 
 // NewStateTransition initialises and returns a new state transition object.
-func NewStateTransition(evm *vm.EVM, msg Message, gp *GasPool) *StateTransition {
+func NewStateTransition(evm *vm.EVM, msg Message, gp *GasPool, blockNumber *big.Int) *StateTransition {
 	return &StateTransition{
-		gp:         gp,
-		evm:        evm,
-		msg:        msg,
-		gasPrice:   msg.GasPrice(),
-		initialGas: new(big.Int),
-		value:      msg.Value(),
-		data:       msg.Data(),
-		state:      evm.StateDB,
+		gp:          gp,
+		evm:         evm,
+		msg:         msg,
+		gasPrice:    msg.GasPrice(),
+		initialGas:  new(big.Int),
+		value:       msg.Value(),
+		data:        msg.Data(),
+		state:       evm.StateDB,
+		blockNumber: blockNumber,
 	}
 }
 
@@ -125,8 +127,8 @@ func NewStateTransition(evm *vm.EVM, msg Message, gp *GasPool) *StateTransition 
 // the gas used (which includes gas refunds) and an error if it failed. An error always
 // indicates a core error meaning that the message would always fail for that particular
 // state and would never be accepted within a block.
-func ApplyMessage(evm *vm.EVM, msg Message, gp *GasPool) ([]byte, *big.Int, bool, error) {
-	st := NewStateTransition(evm, msg, gp)
+func ApplyMessage(evm *vm.EVM, msg Message, gp *GasPool, blockNumber *big.Int) ([]byte, *big.Int, bool, error) {
+	st := NewStateTransition(evm, msg, gp, blockNumber)
 
 	ret, _, gasUsed, failed, err := st.TransitionDb()
 	return ret, gasUsed, failed, err
@@ -179,8 +181,10 @@ func (st *StateTransition) buyGas() error {
 	if state.GetBalance(sender.Address()).Cmp(mgval) < 0 {
 		return errInsufficientBalanceForGas
 	}
-	if err := st.gp.SubGas(mgas); err != nil {
-		return err
+	if params.IsNR001Block(st.blockNumber) {
+		if err := st.gp.SubGas(mgas); err != nil {
+			return err
+		}
 	}
 	st.gas += mgas.Uint64()
 
@@ -294,11 +298,14 @@ func (st *StateTransition) refundGas() {
 }
 
 func (st *StateTransition) gasUsed() *big.Int {
-	// add by liangc if chief tx ,skip sub gas
-	g := new(big.Int).SetUint64(st.gas)
-	if st.msg.To()!=nil && params.IsChiefAddress(*st.msg.To()) {
-		log.Debug("skip_sub_gas_on_chiefTx","to",st.msg.To())
-		g = big.NewInt(0)
+	if params.IsNR001Block(st.blockNumber) {
+		// add by liangc if chief tx ,skip sub gas
+		g := new(big.Int).SetUint64(st.gas)
+		if st.msg.To() != nil && params.IsChiefAddress(*st.msg.To()) {
+			log.Debug("skip_sub_gas_on_chiefTx", "to", st.msg.To())
+			g = big.NewInt(0)
+		}
+		return new(big.Int).Sub(st.initialGas, g)
 	}
-	return new(big.Int).Sub(st.initialGas, g)
+	return new(big.Int).Sub(st.initialGas, new(big.Int).SetUint64(st.gas))
 }

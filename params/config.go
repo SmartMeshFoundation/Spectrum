@@ -66,6 +66,8 @@ var (
 		// TODO : 0.0.4
 		Chief004Block:   big.NewInt(0),
 		Chief004Address: common.Address{},
+		// new rules for chief.tx of gaspool
+		NR001Block: big.NewInt(0),
 		Tribe:           &TribeConfig{},
 	}
 
@@ -92,6 +94,8 @@ var (
 		// fix bug : redeploy
 		Chief004Block:   big.NewInt(120305),//hard fork testnet : fix bugs and debug chief
 		Chief004Address: common.HexToAddress("0xe242e2bcf5b0da6518320210fab0a27458bc0674"),
+		// new rules for chief.tx of gaspool
+		NR001Block: big.NewInt(176222),
 		Tribe:           &TribeConfig{},
 	}
 
@@ -206,6 +210,9 @@ type ChainConfig struct {
 	Chief004Block   *big.Int       `json:"chief004Block,omitempty"`
 	Chief004Address common.Address `json:"chief004Address,omitempty"`
 	// <<< add by liangc : set chief start number <<<
+	// add by liangc : new rules for chief.tx of gaspool
+	NR001Block *big.Int `json:"nr001Block,omitempty"` // NR001 HF block
+
 }
 
 // EthashConfig is the consensus engine configs for proof-of-work based sealing.

@@ -48,6 +48,20 @@ var (
 	// ChiefTxGas = big.NewInt(400000)
 )
 
+// if input num less then nr001block ,enable new role for chief.tx's gaspool
+func IsNR001Block(num *big.Int) bool {
+	if os.Getenv("TESTNET") == "1" {
+		if TestnetChainConfig.NR001Block.Cmp(num) <= 0 {
+			return true
+		}
+	} else {
+		if MainnetChainConfig.NR001Block.Cmp(num) <= 0 {
+			return true
+		}
+	}
+	return false
+}
+
 // startNumber and address must from chain's config
 func chiefAddressList() (list ChiefInfoList) {
 	if chiefInfoList != nil {

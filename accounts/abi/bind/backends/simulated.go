@@ -276,7 +276,7 @@ func (b *SimulatedBackend) callContract(ctx context.Context, call ethereum.CallM
 	// about the transaction and calling mechanisms.
 	vmenv := vm.NewEVM(evmContext, statedb, b.config, vm.Config{})
 	gaspool := new(core.GasPool).AddGas(math.MaxBig256)
-	ret, gasUsed, _, failed, err := core.NewStateTransition(vmenv, msg, gaspool).TransitionDb()
+	ret, gasUsed, _, failed, err := core.NewStateTransition(vmenv, msg, gaspool,block.Number()).TransitionDb()
 	return ret, gasUsed, failed, err
 }
 

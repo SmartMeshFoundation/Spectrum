@@ -255,8 +255,8 @@ func (self *TribeStatus) Update(currentNumber *big.Int, hash common.Hash) {
 		//success := <-params.SendToMsgBox("Update")
 		success := <-params.SendToMsgBoxWithNumber("Update", currentNumber)
 		log.Debug("TribeStatus.Update :", "num", currentNumber.Int64(), "success", success)
+		self.LoadSignersFromChief(hash, currentNumber)
 	}
-	self.LoadSignersFromChief(hash, currentNumber)
 	return
 }
 

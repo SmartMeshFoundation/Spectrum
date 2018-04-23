@@ -99,7 +99,7 @@ func ApplyTransaction(config *params.ChainConfig, bc *BlockChain, author *common
 	// about the transaction and calling mechanisms.
 	vmenv := vm.NewEVM(context, statedb, config, cfg)
 	// Apply the transaction to the current state (included in the env)
-	_, gas, failed, err := ApplyMessage(vmenv, msg, gp)
+	_, gas, failed, err := ApplyMessage(vmenv, msg, gp, bc.currentBlock.Number())
 	if err != nil {
 		return nil, nil, err
 	}
@@ -112,18 +112,21 @@ func ApplyTransaction(config *params.ChainConfig, bc *BlockChain, author *common
 	} else {
 		root = statedb.IntermediateRoot(config.IsEIP158(header.Number)).Bytes()
 	}
-
+	// add by liangc
+	if !(params.IsNR001Block(bc.currentBlock.Number()) && tx.To() != nil && params.IsChiefAddress(*tx.To())) {
+		usedGas.Add(usedGas, gas)
+	}
 	// Create a new receipt for the transaction, storing the intermediate root and gas used by the tx
 	// based on the eip phase, we're passing wether the root touch-delete accounts.
+	// TODO may be error
 	receipt := types.NewReceipt(root, failed, usedGas)
 	receipt.TxHash = tx.Hash()
 	// add by liangc : fit gaslimt
-	if tx.To() != nil && params.IsChiefAddress(*tx.To()) {
+	if params.IsNR001Block(bc.currentBlock.Number()) && tx.To() != nil && params.IsChiefAddress(*tx.To()) {
 		log.Debug("⛽️ --> pay_back_chief_gas", "txid", tx.Hash().Hex(), "gas", gas)
 		gp.AddGas(gas)
 	} else {
 		receipt.GasUsed = new(big.Int).Set(gas)
-		usedGas.Add(usedGas, gas)
 	}
 	// if the transaction created a contract, store the creation address in the receipt.
 	if msg.To() == nil {
