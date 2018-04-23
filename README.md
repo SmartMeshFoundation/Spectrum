@@ -18,9 +18,9 @@ or build a full suite of utilities:
 
     $ make all
 
-## Run full node to test geth
+## Run fast node to test geth
 
-    $ ./build/bin/geth --testnet --syncmode full console
+    $ ./build/bin/geth --testnet console
 
 ## Create new account
 
