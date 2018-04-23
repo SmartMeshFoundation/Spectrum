@@ -15,10 +15,14 @@ contract TribeChief_0_0_5 {
     string vsn = "0.0.5";
 
     //config >>>>
-    uint epoch = 5760; // 5760 = 24H ; 11520 = 48H
+    uint init_epoch = 5760;
+    uint init_singerLimit = 17;
+    uint init_volunteerLimit = 70;
+
+    uint epoch = init_epoch; // 5760 = 24H ; 11520 = 48H
     mapping(address => bool) genesisSigner; // genesis signer address
-    uint singerLimit = 17;
-    uint volunteerLimit = 70;
+    uint singerLimit = init_singerLimit;
+    uint volunteerLimit = init_volunteerLimit;
     //config <<<<
 
     uint blockNumber;
@@ -149,14 +153,42 @@ contract TribeChief_0_0_5 {
     // v0.0.5 >>>>
     // before "apply" ,after "owner"
     function setVolunteerLimit(uint n) public owner(msg.sender) {
+
+        require (n >= init_volunteerLimit);
+
+        uint vlen = _volunteerList.length;
+
+        if (n < vlen){
+            for (uint i = n; i < vlen; i ++){
+                delete volunteersMap[_volunteerList[i]];
+            }
+            //删除尾部多余
+            _volunteerList.length -= (vlen - n);
+        }
+
         volunteerLimit = n;
     }
 
     function setSingerLimit(uint n) public owner(msg.sender) {
+
+        require (n >= init_singerLimit);
+
+        uint slen = _signerList.length;
+
+        if (n < slen){
+            for(uint i = n; i < slen; i ++){
+                delete signersMap[_signerList[i]];
+            }
+            _signerList.length -= (slen - n);
+        }
+
         singerLimit = n;
     }
 
     function setEpoch(uint n) public owner(msg.sender) {
+
+        require (n >= init_epoch);
+
         epoch = n;
     }
     // v0.0.5 <<<<

@@ -63,9 +63,12 @@ var (
 		// 0.0.3
 		Chief003Block:   big.NewInt(0),
 		Chief003Address: common.Address{},
-		// TODO : 0.0.4
+		// 0.0.4
 		Chief004Block:   big.NewInt(0),
 		Chief004Address: common.Address{},
+		// 0.0.5 : ready for release
+		Chief005Block:   big.NewInt(0),
+		Chief005Address: common.Address{},
 		// new rules for chief.tx of gaspool
 		NR001Block: big.NewInt(0),
 		Tribe:           &TribeConfig{},
@@ -91,9 +94,12 @@ var (
 		// TODO : set chief 0.0.3 in chain config
 		Chief003Block:   big.NewInt(113772),//hard fork testnet
 		Chief003Address: common.HexToAddress("0xac28e532b3fac82554fc7b0b8b62549deeeb33a9"),
-		// fix bug : redeploy
+		// 0.0.4 : fix bug redeploy
 		Chief004Block:   big.NewInt(120305),//hard fork testnet : fix bugs and debug chief
 		Chief004Address: common.HexToAddress("0xe242e2bcf5b0da6518320210fab0a27458bc0674"),
+		// 0.0.5 : ready for release
+		Chief005Block:   big.NewInt(176555),
+		Chief005Address: common.HexToAddress("0x01a7282346e661ba69cf6073b923e9541bb83e6a"),
 		// new rules for chief.tx of gaspool
 		NR001Block: big.NewInt(176222),
 		Tribe:           &TribeConfig{},
@@ -209,6 +215,9 @@ type ChainConfig struct {
 	// chief.sol vsn 0.0.4
 	Chief004Block   *big.Int       `json:"chief004Block,omitempty"`
 	Chief004Address common.Address `json:"chief004Address,omitempty"`
+	// chief.sol vsn 0.0.5
+	Chief005Block   *big.Int       `json:"chief005Block,omitempty"`
+	Chief005Address common.Address `json:"chief005Address,omitempty"`
 	// <<< add by liangc : set chief start number <<<
 	// add by liangc : new rules for chief.tx of gaspool
 	NR001Block *big.Int `json:"nr001Block,omitempty"` // NR001 HF block

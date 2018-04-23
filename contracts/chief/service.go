@@ -39,6 +39,7 @@ type TribeService struct {
 	tribeChief_0_0_2 *chieflib.TribeChief
 	tribeChief_0_0_3 *chieflib.TribeChief_0_0_3
 	tribeChief_0_0_4 *chieflib.TribeChief_0_0_4
+	tribeChief_0_0_5 *chieflib.TribeChief_0_0_5
 	quit             chan int
 	server           *p2p.Server // peers and nodekey ...
 	ipcpath          string
@@ -83,6 +84,13 @@ func NewTribeService(ctx *node.ServiceContext) (node.Service, error) {
 			return nil, err
 		}
 		ts.tribeChief_0_0_4 = contract_0_0_4
+	}
+	if v0_0_5 := params.GetChiefInfoByVsn("0.0.5"); v0_0_5 != nil {
+		contract_0_0_5, err := chieflib.NewTribeChief_0_0_5(v0_0_5.Addr, eth.NewContractBackend(apiBackend))
+		if err != nil {
+			return nil, err
+		}
+		ts.tribeChief_0_0_5 = contract_0_0_5
 	}
 	return ts, nil
 }
@@ -145,7 +153,7 @@ func (self *TribeService) getstatus(mbox params.Mbox) {
 	if err != nil {
 		success.Success = false
 		success.Entity = err
-		log.Error("chief.mbox.rtn: getstatus <-", "success", success.Success, "err", err)
+		log.Debug("chief.mbox.rtn: getstatus <-", "success", success.Success, "err", err)
 	} else {
 		entity := chiefStatus
 		success.Entity = entity
@@ -206,6 +214,8 @@ func (self *TribeService) update(mbox params.Mbox) {
 			t, e = self.tribeChief_0_0_3.Update(auth, self.fetchVolunteer(blockNumber))
 		case "0.0.4":
 			t, e = self.tribeChief_0_0_4.Update(auth, self.fetchVolunteer(blockNumber))
+		case "0.0.5":
+			t, e = self.tribeChief_0_0_5.Update(auth, self.fetchVolunteer(blockNumber))
 		}
 	}
 
@@ -252,6 +262,12 @@ func (self *TribeService) getChiefStatus(blockNumber *big.Int, blockHash *common
 			return params.ChiefStatus(chiefStatus), err
 		case "0.0.4":
 			chiefStatus, err := self.tribeChief_0_0_4.GetStatus(opts)
+			if err != nil {
+				return params.ChiefStatus{}, err
+			}
+			return params.ChiefStatus(chiefStatus), err
+		case "0.0.5":
+			chiefStatus, err := self.tribeChief_0_0_5.GetStatus(opts)
 			if err != nil {
 				return params.ChiefStatus{}, err
 			}
