@@ -177,23 +177,9 @@ func New(ctx *node.ServiceContext, config *Config) (*Ethereum, error) {
 	}
 	eth.ApiBackend.gpo = gasprice.NewOracle(eth.ApiBackend, gpoParams)
 	// add by liangc
-	/*
 	if tribe,ok := eth.engine.(*tribe.Tribe) ; ok{
-		go func(blockchain *core.BlockChain){
-			END_INIT:
-			for {
-				if cb := blockchain.CurrentBlock();cb.Number().Int64() > 1 {
-					tribe.Init(cb.Hash(), cb.Number())
-					break END_INIT
-				}else{
-					fmt.Println("----WWWWWWWWWWWWWWW---->",cb.Number().Int64())
-					<- time.After(time.Second)
-				}
-			}
-		}(eth.blockchain)
-		fmt.Println("---------MMMMMMMMMMMMMM---------->")
+		tribe.Init(eth.BlockChain().CurrentHeader().Hash(), eth.BlockChain().CurrentHeader().Number)
 	}
-	*/
 	return eth, nil
 }
 

@@ -113,11 +113,13 @@ func New(config *params.TribeConfig, db ethdb.Database) *Tribe {
 }
 
 func (t *Tribe) Init(hash common.Hash, number *big.Int) {
-	t.isInit = true
 	go func() {
-		log.Info("init tribe.status when chiefservice start end.")
 		<-params.InitTribeStatus
-		t.Status.LoadSignersFromChief(hash, number)
+		log.Info("init tribe.status when chiefservice start end.")
+		if number.Int64() >= CHIEF_NUMBER {
+			t.isInit = true
+			t.Status.LoadSignersFromChief(hash, number)
+		}
 		rtn := params.SendToMsgBox("GetNodeKey")
 		success := <-rtn
 		t.Status.nodeKey = success.Entity.(*ecdsa.PrivateKey)
