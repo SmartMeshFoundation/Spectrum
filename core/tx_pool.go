@@ -1153,7 +1153,7 @@ func (pool *TxPool) promoteExecutables(accounts []common.Address) {
 				delete(pool.all, hash)
 				pool.priced.Removed()
 				queuedRateLimitCounter.Inc(1)
-				log.Info("Removed cap-exceeding queued transaction", "hash", hash)
+				log.Trace("Removed cap-exceeding queued transaction", "hash", hash)
 			}
 		}
 		// Delete the entire queue entry if it became empty.
