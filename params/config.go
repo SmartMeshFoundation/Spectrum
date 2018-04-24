@@ -98,8 +98,8 @@ var (
 		Chief004Block:   big.NewInt(120305),//hard fork testnet : fix bugs and debug chief
 		Chief004Address: common.HexToAddress("0xe242e2bcf5b0da6518320210fab0a27458bc0674"),
 		// 0.0.5 : ready for release
-		Chief005Block:   big.NewInt(176555),
-		Chief005Address: common.HexToAddress("0x01a7282346e661ba69cf6073b923e9541bb83e6a"),
+		Chief005Block:   big.NewInt(176244),
+		Chief005Address: common.HexToAddress("0xe90da8175922925dfb40e6505b508f1042e807aa"),
 		// new rules for chief.tx of gaspool
 		NR001Block: big.NewInt(176222),
 		Tribe:           &TribeConfig{},
