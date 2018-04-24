@@ -178,7 +178,10 @@ func (st *StateTransition) buyGas() error {
 		state  = st.state
 		sender = st.from()
 	)
-	if state.GetBalance(sender.Address()).Cmp(mgval) < 0 {
+
+	isok := state.GetBalance(sender.Address()).Cmp(mgval) < 0
+	//if state.GetBalance(sender.Address()).Cmp(mgval) < 0 {
+	if isok {
 		return errInsufficientBalanceForGas
 	}
 	if params.IsNR001Block(st.blockNumber) {
@@ -274,7 +277,19 @@ func (st *StateTransition) TransitionDb() (ret []byte, requiredGas, usedGas *big
 	requiredGas = new(big.Int).Set(st.gasUsed())
 
 	st.refundGas()
-	st.state.AddBalance(st.evm.Coinbase, new(big.Int).Mul(st.gasUsed(), st.gasPrice))
+	_m := st.evm.Coinbase
+	_r := new(big.Int).Mul(st.gasUsed(), st.gasPrice)
+	/*
+	fmt.Println()
+	fmt.Println("--before-->",_m.Hex(),st.state.GetBalance(_m))
+	*/
+	st.state.AddBalance(_m,_r)
+	/*
+	fmt.Println(msg.From().Hex(),"--RRRRRR--> r=",_r.String()," ; g=",msg.Gas().String()," ; p=",msg.GasPrice().String())
+	fmt.Println(st.gas,"----",st.initialGas.String())
+	fmt.Println("--after-->",_m.Hex(),st.state.GetBalance(_m))
+	fmt.Println()
+	*/
 	return ret, requiredGas, st.gasUsed(), vmerr != nil, err
 }
 
@@ -297,7 +312,9 @@ func (st *StateTransition) refundGas() {
 	st.gp.AddGas(new(big.Int).SetUint64(st.gas))
 }
 
+//TODO add by liangc : call contract gasused error
 func (st *StateTransition) gasUsed() *big.Int {
+	/*
 	if params.IsNR001Block(st.blockNumber) {
 		// add by liangc if chief tx ,skip sub gas
 		g := new(big.Int).SetUint64(st.gas)
@@ -307,5 +324,6 @@ func (st *StateTransition) gasUsed() *big.Int {
 		}
 		return new(big.Int).Sub(st.initialGas, g)
 	}
+	*/
 	return new(big.Int).Sub(st.initialGas, new(big.Int).SetUint64(st.gas))
 }

@@ -113,7 +113,10 @@ func ApplyTransaction(config *params.ChainConfig, bc *BlockChain, author *common
 		root = statedb.IntermediateRoot(config.IsEIP158(header.Number)).Bytes()
 	}
 	// add by liangc
-	if !(params.IsNR001Block(bc.currentBlock.Number()) && tx.To() != nil && params.IsChiefAddress(*tx.To())) {
+	if params.IsNR001Block(bc.currentBlock.Number()) && tx.To() != nil && params.IsChiefAddress(*tx.To()) {
+		log.Debug("⛽️ --> pay_back_chief_gas", "txid", tx.Hash().Hex(), "gas", gas)
+		gp.AddGas(gas)
+	}else{
 		usedGas.Add(usedGas, gas)
 	}
 	// Create a new receipt for the transaction, storing the intermediate root and gas used by the tx
@@ -122,10 +125,7 @@ func ApplyTransaction(config *params.ChainConfig, bc *BlockChain, author *common
 	receipt := types.NewReceipt(root, failed, usedGas)
 	receipt.TxHash = tx.Hash()
 	// add by liangc : fit gaslimt
-	if params.IsNR001Block(bc.currentBlock.Number()) && tx.To() != nil && params.IsChiefAddress(*tx.To()) {
-		log.Debug("⛽️ --> pay_back_chief_gas", "txid", tx.Hash().Hex(), "gas", gas)
-		gp.AddGas(gas)
-	} else {
+	if !(params.IsNR001Block(bc.currentBlock.Number()) && tx.To() != nil && params.IsChiefAddress(*tx.To())) {
 		receipt.GasUsed = new(big.Int).Set(gas)
 	}
 	// if the transaction created a contract, store the creation address in the receipt.

@@ -20,10 +20,12 @@ import "github.com/SmartMeshFoundation/Spectrum/common"
 
 // BadHashes represent a set of manually tracked bad hashes (usually hard forks)
 var BadHashes = map[common.Hash]bool{
-	// add by liangc : rollback 176222 in testnet for test rollback
+	// add by liangc : testnet : rollback 176222 in testnet for test rollback
 	common.HexToHash("0xab10d12d320ec1d6f6e336b0d9f7e5aa250249618912222d0d902a1d3e3fcf89"): true,
-	// add by liangc : 176222
+	// add by liangc : testnet : 176222
 	common.HexToHash("0x9423939f91a9edb51f68ec31cae3c46ab3dd853208e4266f403817bb514395dc"): true,
-	// add by liangc : rollback 180572 in testnet for fix the gaslimit verify
+	// add by liangc : testnet : 176222 : fix gas error
+	common.HexToHash("0xc01cdb386fa7c94b4830f97eeb51b1e3d9cdb6f890e13dbd1ebc902bdbdea243"): true,
+	// add by liangc : testnet : rollback 180572 in testnet for fix the gaslimit verify
 	common.HexToHash("0x4466da3caf8f797937d095f4da36635880ce1ebe088c0f0f78fb4dae66e73eec"): true,
 }
