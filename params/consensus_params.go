@@ -70,17 +70,17 @@ func chiefAddressList() (list ChiefInfoList) {
 	if os.Getenv("TESTNET") == "1" {
 		list = ChiefInfoList{
 			// at same account and block number to deploy this contract can be get the same address
-			newChiefInfo(TestnetChainConfig.Chief002Block, "0.0.2", TestnetChainConfig.Chief002Address),
-			newChiefInfo(TestnetChainConfig.Chief003Block, "0.0.3", TestnetChainConfig.Chief003Address),
-			newChiefInfo(TestnetChainConfig.Chief004Block, "0.0.4", TestnetChainConfig.Chief004Address),
+			//newChiefInfo(TestnetChainConfig.Chief002Block, "0.0.2", TestnetChainConfig.Chief002Address),
+			//newChiefInfo(TestnetChainConfig.Chief003Block, "0.0.3", TestnetChainConfig.Chief003Address),
+			//newChiefInfo(TestnetChainConfig.Chief004Block, "0.0.4", TestnetChainConfig.Chief004Address),
 			newChiefInfo(TestnetChainConfig.Chief005Block, "0.0.5", TestnetChainConfig.Chief005Address),
 		}
 	} else {
 		list = ChiefInfoList{
 			// at same account and block number to deploy this contract can be get the same address
-			newChiefInfo(MainnetChainConfig.Chief002Block, "0.0.2", MainnetChainConfig.Chief002Address),
-			newChiefInfo(MainnetChainConfig.Chief003Block, "0.0.3", MainnetChainConfig.Chief003Address),
-			newChiefInfo(MainnetChainConfig.Chief004Block, "0.0.4", MainnetChainConfig.Chief004Address),
+			//newChiefInfo(MainnetChainConfig.Chief002Block, "0.0.2", MainnetChainConfig.Chief002Address),
+			//newChiefInfo(MainnetChainConfig.Chief003Block, "0.0.3", MainnetChainConfig.Chief003Address),
+			//newChiefInfo(MainnetChainConfig.Chief004Block, "0.0.4", MainnetChainConfig.Chief004Address),
 			newChiefInfo(MainnetChainConfig.Chief005Block, "0.0.5", MainnetChainConfig.Chief005Address),
 		}
 	}
@@ -130,7 +130,7 @@ func IsChiefAddress(addr common.Address) bool {
 }
 func isChiefAddress(list ChiefInfoList, addr common.Address) bool {
 	if addr == common.HexToAddress("0x") {
-		log.Warn("--> isChiefAddress :: address_not_be_empty","addr",addr)
+		log.Warn("--> isChiefAddress :: address_not_be_empty", "addr", addr)
 		return false
 	}
 	for _, ci := range list {
