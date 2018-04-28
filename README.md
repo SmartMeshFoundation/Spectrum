@@ -15,7 +15,7 @@ Building geth requires both a Go (version 1.7 or later) and a C compiler. You ca
 or, to build the full suite of utilities:
 
     $ make all
-
+    
 ## Run fast node to test geth
 
     $ ./build/bin/geth --testnet console
