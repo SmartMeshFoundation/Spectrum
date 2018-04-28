@@ -4,18 +4,14 @@ SmartMesh Chain is an [Ethereum-based](https://github.com/SmartMeshFoundation/Sp
 
 Spectrum is still in the development stage, and this version is just for testing.
 
-## Installation on Linux/macOS 
+## Building the source 
+https://github.com/ethereum/go-ethereum/wiki/Building-Ethereum
+For prerequisites and detailed build instructions please read the [Installation Instructions](https://github.com/SmartMeshFoundation/Spectrum/wiki/Building-Specturm) on the wiki.
 
-Building SmartMesh Chain requires both Go Language(Version 1.9.2 or later) and C Language. You can install them using your favourite package manager. Once the dependencies have been installed, run
-
-    $ git clone https://github.com/SmartMeshFoundation/Spectrum.git
-
-    $ cd ./Spectrum
-
-    $ make geth
-
-or build a full suite of utilities:
-
+Building geth requires both a Go (version 1.7 or later) and a C compiler. You can install them using your favourite package manager. Once the dependencies are installed, run
+    $ make geth
+    
+or, to build the full suite of utilities:
     $ make all
 
 ## Run fast node to test geth
