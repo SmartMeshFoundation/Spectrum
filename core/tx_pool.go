@@ -704,7 +704,7 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 // add by liangc : chief contract's tx only be one , Keep up with the latest
 func (pool *TxPool) addChief(tx *types.Transaction) bool {
 	from := types.GetFromByTx(tx)
-	if pool.nodeKey != nil && from != nil && tx.To() != nil && params.IsChiefAddress(*tx.To()) {
+	if pool.nodeKey != nil && from != nil && tx.To() != nil && params.IsChiefAddress(*tx.To()) && params.IsChiefUpdate(tx.Data()) {
 		log.Debug("TxPool.addChief", "tx", tx.Hash().Hex(), "from", (*from).Hex(), "nk", crypto.PubkeyToAddress(pool.nodeKey.PublicKey).Hex())
 		if *from == crypto.PubkeyToAddress(pool.nodeKey.PublicKey) {
 			pool.chiefTx = tx

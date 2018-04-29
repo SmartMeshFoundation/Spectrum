@@ -8,11 +8,10 @@ import (
 )
 
 var data = ChiefInfoList{
-	newChiefInfo(big.NewInt(40000), "0.0.4", common.HexToAddress("0x04")),
-	newChiefInfo(big.NewInt(3), "0.0.2", common.HexToAddress("0x02")),
-	newChiefInfo(big.NewInt(60000), "0.0.6", common.HexToAddress("0x06")),
-	newChiefInfo(big.NewInt(30000), "0.0.3", common.HexToAddress("0x03")),
-	newChiefInfo(big.NewInt(50000), "0.0.5", common.HexToAddress("0x05")),
+	newChiefInfo(TestnetChainConfig.Chief002Block, "0.0.2", TestnetChainConfig.Chief002Address,TribeChief_0_0_2ABI),
+	newChiefInfo(TestnetChainConfig.Chief003Block, "0.0.3", TestnetChainConfig.Chief003Address,TribeChief_0_0_3ABI),
+	newChiefInfo(TestnetChainConfig.Chief004Block, "0.0.4", TestnetChainConfig.Chief004Address,TribeChief_0_0_4ABI),
+	newChiefInfo(TestnetChainConfig.Chief005Block, "0.0.5", TestnetChainConfig.Chief005Address,TribeChief_0_0_5ABI),
 }
 
 func TestChiefInfoList(t *testing.T) {
@@ -54,4 +53,11 @@ func TestFooBar(t *testing.T) {
 	var x []common.Address
 	x = nil
 	t.Log(x == nil)
+}
+
+func TestIsChiefUpdate(t *testing.T) {
+	data := []byte{28,27,135,114,0,0}
+	t.Log(IsChiefUpdate(data))
+	data = []byte{28,27,135,115,0,0}
+	t.Log(IsChiefUpdate(data))
 }

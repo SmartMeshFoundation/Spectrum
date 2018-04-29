@@ -154,6 +154,7 @@ func (self *TribeStatus) LoadSignersFromChief(hash common.Hash, number *big.Int)
 	self.BlackListLen = len(cs.BlackList) // chief-0.0.3
 	self.blackList = cs.BlackList
 	self.loadSigners(sl)
+	self.Epoch,self.SignerLimit,self.VolunteerLimit = cs.Epoch,cs.SignerLimit,cs.VolunteerLimit
 	go self.resetSignersLevel()
 	return nil
 }
@@ -315,7 +316,7 @@ func (self *TribeStatus) ValidateBlock(block *types.Block, validateSigner bool) 
 	}
 	var total = 0
 	for _, tx := range block.Transactions() {
-		if tx.To() != nil && params.IsChiefAddress(*tx.To()) {
+		if tx.To() != nil && params.IsChiefAddress(*tx.To()) && params.IsChiefUpdate(tx.Data()) {
 			total++
 		}
 	}

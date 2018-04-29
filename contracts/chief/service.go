@@ -259,19 +259,55 @@ func (self *TribeService) getChiefStatus(blockNumber *big.Int, blockHash *common
 			if err != nil {
 				return params.ChiefStatus{}, err
 			}
-			return params.ChiefStatus(chiefStatus), err
+			return params.ChiefStatus{
+				VolunteerList: chiefStatus.VolunteerList,
+				SignerList:    chiefStatus.SignerList,
+				ScoreList:     chiefStatus.ScoreList,
+				NumberList:    chiefStatus.NumberList,
+				BlackList:     nil,
+				Number:        chiefStatus.Number,
+			}, nil
 		case "0.0.4":
 			chiefStatus, err := self.tribeChief_0_0_4.GetStatus(opts)
 			if err != nil {
 				return params.ChiefStatus{}, err
 			}
-			return params.ChiefStatus(chiefStatus), err
+			return params.ChiefStatus{
+				VolunteerList: chiefStatus.VolunteerList,
+				SignerList:    chiefStatus.SignerList,
+				ScoreList:     chiefStatus.ScoreList,
+				NumberList:    chiefStatus.NumberList,
+				BlackList:     nil,
+				Number:        chiefStatus.Number,
+			}, nil
 		case "0.0.5":
 			chiefStatus, err := self.tribeChief_0_0_5.GetStatus(opts)
 			if err != nil {
 				return params.ChiefStatus{}, err
 			}
-			return params.ChiefStatus(chiefStatus), err
+			epoch , err := self.tribeChief_0_0_5.GetEpoch(opts)
+			if err != nil {
+				return params.ChiefStatus{}, err
+			}
+			signerLimit , err := self.tribeChief_0_0_5.GetSignerLimit(opts)
+			if err != nil {
+				return params.ChiefStatus{}, err
+			}
+			volunteerLimit , err := self.tribeChief_0_0_5.GetVolunteerLimit(opts)
+			if err != nil {
+				return params.ChiefStatus{}, err
+			}
+			return params.ChiefStatus{
+				VolunteerList: chiefStatus.VolunteerList,
+				SignerList:    chiefStatus.SignerList,
+				ScoreList:     chiefStatus.ScoreList,
+				NumberList:    chiefStatus.NumberList,
+				BlackList:     nil,
+				Number:        chiefStatus.Number,
+				Epoch: epoch,
+				SignerLimit: signerLimit,
+				VolunteerLimit: volunteerLimit,
+			}, nil
 		}
 	}
 	return params.ChiefStatus{}, errors.New("status_not_found")

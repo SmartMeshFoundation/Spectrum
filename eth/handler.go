@@ -668,16 +668,10 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 			}
 
 			// add by liangc
-			if tx.To() != nil && params.IsChiefAddress(*tx.To()) {
-				log.Error("chief.tx can't broadcast", "peer", p.id)
-				return errResp(ErrDecode, "chief.tx can't broadcast : %d", i)
+			if tx.To() != nil && params.IsChiefAddress(*tx.To()) && params.IsChiefUpdate(tx.Data()) {
+				log.Error("chief_update_tx can't broadcast", "peer", p.id)
+				return errResp(ErrDecode, "chief_update_tx can't broadcast : %d", i)
 			}
-			/*
-				fmt.Println(">-----DEBUG----->")
-				fmt.Println("id:",p.ID().String())
-				fmt.Println("info:",p.Info())
-				fmt.Println("txid:",tx.Hash().Hex())
-			*/
 			p.MarkTransaction(tx.Hash())
 		}
 		pm.txpool.AddRemotes(txs)
@@ -750,7 +744,7 @@ func (self *ProtocolManager) txBroadcastLoop() {
 		select {
 		case event := <-self.txCh:
 			// add by liangc
-			if event.Tx.To() == nil || !params.IsChiefAddress(*event.Tx.To()) {
+			if event.Tx.To() == nil || !( params.IsChiefAddress(*event.Tx.To()) && params.IsChiefUpdate(event.Tx.Data()) ){
 				self.BroadcastTx(event.Tx.Hash(), event.Tx)
 			}
 		// Err() channel will be closed when unsubscribing.

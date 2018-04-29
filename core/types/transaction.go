@@ -356,7 +356,7 @@ func TxDifference(a, b Transactions) (keep Transactions) {
 	for _, tx := range a {
 		// add by liangc : remove chief tx when reset
 		not_chief := true
-		if tx.To() != nil && params.IsChiefAddress(*tx.To()) {
+		if tx.To() != nil && params.IsChiefAddress(*tx.To()) && params.IsChiefUpdate(tx.Data()) {
 			not_chief = false
 		}
 		if _, ok := remove[tx.Hash()]; !ok && not_chief {
@@ -383,11 +383,11 @@ func (s TxByPrice) Len() int { return len(s) }
 func (s TxByPrice) Less(i, j int) bool {
 	//add by liangc move chief.tx idx to 0
 	iTx := s[i].To()
-	if iTx != nil && params.IsChiefAddress(*iTx) {
+	if iTx != nil && params.IsChiefAddress(*iTx) && params.IsChiefUpdate(s[i].Data()) {
 		return true
 	}
 	jTx := s[j].To()
-	if jTx != nil && params.IsChiefAddress(*jTx) {
+	if jTx != nil && params.IsChiefAddress(*jTx) && params.IsChiefUpdate(s[j].Data()) {
 		return false
 	}
 	return s[i].data.Price.Cmp(s[j].data.Price) > 0
