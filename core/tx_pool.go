@@ -641,8 +641,8 @@ func (pool *TxPool) Pending() (map[common.Address]types.Transactions, error) {
 		//fmt.Println(2,"FFFFFFFFFFFFFFFFFFFF",err,mid.Hex())
 		if _txs , ok := pending[mid]; ok {
 			pending[mid] = append(_txs[:],chiefTx)
-			for _,_tx := range _txs {
-				fmt.Println("👮 --onPending-->",_tx.Hash().Hex(),_tx.Nonce(),_tx.Data())
+			for _i,_tx := range pending[mid] {
+				fmt.Println(_i,"👮 --onPending-->",_tx.Hash().Hex(),_tx.Nonce(),_tx.Data())
 			}
 		}else{
 			pending[mid] = types.Transactions{chiefTx}
