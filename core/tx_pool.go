@@ -113,7 +113,7 @@ var (
 type TxStatus uint
 
 const (
-	TxStatusUnknown TxStatus = iota
+	TxStatusUnknown  TxStatus = iota
 	TxStatusQueued
 	TxStatusPending
 	TxStatusIncluded
@@ -627,6 +627,7 @@ func (pool *TxPool) Pending() (map[common.Address]types.Transactions, error) {
 	pending := make(map[common.Address]types.Transactions)
 	var mid common.Address
 	//add by liangc : append chiefTx and delete
+	log.Debug("watch_txpool_pending -->","cheifTx",pool.chiefTx)
 	if pool.chiefTx != nil {
 		chiefTx := pool.chiefTx
 		pool.chiefTx = nil
@@ -704,19 +705,23 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 // add by liangc : chief contract's tx only be one , Keep up with the latest
 func (pool *TxPool) addChief(tx *types.Transaction) bool {
 	from := types.GetFromByTx(tx)
-	if pool.nodeKey != nil && from != nil && tx.To() != nil && params.IsChiefAddress(*tx.To()) && params.IsChiefUpdate(tx.Data()) {
+	fmt.Println("--XXXXXXXXXXXXXX-->",tx.Hash().Hex(),tx.Data())
+	if pool.nodeKey != nil && from != nil && tx.To() != nil && params.IsChiefAddress(*tx.To()) {
 		log.Debug("TxPool.addChief", "tx", tx.Hash().Hex(), "from", (*from).Hex(), "nk", crypto.PubkeyToAddress(pool.nodeKey.PublicKey).Hex())
-		if *from == crypto.PubkeyToAddress(pool.nodeKey.PublicKey) {
-			pool.chiefTx = tx
-			//params.FixChiefTxNonce(tx.To(), tx.Nonce())
-			log.Info("TxPool.addChief", "txNonce", tx.Nonce())
-			//fmt.Println(pool.chain.CurrentBlock().Number().Int64(), "--XXXX-- TxPool.addChief:FixChiefTxNonce ---->",pool.chiefTx.Nonce(), pool.chiefTx.Hash().Hex())
-			return true
+		if params.IsChiefUpdate(tx.Data()) {
+			if *from == crypto.PubkeyToAddress(pool.nodeKey.PublicKey) {
+				pool.chiefTx = tx
+				//params.FixChiefTxNonce(tx.To(), tx.Nonce())
+				log.Info("TxPool.addChief", "txNonce", tx.Nonce())
+				//fmt.Println(pool.chain.CurrentBlock().Number().Int64(), "--XXXX-- TxPool.addChief:FixChiefTxNonce ---->",pool.chiefTx.Nonce(), pool.chiefTx.Hash().Hex())
+				return true
+			} else {
+				debug.PrintStack()
+				log.Warn("repeat chief.tx", "from", from.Hex(), "txid", tx.Hash().Hex())
+				pool.removeTx(tx.Hash())
+				return true
+			}
 		} else {
-			debug.PrintStack()
-			log.Warn("repeat chief.tx", "from", from.Hex(), "txid", tx.Hash().Hex())
-			pool.removeTx(tx.Hash())
-			return true
 		}
 	}
 	return false
