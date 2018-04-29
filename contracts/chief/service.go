@@ -285,27 +285,27 @@ func (self *TribeService) getChiefStatus(blockNumber *big.Int, blockHash *common
 			if err != nil {
 				return params.ChiefStatus{}, err
 			}
-			epoch , err := self.tribeChief_0_0_5.GetEpoch(opts)
+			epoch, err := self.tribeChief_0_0_5.GetEpoch(opts)
 			if err != nil {
 				return params.ChiefStatus{}, err
 			}
-			signerLimit , err := self.tribeChief_0_0_5.GetSignerLimit(opts)
+			signerLimit, err := self.tribeChief_0_0_5.GetSignerLimit(opts)
 			if err != nil {
 				return params.ChiefStatus{}, err
 			}
-			volunteerLimit , err := self.tribeChief_0_0_5.GetVolunteerLimit(opts)
+			volunteerLimit, err := self.tribeChief_0_0_5.GetVolunteerLimit(opts)
 			if err != nil {
 				return params.ChiefStatus{}, err
 			}
 			return params.ChiefStatus{
-				VolunteerList: chiefStatus.VolunteerList,
-				SignerList:    chiefStatus.SignerList,
-				ScoreList:     chiefStatus.ScoreList,
-				NumberList:    chiefStatus.NumberList,
-				BlackList:     nil,
-				Number:        chiefStatus.Number,
-				Epoch: epoch,
-				SignerLimit: signerLimit,
+				VolunteerList:  chiefStatus.VolunteerList,
+				SignerList:     chiefStatus.SignerList,
+				ScoreList:      chiefStatus.ScoreList,
+				NumberList:     chiefStatus.NumberList,
+				BlackList:      chiefStatus.BlackList,
+				Number:         chiefStatus.Number,
+				Epoch:          epoch,
+				SignerLimit:    signerLimit,
 				VolunteerLimit: volunteerLimit,
 			}, nil
 		}

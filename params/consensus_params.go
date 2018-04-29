@@ -143,9 +143,6 @@ func isChiefBlock(list ChiefInfoList, blockNumber *big.Int) bool {
 //TODO optimize
 func IsChiefUpdate(data []byte) bool {
 	if len(data) > 4 {
-		fmt.Println("=========================================")
-		fmt.Println(data)
-		fmt.Println("=========================================")
 		for _, ci := range chiefAddressList() {
 			reader := strings.NewReader(ci.Abi)
 			dec := json.NewDecoder(reader)
@@ -155,6 +152,7 @@ func IsChiefUpdate(data []byte) bool {
 			}
 			buf, _ := abi.Pack("update", common.Address{})
 			if bytes.Equal(data[0:4], buf[0:4]) {
+				log.Debug("is_chief_update_true","input",data)
 				return true
 			}
 		}
