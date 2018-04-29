@@ -627,7 +627,6 @@ func (pool *TxPool) Pending() (map[common.Address]types.Transactions, error) {
 	pending := make(map[common.Address]types.Transactions)
 	var mid common.Address
 	//add by liangc : append chiefTx and delete
-	log.Debug("watch_txpool_pending -->","cheifTx",pool.chiefTx)
 	if pool.chiefTx != nil {
 		chiefTx := pool.chiefTx
 		pool.chiefTx = nil
@@ -705,7 +704,6 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 // add by liangc : chief contract's tx only be one , Keep up with the latest
 func (pool *TxPool) addChief(tx *types.Transaction) bool {
 	from := types.GetFromByTx(tx)
-	fmt.Println("--XXXXXXXXXXXXXX-->",tx.Hash().Hex(),tx.Data())
 	if pool.nodeKey != nil && from != nil && tx.To() != nil && params.IsChiefAddress(*tx.To()) {
 		log.Debug("TxPool.addChief", "tx", tx.Hash().Hex(), "from", (*from).Hex(), "nk", crypto.PubkeyToAddress(pool.nodeKey.PublicKey).Hex())
 		if params.IsChiefUpdate(tx.Data()) {
