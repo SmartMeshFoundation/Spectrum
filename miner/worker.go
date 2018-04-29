@@ -498,7 +498,7 @@ func (self *worker) commitNewWork() {
 		log.Error("Failed to fetch pending transactions", "err", err)
 		return
 	}
-	// debug --->
+	/* debug --->
 	for _,_v := range pending {
 		for _,_tx := range _v {
 			if _tx.To()!=nil && params.IsChiefAddress(*_tx.To()) {
@@ -506,7 +506,7 @@ func (self *worker) commitNewWork() {
 			}
 		}
 	}
-	// debug <---
+	// debug <--- */
 
 	txs := types.NewTransactionsByPriceAndNonce(self.current.signer, pending)
 	work.commitTransactions(self.mux, txs, self.chain, self.coinbase)
