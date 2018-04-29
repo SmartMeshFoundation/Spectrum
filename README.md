@@ -8,7 +8,7 @@ Spectrum is still in the development stage, and this version is just for testing
 
 For prerequisites and detailed build instructions please read the [Installation Instructions](https://github.com/SmartMeshFoundation/Spectrum/wiki/Building-Specturm) on the wiki.
 
-Building geth requires both a Go (version 1.7 or later) and a C compiler. You can install them using your favourite package manager. Once the dependencies are installed, run
+Building geth requires both a Go (version 1.9.2 or later) and a C compiler. You can install them using your favourite package manager. Once the dependencies are installed, run
 
     $ make geth
     
