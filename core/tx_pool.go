@@ -636,9 +636,10 @@ func (pool *TxPool) Pending() (map[common.Address]types.Transactions, error) {
 	if pool.chiefTx != nil {
 		chiefTx := pool.chiefTx
 		pool.chiefTx = nil
-		//fmt.Println(1,"FFFFFFFFFFFFFFFFFFFF",pool.signer)
 		mid, _ = types.Sender(pool.signer, chiefTx)
-		//fmt.Println(2,"FFFFFFFFFFFFFFFFFFFF",err,mid.Hex())
+		//TODO will enable execute chief's tx method
+		//TODO will enable execute chief's tx method
+		//TODO will enable execute chief's tx method
 		if _txs , ok := pending[mid]; ok {
 			pending[mid] = append(_txs[:],chiefTx)
 			for _i,_tx := range pending[mid] {
@@ -729,7 +730,11 @@ func (pool *TxPool) addChief(tx *types.Transaction) bool {
 				return true
 			}
 		} else {
-			fmt.Println("👮 --onAddChief-->",tx.Hash().Hex(),tx.Nonce(),tx.Data())
+			//TODO will enable execute chief's tx method
+			//TODO will enable execute chief's tx method
+			//TODO will enable execute chief's tx method
+			log.Warn("👮 --onAddChief--> lost_now ","txid",tx.Hash().Hex(),"input",tx.Data())
+			return true
 		}
 	}
 	return false
