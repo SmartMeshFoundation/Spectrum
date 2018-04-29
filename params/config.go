@@ -24,7 +24,7 @@ import (
 )
 
 var (
-	MainnetGenesisHash = common.HexToHash("0x0926bd390e4f3b22f3bde8ebca24ac2246f2afc73850997a0caa5b7d7be0225d") // enforce below configs on
+	MainnetGenesisHash = common.HexToHash("0x016bc7ee5050f75929e2961636dbbdefb25799d1ed3a9e93cb45a9a9b0e1c731") // enforce below configs on
 	TestnetGenesisHash = common.HexToHash("0x28242478c4f01d9208a79d962b7f6383af488565f36aea7038a34020c07db697") // Testnet genesis hash to enforce below configs on
 )
 
@@ -53,22 +53,12 @@ var (
 		EIP150Hash:     common.Hash{},
 		EIP155Block:    big.NewInt(0),
 		EIP158Block:    big.NewInt(0),
-		ByzantiumBlock: big.NewInt(4),
+		ByzantiumBlock: big.NewInt(2),
 		// add by liangc : change default consensus for dev
-		//Clique: &CliqueConfig{ Period: 15, Epoch:  30000}, //Ethash: new(EthashConfig),
 		// if skip this vsn please set 0 or nil to block and set common.Address{} to address
-		// 0.0.2
-		Chief002Block:   big.NewInt(0),
-		Chief002Address: common.Address{},
-		// 0.0.3
-		Chief003Block:   big.NewInt(0),
-		Chief003Address: common.Address{},
-		// 0.0.4
-		Chief004Block:   big.NewInt(0),
-		Chief004Address: common.Address{},
 		// 0.0.5 : ready for release
-		Chief005Block:   big.NewInt(0),
-		Chief005Address: common.Address{},
+		Chief005Block:   big.NewInt(2),
+		Chief005Address: common.HexToAddress("0xf0d2ad4e0d25cfea98e9640329993bbc52396abd"),
 		// new rules for chief.tx of gaspool
 		NR001Block: big.NewInt(0),
 		Tribe:           &TribeConfig{},

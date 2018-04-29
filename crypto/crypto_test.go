@@ -242,3 +242,11 @@ func TestToECDSA(t *testing.T) {
 	t.Log(hex.EncodeToString(nodeid)==target)
 }
 
+func TestFromECDSA(t *testing.T) {
+	prv,_ := GenerateKey()
+	buf := FromECDSA(prv)
+	s := hex.EncodeToString(buf)
+	t.Log("key",s)
+	t.Log(PubkeyToAddress(prv.PublicKey).Hex())
+	//0xd91c07c6be04111aecc721e57e11a8a0b1c73fc1
+}

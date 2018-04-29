@@ -17,6 +17,8 @@
 package params
 
 var MainnetBootnodes = []string{
+	// cn : qingdao 1
+	"enode://697d18773e08d2ac01c6d6b653ad4f8942bc805118cc09f41508c55e05e5043fb801df7783493e9f87be3b62a1d4da4d753f4b9bbf8921c09ebace0a165ac223@47.105.34.94:44944",
 }
 
 var TestnetBootnodes = []string{

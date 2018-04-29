@@ -27,7 +27,7 @@ const (
 
 	historyLimit = 2048
 	wiggleTime   = 500 * time.Millisecond // Random delay (per signer) to allow concurrent signers
-	CHIEF_NUMBER = int64(1)
+	CHIEF_NUMBER = int64(2)
 )
 
 var (

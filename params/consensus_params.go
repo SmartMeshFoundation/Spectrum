@@ -93,9 +93,6 @@ func chiefAddressList() (list ChiefInfoList) {
 	} else {
 		list = ChiefInfoList{
 			// at same account and block number to deploy this contract can be get the same address
-			newChiefInfo(MainnetChainConfig.Chief002Block, "0.0.2", MainnetChainConfig.Chief002Address, TribeChief_0_0_2ABI),
-			newChiefInfo(MainnetChainConfig.Chief003Block, "0.0.3", MainnetChainConfig.Chief003Address, TribeChief_0_0_3ABI),
-			newChiefInfo(MainnetChainConfig.Chief004Block, "0.0.4", MainnetChainConfig.Chief004Address, TribeChief_0_0_4ABI),
 			newChiefInfo(MainnetChainConfig.Chief005Block, "0.0.5", MainnetChainConfig.Chief005Address, TribeChief_0_0_5ABI),
 		}
 	}
@@ -112,7 +109,10 @@ func GetChiefInfoByVsn(vsn string) *ChiefInfo {
 	return nil
 }
 func GetChiefInfo(blockNumber *big.Int) *ChiefInfo {
-	return getChiefInfo(chiefAddressList(), blockNumber)
+	if blockNumber != nil && blockNumber.Cmp(big.NewInt(0)) > 0 {
+		return getChiefInfo(chiefAddressList(), blockNumber)
+	}
+	return nil
 }
 func getChiefInfo(list ChiefInfoList, blockNumber *big.Int) *ChiefInfo {
 	// TODO sort once only

@@ -104,9 +104,11 @@ func (ec *Client) getBlock(ctx context.Context, method string, args ...interface
 	}
 	*/
 	//if head.TxHash == types.EmptyRootHash && len(body.Transactions) > 0 {
+	/* TODO
 	if head.TxHash == types.EmptyRootHash {
 		return nil, fmt.Errorf("server returned non-empty transaction list but block header indicates no transactions")
 	}
+	*/
 	/*
 	if head.TxHash != types.EmptyRootHash && len(body.Transactions) == 0 {
 		return nil, fmt.Errorf("server returned empty transaction list but block header indicates transactions")
