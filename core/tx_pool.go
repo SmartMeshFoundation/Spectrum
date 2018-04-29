@@ -626,6 +626,12 @@ func (pool *TxPool) Pending() (map[common.Address]types.Transactions, error) {
 	defer pool.mu.Unlock()
 	pending := make(map[common.Address]types.Transactions)
 	var mid common.Address
+
+	for _, kv := range pool.pending.asList() {
+		addr, list := kv.key, kv.val
+		pending[addr] = list.Flatten()
+	}
+
 	//add by liangc : append chiefTx and delete
 	if pool.chiefTx != nil {
 		chiefTx := pool.chiefTx
@@ -641,11 +647,6 @@ func (pool *TxPool) Pending() (map[common.Address]types.Transactions, error) {
 		}else{
 			pending[mid] = types.Transactions{chiefTx}
 		}
-
-	}
-	for _, kv := range pool.pending.asList() {
-		addr, list := kv.key, kv.val
-		pending[addr] = list.Flatten()
 	}
 	return pending, nil
 }
@@ -728,6 +729,7 @@ func (pool *TxPool) addChief(tx *types.Transaction) bool {
 				return true
 			}
 		} else {
+			fmt.Println("👮 --onAddChief-->",tx.Hash().Hex(),tx.Nonce(),tx.Data())
 		}
 	}
 	return false
