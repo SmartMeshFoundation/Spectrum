@@ -506,7 +506,7 @@ func (d *Downloader) syncWithPeer(p *peerConnection, hash common.Hash, td *big.I
 		// If sync failed in the critical section, bump the fail counter.
 		atomic.AddUint32(&d.fsPivotFails, 1)
 	}
-	fmt.Println("downloader.syncWithPeer:", err, hash.Hex())
+	//fmt.Println("downloader.syncWithPeer:", err, hash.Hex())
 	return err
 }
 

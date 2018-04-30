@@ -318,7 +318,7 @@ func DefaultGenesisBlock() *Genesis {
 		Config:    params.MainnetChainConfig,
 		Nonce:     0,
 		ExtraData: hexutil.MustDecode(genesisSigner),
-		GasLimit:   16777216, //5000,
+		GasLimit:   5000000,
 		Difficulty: big.NewInt(2),
 		Alloc:      decodePrealloc(mainnetAllocData),
 	}

@@ -24,28 +24,14 @@ import (
 )
 
 var (
-	MainnetGenesisHash = common.HexToHash("0x016bc7ee5050f75929e2961636dbbdefb25799d1ed3a9e93cb45a9a9b0e1c731") // enforce below configs on
+	MainnetGenesisHash = common.HexToHash("0xa8ab5ecb308dd061e6baa8c8a04a62b3e35fae7aae1393921f8d52deac2c5712") // enforce below configs on
 	TestnetGenesisHash = common.HexToHash("0x28242478c4f01d9208a79d962b7f6383af488565f36aea7038a34020c07db697") // Testnet genesis hash to enforce below configs on
 )
 
 var (
 	// MainnetChainConfig is the chain parameters to run a node on the main network.
-	/*
 	MainnetChainConfig = &ChainConfig{
-		ChainId:        big.NewInt(1),
-		HomesteadBlock: big.NewInt(1150000),
-		DAOForkBlock:   big.NewInt(1920000),
-		DAOForkSupport: true,
-		EIP150Block:    big.NewInt(2463000),
-		EIP150Hash:     common.HexToHash("0x2086799aeebeae135c246c65021c82b4e15a2c451340993aacfd2751886514f0"),
-		EIP155Block:    big.NewInt(2675000),
-		EIP158Block:    big.NewInt(2675000),
-		ByzantiumBlock: big.NewInt(4370000),
-		Ethash: new(EthashConfig),
-	}
-	*/
-	MainnetChainConfig = &ChainConfig{
-		ChainId:        big.NewInt(19840711),
+		ChainId:        big.NewInt(20180430),
 		HomesteadBlock: big.NewInt(0),
 		DAOForkBlock:   nil,
 		DAOForkSupport: false,
@@ -53,7 +39,7 @@ var (
 		EIP150Hash:     common.Hash{},
 		EIP155Block:    big.NewInt(0),
 		EIP158Block:    big.NewInt(0),
-		ByzantiumBlock: big.NewInt(2),
+		ByzantiumBlock: big.NewInt(0),
 		// add by liangc : change default consensus for dev
 		// if skip this vsn please set 0 or nil to block and set common.Address{} to address
 		// 0.0.5 : ready for release
