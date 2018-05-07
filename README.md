@@ -20,51 +20,60 @@ Building geth requires both a Go (version 1.9.2 or later) and a C compiler. You 
 
 ## View the miner nodes
 
-	> tribe.getStatus()
-
-    then you will see the following message:
+* tribe.getStatus()
+* then you will see the following message:
+<pre></code>{
+  "epoch": 5760,
+  "number": 39601,
+  "signerLevel": "None",
+  "signerLimit": 17,
+  "signers": [
     {
-        number: 243,
-        signers: [{
-            address: "0x4110bd1ff0b73fa12c259acf39c950277f266787",
-            score: 3
-        }, {
-            address: "0x76d564fe610ddf349333acbfe4a58abfd1d3ca04",
-            score: 3
-        }],
-        volunteers: []
+      "address": "0x3a5fbac6ca913599c5fde8c1638db58d01de8a48",
+      "score": 3
+    },
+    {
+      "address": "0xad4c80164065a3c33dd2014908c7563eff88ab49",
+      "score": 3
+    },
+    {
+      "address": "0xc22d53456abd14da347517a4b47ea24866b8e3ae",
+      "score": 3
+    },
+    {
+      "address": "0x7b06dd132c089034157f1e1aacda75787df1e0c5",
+      "score": 3
+    },
+    {
+      "address": "0x00ab501f3fe4b2f71651764699ec5752598e679f",
+      "score": 3
     }
-    that tell you there are two miners in the testnet.
+  ],
+  "totalSinner": 2,
+  "volunteerLimit": 70,
+  "volunteers": []
+}</code></pre>
 
-## View the block mining history
+that tell you there are two miners in the testnet.
 
-    > tribe.getHistory()
+## View the block mining history in console
+
+* tribe.getHistory(11,false)
     
-    then you will see the following message:
-    [{
-        🔨: "9497 -> 0x76A45989Dd96f58D5cF3d36153068D7B347f7b55"
-    }, {
-        🔨: "9496 -> 0x00aB501f3Fe4b2f71651764699EC5752598E679f"
-    }, {
-        🔨: "9495 -> 0x7B06dd132c089034157f1E1AAcda75787DF1e0c5"
-    }, {
-        🔨: "9494 -> 0xc22D53456ABd14Da347517a4B47ea24866B8E3Ae"
-    }, {
-        🔨: "9493 -> 0xAd4c80164065a3c33dD2014908c7563eFf88Ab49"
-    }, {
-        🔨: "9492 -> 0x3a5fBaC6CA913599C5fde8c1638dB58d01De8A48"
-    }, {
-        🔨: "9491 -> 0x76A45989Dd96f58D5cF3d36153068D7B347f7b55"
-    }, {
-        🔨: "9490 -> 0x00aB501f3Fe4b2f71651764699EC5752598E679f"
-    }, {
-        🔨: "9489 -> 0x7B06dd132c089034157f1E1AAcda75787DF1e0c5"
-    }, {
-        🔨: "9488 -> 0xc22D53456ABd14Da347517a4B47ea24866B8E3Ae"
-    }, {
-        🔨: "9487 -> 0xAd4c80164065a3c33dD2014908c7563eFf88Ab49"
-    }]
-    that tell the block number and miner's account that generate that block.
+* then you will see the following message (console format):
+<pre>code>[{
+    🔨: "39708 -> 0x7B06dd132c089034157f1E1AAcda75787DF1e0c5"
+}, {
+    🔨: "39707 -> 0xc22D53456ABd14Da347517a4B47ea24866B8E3Ae"
+}, {
+    🔨: "39706 -> 0xAd4c80164065a3c33dD2014908c7563eFf88Ab49"
+}, {
+    🔨: "39705 -> 0x3a5fBaC6CA913599C5fde8c1638dB58d01De8A48"
+}, {
+    🔨: "39704 -> 0x00aB501f3Fe4b2f71651764699EC5752598E679f"
+}]</code></pre>
+
+that tell the block number and miner's account that generate that block.
 
 ## get your own miner account
 
