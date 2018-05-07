@@ -22,7 +22,7 @@ Building geth requires both a Go (version 1.9.2 or later) and a C compiler. You 
 
 * tribe.getStatus()
 * then you will see the following message:
-<pre></code>{
+<pre><code>{
   "epoch": 5760,
   "number": 39601,
   "signerLevel": "None",
