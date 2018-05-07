@@ -61,7 +61,7 @@ that tell you there are two miners in the testnet.
 * tribe.getHistory(11,false)
     
 * then you will see the following message (console format):
-<pre>code>[{
+<pre><code>[{
     🔨: "39708 -> 0x7B06dd132c089034157f1E1AAcda75787DF1e0c5"
 }, {
     🔨: "39707 -> 0xc22D53456ABd14Da347517a4B47ea24866B8E3Ae"
