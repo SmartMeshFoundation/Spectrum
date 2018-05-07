@@ -65,7 +65,7 @@ var (
 
 // if input num less then nr001block ,enable new role for chief.tx's gaspool
 func IsNR001Block(num *big.Int) bool {
-	if os.Getenv("TESTNET") == "1" {
+	if IsTestnet() {
 		if TestnetChainConfig.NR001Block.Cmp(num) <= 0 {
 			return true
 		}
@@ -82,7 +82,7 @@ func chiefAddressList() (list ChiefInfoList) {
 	if chiefInfoList != nil {
 		return chiefInfoList
 	}
-	if os.Getenv("TESTNET") == "1" {
+	if IsTestnet() {
 		list = ChiefInfoList{
 			// at same account and block number to deploy this contract can be get the same address
 			newChiefInfo(TestnetChainConfig.Chief002Block, "0.0.2", TestnetChainConfig.Chief002Address, TribeChief_0_0_2ABI),
@@ -238,4 +238,12 @@ type ChiefStatus struct {
 	Epoch          *big.Int
 	SignerLimit    *big.Int
 	VolunteerLimit *big.Int
+}
+
+func GetIPCPath() string {
+	return os.Getenv("IPCPATH")
+}
+
+func IsTestnet() bool {
+	return os.Getenv("TESTNET") == "1"
 }

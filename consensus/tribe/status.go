@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"math/big"
-	"os"
 	"sync/atomic"
 	"time"
 
@@ -21,7 +20,7 @@ import (
 
 func (api *API) GetMiner(number *rpc.BlockNumber) (*TribeMiner, error) {
 	add := api.tribe.Status.GetMinerAddress()
-	ipcpath := os.Getenv("IPCPATH")
+	ipcpath := params.GetIPCPath()
 	c, e := ethclient.Dial(ipcpath)
 	if e != nil {
 		return nil, e
@@ -72,27 +71,34 @@ func (api *API) GetStatus(hash *common.Hash) (*TribeStatus, error) {
 	return api.tribe.Status, nil
 }
 
-func (api *API) GetHistory(last *big.Int) ([]map[string]string, error) {
+func (api *API) GetHistory(last *big.Int, noRpc *bool) (interface{}, error) {
 	s := uint64(16)
 	if last != nil {
 		s = last.Uint64()
 	}
 	cn := api.chain.CurrentHeader().Number.Uint64()
-	//history := make([]History, 0)
-	_history := make([]map[string]string,0)
-	for i := cn; i > cn-s ; i-- {
-		_header := api.chain.GetHeaderByNumber(i)
-		//_h := History{_header.Number.Int64(), _header.Hash(), _header.Coinbase, _header.Difficulty.Int64()}
-		//history = append(history[:], _h)
-		k := "🔨"
-		v := fmt.Sprintf("%d -> %s",_header.Number.Int64(), _header.Coinbase.Hex())
-		if _header.Difficulty.Int64() == 1 {
-			k = "👿"
+	if noRpc != nil && *noRpc {
+		_history := make([]map[string]string, 0)
+		for i := cn; i > cn-s; i-- {
+			_header := api.chain.GetHeaderByNumber(i)
+			k := "🔨"
+			v := fmt.Sprintf("%d -> %s", _header.Number.Int64(), _header.Coinbase.Hex())
+			if _header.Difficulty.Int64() == 1 {
+				k = "👿"
+			}
+			_h := map[string]string{k: v}
+			_history = append(_history, _h)
 		}
-		_h := map[string]string{k:v}
-		_history = append(_history,_h)
+		return _history, nil
+	} else {
+		_history := make([]History,0)
+		for i := cn; i > cn-s; i-- {
+			_header := api.chain.GetHeaderByNumber(i)
+			_h := History{_header.Number.Int64(), _header.Hash(), _header.Coinbase, _header.Difficulty,_header.Time}
+			_history = append(_history[:], _h)
+		}
+		return _history, nil
 	}
-	return _history, nil
 }
 
 func NewTribeStatus() *TribeStatus {
@@ -154,7 +160,7 @@ func (self *TribeStatus) LoadSignersFromChief(hash common.Hash, number *big.Int)
 	self.BlackListLen = len(cs.BlackList) // chief-0.0.3
 	self.blackList = cs.BlackList
 	self.loadSigners(sl)
-	self.Epoch,self.SignerLimit,self.VolunteerLimit = cs.Epoch,cs.SignerLimit,cs.VolunteerLimit
+	self.Epoch, self.SignerLimit, self.VolunteerLimit = cs.Epoch, cs.SignerLimit, cs.VolunteerLimit
 	go self.resetSignersLevel()
 	return nil
 }

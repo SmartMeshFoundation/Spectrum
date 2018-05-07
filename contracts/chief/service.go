@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"math/big"
-	"os"
 	"time"
 
 	"github.com/SmartMeshFoundation/Spectrum/accounts/abi/bind"
@@ -59,7 +58,7 @@ func NewTribeService(ctx *node.ServiceContext) (node.Service, error) {
 			return nil, err
 		}
 	}
-	ipcpath := os.Getenv("IPCPATH")
+	ipcpath := params.GetIPCPath()
 	ts := &TribeService{
 		quit:    make(chan int),
 		ipcpath: ipcpath,

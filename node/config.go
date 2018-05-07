@@ -33,6 +33,7 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/log"
 	"github.com/SmartMeshFoundation/Spectrum/p2p"
 	"github.com/SmartMeshFoundation/Spectrum/p2p/discover"
+	"github.com/SmartMeshFoundation/Spectrum/params"
 )
 
 const (
@@ -183,7 +184,7 @@ func DefaultIPCEndpointWithDir(dir,clientIdentifier string) string {
 	}
 
 	config := &Config{DataDir: dir, IPCPath: clientIdentifier + ".ipc"}
-	if os.Getenv("TESTNET") == "1" {
+	if params.IsTestnet() {
 		config = &Config{DataDir: dir, IPCPath: clientIdentifier + ".ipc"}
 	}
 	return config.IPCEndpoint()
@@ -199,7 +200,7 @@ func DefaultIPCEndpoint(clientIdentifier string) string {
 	}
 
 	config := &Config{DataDir: DefaultDataDir(), IPCPath: clientIdentifier + ".ipc"}
-	if os.Getenv("TESTNET") == "1" {
+	if params.IsTestnet() {
 		config = &Config{DataDir: TestDataDir(), IPCPath: clientIdentifier + ".ipc"}
 	}
 	path := config.IPCEndpoint()

@@ -132,19 +132,20 @@ type History struct {
 	Number     int64          `json:"number"`
 	Hash       common.Hash    `json:"hash"`
 	Signer     common.Address `json:"signer"`
-	Difficulty int64          `json:"difficulty"`
+	Difficulty *big.Int       `json:"difficulty"`
+	Timestamp  *big.Int       `json:"timestamp"`
 }
 
 type TribeStatus struct {
-	Signers        []*Signer        `json:"signers"`
-	Volunteers     []common.Address `json:"volunteers"`
-	SignerLevel    string           `json:"signerLevel"` // None -> Volunteer -> Signer
-	Number         int64            `json:"number"`      // last block.number
-	BlackListLen   int              `json:"totalSinner"` // length of blacklist
+	Signers      []*Signer        `json:"signers"`
+	Volunteers   []common.Address `json:"volunteers"`
+	SignerLevel  string           `json:"signerLevel"` // None -> Volunteer -> Signer
+	Number       int64            `json:"number"`      // last block.number
+	BlackListLen int              `json:"totalSinner"` // length of blacklist
 	// for watch the set method result
-	Epoch          *big.Int         `json:"epoch"`
-	SignerLimit    *big.Int         `json:"signerLimit"`
-	VolunteerLimit *big.Int         `json:"volunteerLimit"`
+	Epoch          *big.Int `json:"epoch"`
+	SignerLimit    *big.Int `json:"signerLimit"`
+	VolunteerLimit *big.Int `json:"volunteerLimit"`
 
 	blackList []common.Address
 	mining    int32 // 1 mining start , 0 mining stop
