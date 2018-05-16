@@ -102,8 +102,10 @@ var (
 		utils.NoDiscoverFlag,
 		utils.DiscoveryV5Flag,
 		utils.NetrestrictFlag,
+		/* add by liangc : disable
 		utils.NodeKeyFileFlag,
 		utils.NodeKeyHexFlag,
+		*/
 		utils.DeveloperFlag,
 		utils.DeveloperPeriodFlag,
 		utils.TestnetFlag,
@@ -172,6 +174,8 @@ func init() {
 		licenseCommand,
 		// See config.go
 		dumpConfigCommand,
+		// add by liangc
+		securityCommand,
 	}
 	sort.Sort(cli.CommandsByName(app.Commands))
 

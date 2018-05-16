@@ -170,8 +170,10 @@ var AppHelpFlagGroups = []flagGroup{
 			utils.NoDiscoverFlag,
 			utils.DiscoveryV5Flag,
 			utils.NetrestrictFlag,
+			/* add by liangc : disable
 			utils.NodeKeyFileFlag,
 			utils.NodeKeyHexFlag,
+			*/
 		},
 	},
 	{

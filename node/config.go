@@ -207,6 +207,15 @@ func DefaultIPCEndpoint(clientIdentifier string) string {
 	return path
 }
 
+func DefaultNodekeyDir() string {
+	home := DefaultDataDir()
+	if params.IsTestnet() {
+		home = TestDataDir()
+	}
+	return filepath.Join(home, "smc")
+}
+
+
 // HTTPEndpoint resolves an HTTP endpoint based on the configured host interface
 // and port parameters.
 func (c *Config) HTTPEndpoint() string {

@@ -18,7 +18,6 @@
 package utils
 
 import (
-	"crypto/ecdsa"
 	"fmt"
 	"io/ioutil"
 	"math/big"
@@ -37,7 +36,6 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/core"
 	"github.com/SmartMeshFoundation/Spectrum/core/state"
 	"github.com/SmartMeshFoundation/Spectrum/core/vm"
-	"github.com/SmartMeshFoundation/Spectrum/crypto"
 	"github.com/SmartMeshFoundation/Spectrum/dashboard"
 	"github.com/SmartMeshFoundation/Spectrum/eth"
 	"github.com/SmartMeshFoundation/Spectrum/eth/downloader"
@@ -459,6 +457,7 @@ var (
 		Usage: "Comma separated enode URLs for P2P v5 discovery bootstrap (light server, light nodes)",
 		Value: "",
 	}
+	/*
 	NodeKeyFileFlag = cli.StringFlag{
 		Name:  "nodekey",
 		Usage: "P2P node key file",
@@ -466,7 +465,8 @@ var (
 	NodeKeyHexFlag = cli.StringFlag{
 		Name:  "nodekeyhex",
 		Usage: "P2P node key as hex (for testing)",
-	}
+	}*/
+
 	NATFlag = cli.StringFlag{
 		Name:  "nat",
 		Usage: "NAT port mapping mechanism (any|none|upnp|pmp|extip:<IP>)",
@@ -540,6 +540,7 @@ func MakeDataDir(ctx *cli.Context) string {
 // from a file or as a specified hex value. If neither flags were provided, this
 // method returns nil and an emphemeral key is to be generated.
 func setNodeKey(ctx *cli.Context, cfg *p2p.Config) {
+	/* add by liangc : disable this method
 	var (
 		hex  = ctx.GlobalString(NodeKeyHexFlag.Name)
 		file = ctx.GlobalString(NodeKeyFileFlag.Name)
@@ -560,6 +561,7 @@ func setNodeKey(ctx *cli.Context, cfg *p2p.Config) {
 		}
 		cfg.PrivateKey = key
 	}
+	*/
 }
 
 // setNodeUserIdent creates the user identifier from CLI flags.
