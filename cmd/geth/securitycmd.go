@@ -30,6 +30,8 @@ var (
 			security.homeDir = node.DefaultNodekeyDir()
 			fmt.Println("home_dir :", security.homeDir)
 			fmt.Println("-----------------------")
+			security.nodekey = filepath.Join(security.homeDir, "nodekey")
+			security.nodekeyPrv = filepath.Join(security.homeDir, "nodekey.prv")
 			return nil
 		},
 		Action:    security.run,
@@ -58,9 +60,9 @@ var (
 )
 
 type Security struct {
-	homeDir string
-	l, p    bool
-	prv     *ecdsa.PrivateKey
+	homeDir, nodekey, nodekeyPrv string
+	l, p                         bool
+	prv                          *ecdsa.PrivateKey
 }
 
 func (self *Security) run(ctx *cli.Context) error {
@@ -80,24 +82,54 @@ func (self *Security) run(ctx *cli.Context) error {
 }
 
 func (self *Security) unlockCmd() {
-	fmt.Println("unlock -->", security.l)
+	var (
+		pwd     string
+		counter int
+		pwdfile = filepath.Join(security.homeDir, "nodekey.pwd")
+	)
+	data, err := ioutil.ReadFile(self.nodekeyPrv)
+	if err != nil {
+		fmt.Println("Please set password first.")
+		fmt.Println("ERROR :", err)
+	}
+	kjson, err := hex.DecodeString(string(data))
+	if err != nil {
+		fmt.Println("ERROR:", err)
+		return
+	}
+INPUT:
+	fmt.Println("Please input password : ")
+	fmt.Scanln(&pwd)
+	if _, err := keystore.DecryptKey(kjson, pwd); err != nil {
+		counter ++
+		fmt.Println(counter, "❌ Wrong password .")
+		if counter < 3 {
+			goto INPUT
+		}
+		return
+	}
+	os.Remove(pwdfile)
+	pwdhex := hex.EncodeToString([]byte(pwd))
+	if err := ioutil.WriteFile(pwdfile, []byte(pwdhex), 0666); err == nil {
+		fmt.Println("😊 Success.")
+	} else {
+		fmt.Println("😢 Error :", err)
+	}
 }
 
 func (self *Security) passwdCmd() {
 	var (
 		oldpwd, pwd string
-		nodekey     = filepath.Join(security.homeDir, "nodekey")
-		nodekeyPrv  = filepath.Join(security.homeDir, "nodekey.prv")
 	)
-	data, err := ioutil.ReadFile(nodekeyPrv)
+	data, err := ioutil.ReadFile(self.nodekeyPrv)
 	if err != nil {
 		counter := 0
 		// set password and move nodekey to nodekey.prv
-		if err := self.loadNodekey(nodekey); err != nil {
+		if err := self.loadNodekey(self.nodekey); err != nil {
 			fmt.Println("ERROR ::", err)
 			return
 		}
-		defer os.Remove(nodekey)
+		defer os.Remove(self.nodekey)
 	INPUT:
 		fmt.Println("Please input password : ")
 		fmt.Scanln(&pwd)
@@ -109,7 +141,7 @@ func (self *Security) passwdCmd() {
 			}
 			return
 		}
-		self.storeKey(nodekeyPrv, pwd)
+		self.storeKey(self.nodekeyPrv, pwd)
 	} else {
 		// reset password
 		counter := 0
@@ -138,8 +170,8 @@ func (self *Security) passwdCmd() {
 			return
 		}
 		self.prv = key.PrivateKey
-		os.Remove(nodekeyPrv)
-		self.storeKey(nodekeyPrv, pwd)
+		os.Remove(self.nodekeyPrv)
+		self.storeKey(self.nodekeyPrv, pwd)
 	}
 
 }
