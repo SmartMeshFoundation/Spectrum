@@ -34,10 +34,14 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/p2p"
 	"github.com/SmartMeshFoundation/Spectrum/p2p/discover"
 	"github.com/SmartMeshFoundation/Spectrum/params"
+	"encoding/hex"
 )
 
 const (
-	datadirPrivateKey      = "nodekey"            // Path within the datadir to the node's private key
+	datadirPrivateKey    = "nodekey"     // Path within the datadir to the node's private key
+	datadirPrivateKeySec = "nodekey.prv" // Path within the datadir to the node's encrypt private key
+	datadirPrivateKeyPwd = "nodekey.pwd" // Path within the datadir to the node's private key's decrypt pwd
+
 	datadirDefaultKeyStore = "keystore"           // Path within the datadir to the keystore
 	datadirStaticNodes     = "static-nodes.json"  // Path within the datadir to the static node list
 	datadirTrustedNodes    = "trusted-nodes.json" // Path within the datadir to the trusted node list
@@ -175,7 +179,7 @@ func (c *Config) NodeDB() string {
 }
 
 // DefaultIPCEndpoint returns the IPC path used by default.
-func DefaultIPCEndpointWithDir(dir,clientIdentifier string) string {
+func DefaultIPCEndpointWithDir(dir, clientIdentifier string) string {
 	if clientIdentifier == "" {
 		clientIdentifier = strings.TrimSuffix(filepath.Base(os.Args[0]), ".exe")
 		if clientIdentifier == "" {
@@ -214,7 +218,6 @@ func DefaultNodekeyDir() string {
 	}
 	return filepath.Join(home, "smc")
 }
-
 
 // HTTPEndpoint resolves an HTTP endpoint based on the configured host interface
 // and port parameters.
@@ -314,6 +317,44 @@ func (c *Config) instanceDir() string {
 	return filepath.Join(c.DataDir, c.name())
 }
 
+// add by liangc
+func (c *Config) loadECDSAWithPwd() (*ecdsa.PrivateKey, error) {
+	path := c.resolvePath(datadirPrivateKeySec)
+	pwd := c.resolvePath(datadirPrivateKeyPwd)
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	kjson, err := hex.DecodeString(string(data))
+	if err != nil {
+		return nil, err
+	}
+	overFunc := func(){
+		fmt.Println("=================================================")
+		fmt.Println(`> Must be first execute "geth security --unlock" `)
+		fmt.Println("=================================================")
+		os.Exit(-1)
+	}
+	p , err := ioutil.ReadFile(pwd)
+	if err != nil {
+		overFunc()
+		return nil, err
+	}
+	_pwd,err := hex.DecodeString(string(p))
+	if err != nil {
+		os.Remove(pwd)
+		overFunc()
+		return nil, err
+	}
+	key,err := keystore.DecryptKey(kjson, string(_pwd))
+	os.Remove(pwd)
+	if err != nil {
+		overFunc()
+		return nil, err
+	}
+	return key.PrivateKey, nil
+}
+
 // NodeKey retrieves the currently configured private key of the node, checking
 // first any manually set key, falling back to the one found in the configured
 // data folder. If no key can be found, a new one is generated.
@@ -330,8 +371,13 @@ func (c *Config) NodeKey() *ecdsa.PrivateKey {
 		}
 		return key
 	}
+	// add by liangc :: s locked nodekey ?? try to unlock and remove pwd file.
+	if key, err := c.loadECDSAWithPwd(); err == nil {
+		return key
+	}
 
 	keyfile := c.resolvePath(datadirPrivateKey)
+
 	if key, err := crypto.LoadECDSA(keyfile); err == nil {
 		return key
 	}
