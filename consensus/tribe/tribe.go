@@ -517,3 +517,13 @@ func (t *Tribe) APIs(chain consensus.ChainReader) []rpc.API {
 		Public:    false,
 	}}
 }
+
+func (t *Tribe) GetPeriod(difficulty *big.Int) uint64 {
+	switch diffInTurn {
+	case diffInTurn :
+		return t.config.Period - 1
+	case diffNoTurn :
+		return t.config.Period + 1
+	}
+	return t.config.Period
+}

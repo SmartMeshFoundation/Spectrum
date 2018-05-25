@@ -77,6 +77,20 @@ func IsNR001Block(num *big.Int) bool {
 	return false
 }
 
+// new_rule_002 to change block period
+func IsNR002Block(num *big.Int) bool {
+	if IsTestnet() {
+		if  TestnetChainConfig.NR001Block.Cmp(big.NewInt(0)) > 0 && TestnetChainConfig.NR001Block.Cmp(num) <= 0 {
+			return true
+		}
+	} else {
+		if MainnetChainConfig.NR001Block.Cmp(big.NewInt(0)) > 0 && MainnetChainConfig.NR001Block.Cmp(num) <= 0 {
+			return true
+		}
+	}
+	return false
+}
+
 // startNumber and address must from chain's config
 func chiefAddressList() (list ChiefInfoList) {
 	if chiefInfoList != nil {
@@ -152,7 +166,7 @@ func IsChiefUpdate(data []byte) bool {
 			}
 			buf, _ := abi.Pack("update", common.Address{})
 			if bytes.Equal(data[0:4], buf[0:4]) {
-				log.Debug("is_chief_update_true","input",data)
+				log.Debug("is_chief_update_true", "input", data)
 				return true
 			}
 		}
