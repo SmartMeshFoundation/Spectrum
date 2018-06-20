@@ -80,11 +80,11 @@ func IsNR001Block(num *big.Int) bool {
 // new_rule_002 to change block period
 func IsNR002Block(num *big.Int) bool {
 	if IsTestnet() {
-		if  TestnetChainConfig.NR001Block.Cmp(big.NewInt(0)) > 0 && TestnetChainConfig.NR001Block.Cmp(num) <= 0 {
+		if  TestnetChainConfig.NR002Block.Cmp(big.NewInt(0)) > 0 && TestnetChainConfig.NR002Block.Cmp(num) <= 0 {
 			return true
 		}
 	} else {
-		if MainnetChainConfig.NR001Block.Cmp(big.NewInt(0)) > 0 && MainnetChainConfig.NR001Block.Cmp(num) <= 0 {
+		if MainnetChainConfig.NR002Block.Cmp(big.NewInt(0)) > 0 && MainnetChainConfig.NR002Block.Cmp(num) <= 0 {
 			return true
 		}
 	}

@@ -267,11 +267,17 @@ func (self *TribeStatus) Update(currentNumber *big.Int, hash common.Hash) {
 	return
 }
 
-func (self *TribeStatus) ValidateSigner(number int64, parentHash common.Hash, signer common.Address) bool {
+func (self *TribeStatus) ValidateSigner(header  *types.Header, signer common.Address) bool {
+	number := header.Number.Int64()
+	parentHash := header.ParentHash
 	var signers []*Signer
 	//if number > 1 && self.Number != parentNumber {
 	if number <= 3 {
 		return true
+	}
+	if params.IsNR001Block(header.Number) && header.Coinbase != signer {
+		log.Error("error_signer","num",header.Number.String(),"miner",header.Coinbase.Hex(),"signer",signer.Hex())
+		return false
 	}
 	var err error
 	signers, err = self.GetSignersFromChiefByHash(parentHash, big.NewInt(number))
@@ -305,14 +311,14 @@ func (self *TribeStatus) ValidateBlock(block *types.Block, validateSigner bool) 
 		fmt.Println(cn, "=3=> headerNum", header.Number.Int64(), "header.parentHex", header.ParentHash.Hex())
 	*/
 	header := block.Header()
-	number := block.Number().Int64()
+	//number := block.Number().Int64()
 	// add by liangc : seal call this func must skip validate signer
 	if (validateSigner) {
 		signer, err := ecrecover(header, self.tribe)
 		if err != nil {
 			return err
 		}
-		if !self.ValidateSigner(number, header.ParentHash, signer) {
+		if !self.ValidateSigner(header, signer) {
 			return errUnauthorized
 		}
 	}

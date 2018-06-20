@@ -3,7 +3,6 @@ package tribe
 import (
 	"testing"
 	"github.com/SmartMeshFoundation/Spectrum/common"
-	"fmt"
 )
 
 var (
@@ -24,4 +23,14 @@ type BUF []byte
 func (a BUF) Str() string   { return string(a[:]) }
 func TestSigners(t *testing.T) {
 
+}
+
+func TestMinerSigner(t *testing.T){
+	miner := "0x4110bd1ff0b73fa12c259acf39c950277f266787"
+	miner2 := "0x4110bd1ff0b73fa12c259acf39c950277f266787"
+	add := common.HexToAddress(miner)
+	add2 := common.HexToAddress(miner2)
+
+	t.Log(add)
+	t.Log(add==add2)
 }
