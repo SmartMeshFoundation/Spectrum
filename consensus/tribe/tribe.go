@@ -272,8 +272,8 @@ func (t *Tribe) verifyCascadingFields(chain consensus.ChainReader, header *types
 
 	verifyTime := func() error {
 		if params.IsNR002Block(header.Number) {
-			fmt.Println("NR002Block :: period=", t.GetPeriod(header.Difficulty), "parent=", parent.Time.Uint64(), "header=", header.Time.Uint64(), header.Number.String(), header.Coinbase.Hex())
-			if parent.Time.Uint64()+t.GetPeriod(header.Difficulty) > header.Time.Uint64() {
+			fmt.Println("NR002Block :: period=", t.GetPeriod(header), "parent=", parent.Time.Uint64(), "header=", header.Time.Uint64(), header.Number.String(), header.Coinbase.Hex())
+			if parent.Time.Uint64()+t.GetPeriod(header) > header.Time.Uint64() {
 				return ErrInvalidTimestampNR002
 			}
 		} else {
@@ -432,7 +432,7 @@ func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error
 	}
 	if params.IsNR002Block(header.Number) {
 		//modify by liangc : change period rule
-		header.Time = new(big.Int).Add(parent.Time, new(big.Int).SetUint64(t.GetPeriod(header.Difficulty)))
+		header.Time = new(big.Int).Add(parent.Time, new(big.Int).SetUint64(t.GetPeriod(header)))
 	} else {
 		header.Time = new(big.Int).Add(parent.Time, new(big.Int).SetUint64(t.config.Period))
 	}
@@ -543,14 +543,37 @@ func (t *Tribe) APIs(chain consensus.ChainReader) []rpc.API {
 	}}
 }
 
-func (t *Tribe) GetPeriod(difficulty *big.Int) (p uint64) {
-	p = t.config.Period
-	switch difficulty.Int64() {
-	case diffInTurn.Int64():
-		p = t.config.Period - 1
-	case diffNoTurn.Int64():
-		p = t.config.Period + 1
+func (t *Tribe) GetPeriod(header *types.Header) (uint64) {
+	Main,Subs,Other := t.config.Period - 1,t.config.Period,t.config.Period+1
+	number, parentHash := header.Number, header.ParentHash
+	if number.Int64() <= 3 {
+		return Subs
 	}
-	fmt.Println("---->", difficulty, p)
-	return
+
+	signers, err := t.Status.GetSignersFromChiefByHash(parentHash, number)
+
+	if err != nil {
+		log.Error("GetPeriod_getsigners_err", "err", err)
+		return Other
+	}
+
+	sl := len(signers)
+	if sl == 0 {
+		log.Error("GetPeriod_signers_cannot_empty")
+		return Other
+	}
+
+	miner := t.Status.GetMinerAddress()
+
+	idx := number.Int64() % int64(sl)
+	if miner == signers[idx].Address {
+		return Main
+	}
+
+	idx = (number.Int64()+1) % int64(sl)
+	if miner == signers[idx].Address {
+		return Subs
+	}
+
+	return Other
 }
