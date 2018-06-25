@@ -568,12 +568,6 @@ func (t *Tribe) GetPeriod(header *types.Header, signers []*Signer) (p uint64) {
 
 	idx_m, idx_s := number.Int64()%int64(sl), (number.Int64()+1)%int64(sl)
 
-	defer func() {
-		log.Info("1-GetPeriod->", "p", p, "miner", miner.Hex(), "main", signers[idx_m].Address, "subs", signers[idx_s].Address)
-		log.Info("2-GetPeriod->", "is_main", miner == signers[idx_m].Address, "p_14", p)
-		log.Info("3-GetPeriod->", "is_subs", miner == signers[idx_s].Address, "p_15", p)
-	}()
-
 	if miner == signers[idx_m].Address {
 		p = Main
 		return
