@@ -281,10 +281,13 @@ func (self *TribeStatus) ValidateSigner(parentHeader, header *types.Header, sign
 	}
 	var err error
 	signers, err = self.GetSignersFromChiefByHash(parentHash, big.NewInt(number))
-	// second time of verification block time
-	if parentHeader.Time.Uint64()+self.tribe.GetPeriod(header,signers) > header.Time.Uint64() {
-		log.Error("[ValidateSigner] second time verification block time error", ErrInvalidTimestampNR002)
-		return false
+
+	if params.IsNR002Block(header.Number) {
+		// second time of verification block time
+		if parentHeader.Time.Uint64()+self.tribe.GetPeriod(header, signers) > header.Time.Uint64() {
+			log.Error("[ValidateSigner] second time verification block time error", ErrInvalidTimestampNR002)
+			return false
+		}
 	}
 
 	if err != nil {
