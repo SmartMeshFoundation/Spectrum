@@ -543,37 +543,49 @@ func (t *Tribe) APIs(chain consensus.ChainReader) []rpc.API {
 	}}
 }
 
-func (t *Tribe) GetPeriod(header *types.Header) (uint64) {
+func (t *Tribe) GetPeriod(header *types.Header) (p uint64) {
+	// 14 , 15 , 16
 	Main,Subs,Other := t.config.Period - 1,t.config.Period,t.config.Period+1
-	number, parentHash := header.Number, header.ParentHash
+	p, number, parentHash , miner := Other, header.Number, header.ParentHash, header.Coinbase
+
+
 	if number.Int64() <= 3 {
-		return Subs
+		p = Subs
+		return
 	}
 
 	signers, err := t.Status.GetSignersFromChiefByHash(parentHash, number)
 
 	if err != nil {
 		log.Error("GetPeriod_getsigners_err", "err", err)
-		return Other
+		p = Other
+		return
 	}
 
 	sl := len(signers)
 	if sl == 0 {
 		log.Error("GetPeriod_signers_cannot_empty")
-		return Other
+		p = Other
+		return
 	}
 
-	miner := t.Status.GetMinerAddress()
+	idx_m, idx_s := number.Int64() % int64(sl), (number.Int64()+1) % int64(sl)
 
-	idx := number.Int64() % int64(sl)
-	if miner == signers[idx].Address {
-		return Main
+	defer func(){
+		log.Debug("1-GetPeriod->","p",p,"miner",miner.Hex(),"main",signers[idx_m].Address,"subs",signers[idx_s].Address)
+		log.Debug("2-GetPeriod->","is_main",miner == signers[idx_m].Address,"p_14",p)
+		log.Debug("3-GetPeriod->","is_subs",miner == signers[idx_s].Address,"p_15",p)
+	}()
+
+	if miner == signers[idx_m].Address {
+		p = Main
+		return
 	}
 
-	idx = (number.Int64()+1) % int64(sl)
-	if miner == signers[idx].Address {
-		return Subs
+	if miner == signers[idx_s].Address {
+		p = Subs
+		return
 	}
 
-	return Other
+	return
 }
