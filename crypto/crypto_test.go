@@ -63,7 +63,9 @@ func TestSign(t *testing.T) {
 
 	msg := Keccak256([]byte("foobar"))
 	sig, err := Sign(msg, key)
+	t.Log("Sign =",sig)
 	t.Log("Sign.len =",len(sig))
+	t.Log("Sign.hex =",hex.EncodeToString(sig))
 	if err != nil {
 		t.Errorf("Sign error: %s", err)
 	}

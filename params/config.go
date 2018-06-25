@@ -45,8 +45,9 @@ var (
 		// 0.0.5 : ready for release
 		Chief005Block:   big.NewInt(2),
 		Chief005Address: common.HexToAddress("0xf0d2ad4e0d25cfea98e9640329993bbc52396abd"),
-		// new rules for chief.tx of gaspool
-		NR001Block: big.NewInt(0),
+
+		NR001Block: big.NewInt(0), // new rules for chief.tx of gaspool
+		NR002Block: big.NewInt(332658),
 		Tribe:           &TribeConfig{},
 	}
 
@@ -78,6 +79,7 @@ var (
 		Chief005Address: common.HexToAddress("0xe90da8175922925dfb40e6505b508f1042e807aa"),
 		// new rules for chief.tx of gaspool
 		NR001Block: big.NewInt(176222),
+		NR002Block: big.NewInt(525233),
 		Tribe:           &TribeConfig{},
 	}
 
@@ -197,6 +199,8 @@ type ChainConfig struct {
 	// <<< add by liangc : set chief start number <<<
 	// add by liangc : new rules for chief.tx of gaspool
 	NR001Block *big.Int `json:"nr001Block,omitempty"` // NR001 HF block
+	// add by liangc : new rules for block period
+	NR002Block *big.Int `json:"nr002Block,omitempty"` // NR002 HF block
 
 }
 

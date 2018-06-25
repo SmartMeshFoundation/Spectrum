@@ -55,10 +55,13 @@ const (
 )
 
 var (
-	ChiefBaseBalance               = new(big.Int).Mul(big.NewInt(1), big.NewInt(Finney))
-	MboxChan                       = make(chan Mbox, 32)
-	InitTribeStatus                = make(chan struct{})
-	chiefInfoList    ChiefInfoList = nil
+	ChiefBaseBalance = new(big.Int).Mul(big.NewInt(1), big.NewInt(Finney))
+	MboxChan         = make(chan Mbox, 32)
+	//close at tribe.init
+	InitTribe = make(chan struct{})
+	//close at tribeService
+	InitTribeStatus = make(chan struct{})
+	chiefInfoList ChiefInfoList = nil
 	// added by cai.zhihong
 	// ChiefTxGas = big.NewInt(400000)
 )
@@ -71,6 +74,20 @@ func IsNR001Block(num *big.Int) bool {
 		}
 	} else {
 		if MainnetChainConfig.NR001Block.Cmp(num) <= 0 {
+			return true
+		}
+	}
+	return false
+}
+
+// new_rule_002 to change block period
+func IsNR002Block(num *big.Int) bool {
+	if IsTestnet() {
+		if TestnetChainConfig.NR002Block.Cmp(big.NewInt(0)) > 0 && TestnetChainConfig.NR002Block.Cmp(num) <= 0 {
+			return true
+		}
+	} else {
+		if MainnetChainConfig.NR002Block.Cmp(big.NewInt(0)) > 0 && MainnetChainConfig.NR002Block.Cmp(num) <= 0 {
 			return true
 		}
 	}
@@ -152,7 +169,7 @@ func IsChiefUpdate(data []byte) bool {
 			}
 			buf, _ := abi.Pack("update", common.Address{})
 			if bytes.Equal(data[0:4], buf[0:4]) {
-				log.Debug("is_chief_update_true","input",data)
+				log.Debug("is_chief_update_true", "input", data)
 				return true
 			}
 		}

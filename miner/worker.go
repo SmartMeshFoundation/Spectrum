@@ -163,7 +163,14 @@ func newWorker(config *params.ChainConfig, engine consensus.Engine, coinbase com
 
 	go worker.update()
 	go worker.wait()
-	worker.commitNewWork()
+	if _, ok := engine.(*tribe.Tribe); ok {
+		go func(){
+			<- params.InitTribe
+			worker.commitNewWork()
+		}()
+	}else{
+		worker.commitNewWork()
+	}
 	// add by liangc
 	go func() {
 		for txHash := range failTxCh {

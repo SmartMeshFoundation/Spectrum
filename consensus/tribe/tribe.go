@@ -12,9 +12,9 @@ import (
 	"fmt"
 	"sync/atomic"
 
-	"github.com/SmartMeshFoundation/Spectrum/common/math"
 	"github.com/SmartMeshFoundation/Spectrum/accounts"
 	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/common/math"
 	"github.com/SmartMeshFoundation/Spectrum/consensus"
 	"github.com/SmartMeshFoundation/Spectrum/consensus/misc"
 	"github.com/SmartMeshFoundation/Spectrum/core/state"
@@ -123,6 +123,10 @@ func (t *Tribe) Init(hash common.Hash, number *big.Int) {
 		rtn := params.SendToMsgBox("GetNodeKey")
 		success := <-rtn
 		t.Status.nodeKey = success.Entity.(*ecdsa.PrivateKey)
+		if params.InitTribe != nil {
+			close(params.InitTribe)
+			params.InitTribe = nil
+		}
 		log.Info("init tribe.status success.")
 	}()
 }
@@ -269,10 +273,27 @@ func (t *Tribe) verifyCascadingFields(chain consensus.ChainReader, header *types
 	}
 	// Ensure that the block's timestamp isn't too close to it's parent
 	var parent *types.Header
+
+	verifyTime := func() error {
+		if params.IsNR002Block(header.Number) {
+			// first verification
+			// second verification block time in ValidateSigner function
+			// the min limit period is config.Period - 1
+			if parent.Time.Uint64()+(t.config.Period-1) > header.Time.Uint64() {
+				return ErrInvalidTimestampNR002
+			}
+		} else {
+			if parent.Time.Uint64()+t.config.Period > header.Time.Uint64() {
+				return ErrInvalidTimestamp
+			}
+		}
+		return nil
+	}
+
 	if len(parents) > 0 {
 		parent = parents[len(parents)-1]
-		if parent.Time.Uint64()+t.config.Period > header.Time.Uint64() {
-			return ErrInvalidTimestamp
+		if err := verifyTime(); err != nil {
+			return err
 		}
 	} else {
 		parent = chain.GetHeader(header.ParentHash, number-1)
@@ -281,8 +302,8 @@ func (t *Tribe) verifyCascadingFields(chain consensus.ChainReader, header *types
 			log.Error("-->bad_block-->", "err", e)
 			return e
 		}
-		if parent.Time.Uint64()+t.config.Period > header.Time.Uint64() {
-			return ErrInvalidTimestamp
+		if err := verifyTime(); err != nil {
+			return err
 		}
 	}
 	if parent == nil || parent.Number.Uint64() != number-1 || parent.Hash() != header.ParentHash {
@@ -355,11 +376,11 @@ func (t *Tribe) verifySeal(chain consensus.ChainReader, header *types.Header, pa
 		return err
 	}
 	log.Debug("verifySeal", "number", number, "signer", signer.Hex())
-	// signer 必须在合法的签名人列表中
-	if !t.Status.ValidateSigner(number, header.ParentHash, signer) {
+
+	if !t.Status.ValidateSigner(chain.GetHeaderByHash(header.ParentHash), header, signer) {
 		return errUnauthorized
 	}
-	// 根据 signer 算出 Difficulty 并予以校验
+
 	if number > 3 && !params.IsChiefBlock(header.Number) {
 		difficulty := t.Status.InTurnForVerify(number, header.ParentHash, signer)
 		if difficulty.Cmp(header.Difficulty) != 0 {
@@ -368,9 +389,6 @@ func (t *Tribe) verifySeal(chain consensus.ChainReader, header *types.Header, pa
 			return errInvalidDifficulty
 		}
 	}
-	// XXXX : 这些应该是在 verifyHeader 中校验
-	// XXXXXXXX : time 不能小于规定时间间隔，而且 Difficulty == no-turn 时时间必须大于规定时间 500ms 以上
-	// XXXXXXXX : 某些条件下同一个 signer 不能连续出块
 	return nil
 }
 
@@ -379,20 +397,19 @@ func (t *Tribe) verifySeal(chain consensus.ChainReader, header *types.Header, pa
 func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error {
 	number := header.Number.Uint64()
 	//header.Coinbase = common.Address{}
-	// 没有实际左右，只是为了观察日志，后续会去掉
 	header.Coinbase = t.Status.GetMinerAddress()
 	//TODO tribe : **** 是否需要同步，要看签名人列表有没有变化，这里是个难题，如何提前预测？
 	// 按照当前得分看，如果这个块不是我的，那么应该出块的人如果等于1分，则预言此处为 SYNC
 	header.Nonce = types.BlockNonce{}
 	copy(header.Nonce[:], nonceAsync)
 
-	//TODO tribe : Extra 存放签名信息, 规则需要重新定 : 暂时先用 POA 规则 >>>>
+	// Extra : append sig to last 65 bytes >>>>
 	if len(header.Extra) < extraVanity {
 		header.Extra = append(header.Extra, bytes.Repeat([]byte{0x00}, extraVanity-len(header.Extra))...)
 	}
 	header.Extra = header.Extra[:extraVanity]
 	header.Extra = append(header.Extra, make([]byte, extraSeal)...)
-	//TODO tribe : Extra 存放签名信息, 规则需要重新定 : 暂时先用 POA 规则 <<<<
+	// Extra : append sig to last 65 bytes <<<<
 
 	// Mix digest is reserved for now, set to empty
 	header.MixDigest = common.Hash{}
@@ -402,17 +419,21 @@ func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error
 	if parent == nil {
 		return consensus.ErrUnknownAncestor
 	}
-	header.Time = new(big.Int).Add(parent.Time, new(big.Int).SetUint64(t.config.Period))
-	if header.Time.Int64() < time.Now().Unix() {
-		header.Time = big.NewInt(time.Now().Unix())
-	}
-
 	// tribe : in-turn signers[ block.number % len(signers) ] == currentSigner
 	// Set the correct difficulty
 	if number > 3 {
 		header.Difficulty = t.CalcDifficulty(chain, header.Time.Uint64(), parent)
 	} else {
 		header.Difficulty = diffInTurn
+	}
+	if params.IsNR002Block(header.Number) {
+		//modify by liangc : change period rule
+		header.Time = new(big.Int).Add(parent.Time, new(big.Int).SetUint64(t.GetPeriod(header, nil)))
+	} else {
+		header.Time = new(big.Int).Add(parent.Time, new(big.Int).SetUint64(t.config.Period))
+	}
+	if header.Time.Int64() < time.Now().Unix() {
+		header.Time = big.NewInt(time.Now().Unix())
 	}
 	return nil
 }
@@ -443,7 +464,7 @@ func (t *Tribe) Authorize(signer common.Address, signFn SignerFn) {
 // Seal implements consensus.Engine, attempting to create a sealed block using
 // the local signing credentials.
 func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-chan struct{}) (*types.Block, error) {
-	if err := t.Status.ValidateBlock(block, false); err != nil {
+	if err := t.Status.ValidateBlock(chain.GetBlock(block.ParentHash(), block.NumberU64()-1), block, false); err != nil {
 		log.Error("Tribe_Seal", "retry", atomic.LoadUint32(&t.SealErrorCounter), "number", block.Number().Int64(), "err", err)
 		t.SealErrorCh <- err
 		return nil, err
@@ -470,7 +491,7 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 	t.lock.RUnlock()
 
 	// 校验 signer 是否在最新的 signers 列表中
-	if !t.Status.ValidateSigner(number, block.ParentHash(), t.Status.GetMinerAddress()) {
+	if !t.Status.ValidateSigner(chain.GetHeaderByHash(block.ParentHash()), block.Header(), t.Status.GetMinerAddress()) {
 		return nil, errUnauthorized
 	}
 
@@ -516,4 +537,46 @@ func (t *Tribe) APIs(chain consensus.ChainReader) []rpc.API {
 		Service:   &API{chain: chain, tribe: t},
 		Public:    false,
 	}}
+}
+
+func (t *Tribe) GetPeriod(header *types.Header, signers []*Signer) (p uint64) {
+	// 14 , 15 , 16
+	Main, Subs, Other := t.config.Period-1, t.config.Period, t.config.Period+1
+	p, number, parentHash, miner := Other, header.Number, header.ParentHash, header.Coinbase
+
+	if number.Int64() <= 3 {
+		p = Subs
+		return
+	}
+	var err error
+	if signers == nil {
+		signers, err = t.Status.GetSignersFromChiefByHash(parentHash, number)
+	}
+
+	if err != nil {
+		log.Error("GetPeriod_getsigners_err", "err", err)
+		p = Other
+		return
+	}
+
+	sl := len(signers)
+	if sl == 0 {
+		log.Error("GetPeriod_signers_cannot_empty")
+		p = Other
+		return
+	}
+
+	idx_m, idx_s := number.Int64()%int64(sl), (number.Int64()+1)%int64(sl)
+
+	if miner == signers[idx_m].Address {
+		p = Main
+		return
+	}
+
+	if miner == signers[idx_s].Address {
+		p = Subs
+		return
+	}
+
+	return
 }
