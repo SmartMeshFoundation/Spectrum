@@ -123,6 +123,7 @@ func (t *Tribe) Init(hash common.Hash, number *big.Int) {
 		rtn := params.SendToMsgBox("GetNodeKey")
 		success := <-rtn
 		t.Status.nodeKey = success.Entity.(*ecdsa.PrivateKey)
+		close(params.InitTribe)
 		log.Info("init tribe.status success.")
 	}()
 }
@@ -400,7 +401,6 @@ func (t *Tribe) verifySeal(chain consensus.ChainReader, header *types.Header, pa
 func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error {
 	number := header.Number.Uint64()
 	//header.Coinbase = common.Address{}
-	// 没有实际左右，只是为了观察日志，后续会去掉
 	header.Coinbase = t.Status.GetMinerAddress()
 	//TODO tribe : **** 是否需要同步，要看签名人列表有没有变化，这里是个难题，如何提前预测？
 	// 按照当前得分看，如果这个块不是我的，那么应该出块的人如果等于1分，则预言此处为 SYNC

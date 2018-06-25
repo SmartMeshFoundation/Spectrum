@@ -165,7 +165,7 @@ func newWorker(config *params.ChainConfig, engine consensus.Engine, coinbase com
 	go worker.wait()
 	if _, ok := engine.(*tribe.Tribe); ok {
 		go func(){
-			<- params.InitTribeStatus
+			<- params.InitTribe
 			worker.commitNewWork()
 		}()
 	}else{
