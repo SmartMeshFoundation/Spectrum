@@ -91,10 +91,10 @@ func (api *API) GetHistory(last *big.Int, noRpc *bool) (interface{}, error) {
 		}
 		return _history, nil
 	} else {
-		_history := make([]History,0)
+		_history := make([]History, 0)
 		for i := cn; i > cn-s; i-- {
 			_header := api.chain.GetHeaderByNumber(i)
-			_h := History{_header.Number.Int64(), _header.Hash(), _header.Coinbase, _header.Difficulty,_header.Time}
+			_h := History{_header.Number.Int64(), _header.Hash(), _header.Coinbase, _header.Difficulty, _header.Time}
 			_history = append(_history[:], _h)
 		}
 		return _history, nil
@@ -267,7 +267,7 @@ func (self *TribeStatus) Update(currentNumber *big.Int, hash common.Hash) {
 	return
 }
 
-func (self *TribeStatus) ValidateSigner(header  *types.Header, signer common.Address) bool {
+func (self *TribeStatus) ValidateSigner(parentHeader, header *types.Header, signer common.Address) bool {
 	number := header.Number.Int64()
 	parentHash := header.ParentHash
 	var signers []*Signer
@@ -276,11 +276,17 @@ func (self *TribeStatus) ValidateSigner(header  *types.Header, signer common.Add
 		return true
 	}
 	if params.IsNR001Block(header.Number) && header.Coinbase != signer {
-		log.Error("error_signer","num",header.Number.String(),"miner",header.Coinbase.Hex(),"signer",signer.Hex())
+		log.Error("error_signer", "num", header.Number.String(), "miner", header.Coinbase.Hex(), "signer", signer.Hex())
 		return false
 	}
 	var err error
 	signers, err = self.GetSignersFromChiefByHash(parentHash, big.NewInt(number))
+	// second time of verification block time
+	if parentHeader.Time.Uint64()+self.tribe.GetPeriod(header,signers) > header.Time.Uint64() {
+		log.Error("[ValidateSigner] second time verification block time error", ErrInvalidTimestampNR002)
+		return false
+	}
+
 	if err != nil {
 		log.Warn("TribeStatus.ValidateSigner : GetSignersFromChiefByNumber :", "err", err)
 	}
@@ -293,7 +299,7 @@ func (self *TribeStatus) ValidateSigner(header  *types.Header, signer common.Add
 // every block
 // sync download or mine
 // check chief tx
-func (self *TribeStatus) ValidateBlock(block *types.Block, validateSigner bool) error {
+func (self *TribeStatus) ValidateBlock(parent, block *types.Block, validateSigner bool) error {
 	if block.Number().Int64() < 3 {
 		return nil
 	}
@@ -318,7 +324,7 @@ func (self *TribeStatus) ValidateBlock(block *types.Block, validateSigner bool) 
 		if err != nil {
 			return err
 		}
-		if !self.ValidateSigner(header, signer) {
+		if !self.ValidateSigner(parent.Header(), header, signer) {
 			return errUnauthorized
 		}
 	}

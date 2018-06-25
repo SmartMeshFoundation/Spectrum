@@ -52,9 +52,9 @@ func NewBlockValidator(config *params.ChainConfig, blockchain *BlockChain, engin
 // ValidateBody validates the given block's uncles and verifies the the block
 // header's transaction and uncle roots. The headers are assumed to be already
 // validated at this point.
-func (v *BlockValidator) ValidateBody(block *types.Block) error {
+func (v *BlockValidator) ValidateBody(parent, block *types.Block) error {
 	if tribe, ok := v.engine.(*tribe.Tribe); ok && block.Number().Int64() > 3 {
-		if err := tribe.Status.ValidateBlock(block,true); err != nil {
+		if err := tribe.Status.ValidateBlock(parent, block, true); err != nil {
 			log.Error("BlockValidator.ValidateBody", "number", block.Number().Int64(), "err", err)
 			return err
 		}
@@ -79,7 +79,6 @@ func (v *BlockValidator) ValidateBody(block *types.Block) error {
 	}
 	return nil
 }
-
 
 // ValidateState validates the various changes that happen after a state
 // transition, such as amount of used gas, the receipt roots and the state root

@@ -955,7 +955,7 @@ func (bc *BlockChain) insertChain(chain types.Blocks) (int, []interface{}, []*ty
 
 		err := <-results
 		if err == nil {
-			err = bc.Validator().ValidateBody(block)
+			err = bc.Validator().ValidateBody(bc.GetBlockByHash(block.ParentHash()),block)
 		}
 		if err != nil {
 			if err == ErrKnownBlock {

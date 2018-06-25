@@ -123,7 +123,10 @@ func (t *Tribe) Init(hash common.Hash, number *big.Int) {
 		rtn := params.SendToMsgBox("GetNodeKey")
 		success := <-rtn
 		t.Status.nodeKey = success.Entity.(*ecdsa.PrivateKey)
-		close(params.InitTribe)
+		if params.InitTribe != nil {
+			close(params.InitTribe)
+			params.InitTribe = nil
+		}
 		log.Info("init tribe.status success.")
 	}()
 }
@@ -273,8 +276,10 @@ func (t *Tribe) verifyCascadingFields(chain consensus.ChainReader, header *types
 
 	verifyTime := func() error {
 		if params.IsNR002Block(header.Number) {
-			fmt.Println("NR002Block :: period=", t.GetPeriod(header), "parent=", parent.Time.Uint64(), "header=", header.Time.Uint64(), header.Number.String(), header.Coinbase.Hex())
-			if parent.Time.Uint64()+t.GetPeriod(header) > header.Time.Uint64() {
+			// first verification
+			// second verification block time in ValidateSigner function
+			// the min limit period is config.Period - 1
+			if parent.Time.Uint64()+(t.config.Period-1) > header.Time.Uint64() {
 				return ErrInvalidTimestampNR002
 			}
 		} else {
@@ -287,11 +292,6 @@ func (t *Tribe) verifyCascadingFields(chain consensus.ChainReader, header *types
 
 	if len(parents) > 0 {
 		parent = parents[len(parents)-1]
-
-		/*
-			if parent.Time.Uint64()+t.config.Period > header.Time.Uint64() {
-				return ErrInvalidTimestamp
-			}*/
 		if err := verifyTime(); err != nil {
 			return err
 		}
@@ -302,10 +302,6 @@ func (t *Tribe) verifyCascadingFields(chain consensus.ChainReader, header *types
 			log.Error("-->bad_block-->", "err", e)
 			return e
 		}
-		/*
-			if parent.Time.Uint64()+t.config.Period > header.Time.Uint64() {
-				return ErrInvalidTimestamp
-			}*/
 		if err := verifyTime(); err != nil {
 			return err
 		}
@@ -381,7 +377,7 @@ func (t *Tribe) verifySeal(chain consensus.ChainReader, header *types.Header, pa
 	}
 	log.Debug("verifySeal", "number", number, "signer", signer.Hex())
 
-	if !t.Status.ValidateSigner(header, signer) {
+	if !t.Status.ValidateSigner(chain.GetHeaderByHash(header.ParentHash), header, signer) {
 		return errUnauthorized
 	}
 
@@ -432,7 +428,7 @@ func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error
 	}
 	if params.IsNR002Block(header.Number) {
 		//modify by liangc : change period rule
-		header.Time = new(big.Int).Add(parent.Time, new(big.Int).SetUint64(t.GetPeriod(header)))
+		header.Time = new(big.Int).Add(parent.Time, new(big.Int).SetUint64(t.GetPeriod(header, nil)))
 	} else {
 		header.Time = new(big.Int).Add(parent.Time, new(big.Int).SetUint64(t.config.Period))
 	}
@@ -468,7 +464,7 @@ func (t *Tribe) Authorize(signer common.Address, signFn SignerFn) {
 // Seal implements consensus.Engine, attempting to create a sealed block using
 // the local signing credentials.
 func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-chan struct{}) (*types.Block, error) {
-	if err := t.Status.ValidateBlock(block, false); err != nil {
+	if err := t.Status.ValidateBlock(chain.GetBlock(block.ParentHash(), block.NumberU64()-1), block, false); err != nil {
 		log.Error("Tribe_Seal", "retry", atomic.LoadUint32(&t.SealErrorCounter), "number", block.Number().Int64(), "err", err)
 		t.SealErrorCh <- err
 		return nil, err
@@ -495,7 +491,7 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 	t.lock.RUnlock()
 
 	// 校验 signer 是否在最新的 signers 列表中
-	if !t.Status.ValidateSigner(block.Header(), t.Status.GetMinerAddress()) {
+	if !t.Status.ValidateSigner(chain.GetHeaderByHash(block.ParentHash()), block.Header(), t.Status.GetMinerAddress()) {
 		return nil, errUnauthorized
 	}
 
@@ -543,7 +539,7 @@ func (t *Tribe) APIs(chain consensus.ChainReader) []rpc.API {
 	}}
 }
 
-func (t *Tribe) GetPeriod(header *types.Header) (p uint64) {
+func (t *Tribe) GetPeriod(header *types.Header, signers []*Signer) (p uint64) {
 	// 14 , 15 , 16
 	Main, Subs, Other := t.config.Period-1, t.config.Period, t.config.Period+1
 	p, number, parentHash, miner := Other, header.Number, header.ParentHash, header.Coinbase
@@ -552,7 +548,10 @@ func (t *Tribe) GetPeriod(header *types.Header) (p uint64) {
 		p = Subs
 		return
 	}
-	signers, err := t.Status.GetSignersFromChiefByHash(parentHash, number)
+	var err error
+	if signers == nil {
+		signers, err = t.Status.GetSignersFromChiefByHash(parentHash, number)
+	}
 
 	if err != nil {
 		log.Error("GetPeriod_getsigners_err", "err", err)
@@ -570,9 +569,9 @@ func (t *Tribe) GetPeriod(header *types.Header) (p uint64) {
 	idx_m, idx_s := number.Int64()%int64(sl), (number.Int64()+1)%int64(sl)
 
 	defer func() {
-		log.Debug("1-GetPeriod->", "p", p, "miner", miner.Hex(), "main", signers[idx_m].Address, "subs", signers[idx_s].Address)
-		log.Debug("2-GetPeriod->", "is_main", miner == signers[idx_m].Address, "p_14", p)
-		log.Debug("3-GetPeriod->", "is_subs", miner == signers[idx_s].Address, "p_15", p)
+		log.Info("1-GetPeriod->", "p", p, "miner", miner.Hex(), "main", signers[idx_m].Address, "subs", signers[idx_s].Address)
+		log.Info("2-GetPeriod->", "is_main", miner == signers[idx_m].Address, "p_14", p)
+		log.Info("3-GetPeriod->", "is_subs", miner == signers[idx_s].Address, "p_15", p)
 	}()
 
 	if miner == signers[idx_m].Address {
