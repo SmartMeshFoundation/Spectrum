@@ -31,14 +31,15 @@ const (
 )
 
 var (
-	blockPeriod = uint64(15)                               // Default minimum difference between two consecutive block's timestamps
-	extraVanity = 32                                       // Fixed number of extra-data prefix bytes reserved for signer vanity
-	extraSeal   = 65                                       // Fixed number of extra-data suffix bytes reserved for signer seal
-	nonceSync   = hexutil.MustDecode("0xffffffffffffffff") // Magic nonce number to vote on adding a new signer
-	nonceAsync  = hexutil.MustDecode("0x0000000000000000") // Magic nonce number to vote on removing a signer.
-	uncleHash   = types.CalcUncleHash(nil)                 // Always Keccak256(RLP([])) as uncles are meaningless outside of PoW.
-	diffInTurn  = big.NewInt(2)                            // Block difficulty for in-turn signatures
-	diffNoTurn  = big.NewInt(1)                            // Block difficulty for out-of-turn signatures
+	blockPeriod    = uint64(15)                               // Default minimum difference between two consecutive block's timestamps
+	extraVanity    = 32                                       // Fixed number of extra-data prefix bytes reserved for signer vanity
+	extraSeal      = 65                                       // Fixed number of extra-data suffix bytes reserved for signer seal
+	nonceSync      = hexutil.MustDecode("0xffffffffffffffff") // Magic nonce number to vote on adding a new signer
+	nonceAsync     = hexutil.MustDecode("0x0000000000000000") // Magic nonce number to vote on removing a signer.
+	uncleHash      = types.CalcUncleHash(nil)                 // Always Keccak256(RLP([])) as uncles are meaningless outside of PoW.
+	diffInTurnMain = big.NewInt(3)                            // Block difficulty for in-turn Main
+	diffInTurn     = big.NewInt(2)                            // Block difficulty for in-turn Sub
+	diffNoTurn     = big.NewInt(1)                            // Block difficulty for out-of-turn Other
 )
 
 // Various error messages to mark blocks invalid. These should be private to
@@ -77,12 +78,12 @@ var (
 	errInvalidUncleHash = errors.New("non empty uncle hash")
 
 	// errInvalidDifficulty is returned if the difficulty of a block is not either
-	// of 1 or 2, or if the value does not match the turn of the signer.
+	// of 1 - 3 , or if the value does not match the turn of the signer.
 	errInvalidDifficulty = errors.New("invalid__difficulty")
 
 	// ErrInvalidTimestamp is returned if the timestamp of a block is lower than
 	// the previous block's timestamp + the minimum block period.
-	ErrInvalidTimestamp = errors.New("invalid timestamp")
+	ErrInvalidTimestamp      = errors.New("invalid timestamp")
 	ErrInvalidTimestampNR002 = errors.New("invalid timestamp (NR002)")
 
 	// errUnauthorized is returned if a header is signed by a non-authorized entity.

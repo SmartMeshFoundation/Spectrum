@@ -244,7 +244,7 @@ func (t *Tribe) verifyHeader(chain consensus.ChainReader, header *types.Header, 
 	}
 	// Ensure that the block's difficulty is meaningful (may not be correct at this point)
 	if number > 0 && !params.IsChiefBlock(header.Number) {
-		if header.Difficulty == nil || (header.Difficulty.Cmp(diffInTurn) != 0 && header.Difficulty.Cmp(diffNoTurn) != 0) {
+		if header.Difficulty == nil || (header.Difficulty.Cmp(diffInTurnMain) != 0 && header.Difficulty.Cmp(diffInTurn) != 0 && header.Difficulty.Cmp(diffNoTurn) != 0) {
 			log.Error("** verifyHeader ERROR **", "diff", header.Difficulty.String(), "err", errInvalidDifficulty)
 			return errInvalidDifficulty
 		}
@@ -385,7 +385,6 @@ func (t *Tribe) verifySeal(chain consensus.ChainReader, header *types.Header, pa
 		difficulty := t.Status.InTurnForVerify(number, header.ParentHash, signer)
 		if difficulty.Cmp(header.Difficulty) != 0 {
 			log.Error("** verifySeal ERROR **", "diff", header.Difficulty.String(), "err", errInvalidDifficulty)
-			log.Error("??is_chiefBlock??", "chiefBlock", params.IsChiefBlock(header.Number), "num", header.Number.Int64())
 			return errInvalidDifficulty
 		}
 	}
@@ -396,10 +395,7 @@ func (t *Tribe) verifySeal(chain consensus.ChainReader, header *types.Header, pa
 // header for running the transactions on top.
 func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error {
 	number := header.Number.Uint64()
-	//header.Coinbase = common.Address{}
 	header.Coinbase = t.Status.GetMinerAddress()
-	//TODO tribe : **** 是否需要同步，要看签名人列表有没有变化，这里是个难题，如何提前预测？
-	// 按照当前得分看，如果这个块不是我的，那么应该出块的人如果等于1分，则预言此处为 SYNC
 	header.Nonce = types.BlockNonce{}
 	copy(header.Nonce[:], nonceAsync)
 
@@ -480,7 +476,7 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 		return nil, errUnknownBlock
 	}
 	// For 0-period chains, refuse to seal empty blocks (no reward but would spin sealing)
-	// TODO ???
+	// TODO liangc : How to stop the empty block ???
 	if t.config.Period == 0 && len(block.Transactions()) == 0 {
 		return nil, errWaitTransactions
 	}
@@ -490,7 +486,6 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 	//signer, signFn := t.signer, t.signFn
 	t.lock.RUnlock()
 
-	// 校验 signer 是否在最新的 signers 列表中
 	if !t.Status.ValidateSigner(chain.GetHeaderByHash(block.ParentHash()), block.Header(), t.Status.GetMinerAddress()) {
 		return nil, errUnauthorized
 	}
@@ -521,10 +516,6 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 // current signer.
 func (t *Tribe) CalcDifficulty(chain consensus.ChainReader, time uint64, parent *types.Header) *big.Int {
 	log.Debug("CalcDifficulty", "ParentNumber", parent.Number.Int64(), "CurrentNumber:", chain.CurrentHeader().Number.Int64())
-	//TODO 通过 parent 块获取最新的 signers 并计算 difficulty
-	// 并满足如下公式
-	// in-turn : signers[ block.number % len(signers) ] == t.signer
-	// no-turn : signers[ block.number % len(signers) ] != t.signer
 	return t.Status.InTurnForCalc(t.Status.GetMinerAddress(), parent)
 }
 

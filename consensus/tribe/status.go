@@ -201,32 +201,45 @@ func (self *TribeStatus) GetSigners() []*Signer {
 func (self *TribeStatus) InTurnForCalc(signer common.Address, parent *types.Header) *big.Int {
 	number := parent.Number.Int64() + 1
 	signers := self.GetSigners()
-	log.Debug("-- tribe.InTurnForCalc -->", "signers", signers)
 	if idx, _, err := self.fetchOnSigners(signer, signers); err == nil {
-		if number%int64(len(self.Signers)) == idx.Int64() {
-			return diffInTurn
+		sl := len(signers)
+		if params.IsNR002Block(parent.Number) {
+			if sl > 0 && number%int64(sl) == idx.Int64() {
+				return diffInTurnMain
+			} else if sl > 0 && (number+1)%int64(sl) == idx.Int64() {
+				return diffInTurn
+			}
+		}else{
+			if sl > 0 && number%int64(sl) == idx.Int64() {
+				return diffInTurn
+			}
 		}
 	}
 	return diffNoTurn
 }
 func (self *TribeStatus) InTurnForVerify(number int64, parentHash common.Hash, signer common.Address) *big.Int {
-	parentNumber := number - 1
 	var signers []*Signer
-	//if number > 1 & self.Number != parentNumber {
-	if number > 1 {
+	if number > 3 {
 		var err error
 		signers, err = self.GetSignersFromChiefByHash(parentHash, big.NewInt(number))
 		if err != nil {
-			log.Warn("InTurn:GetSignersFromChiefByNumber:", "parentNumber", parentNumber, "err", err)
+			log.Warn("InTurn:GetSignersFromChiefByNumber:", "err", err)
 		}
 	} else {
 		return diffInTurn
 	}
 	if idx, _, err := self.fetchOnSigners(signer, signers); err == nil {
-		log.Debug("-- InTurnForVerify -->", "parent", parentNumber, "idx", idx.Int64(), "signers", signers)
 		sl := len(signers)
-		if sl > 0 && number%int64(sl) == idx.Int64() {
-			return diffInTurn
+		if params.IsNR002Block(big.NewInt(number)) {
+			if sl > 0 && number%int64(sl) == idx.Int64() {
+				return diffInTurnMain
+			} else if sl > 0 && (number+1)%int64(sl) == idx.Int64() {
+				return diffInTurn
+			}
+		}else{
+			if sl > 0 && number%int64(sl) == idx.Int64() {
+				return diffInTurn
+			}
 		}
 	}
 	return diffNoTurn
@@ -320,10 +333,21 @@ func (self *TribeStatus) ValidateBlock(parent, block *types.Block, validateSigne
 		fmt.Println(cn, "=3=> headerNum", header.Number.Int64(), "header.parentHex", header.ParentHash.Hex())
 	*/
 	header := block.Header()
+	number := header.Number.Int64()
+
 	//number := block.Number().Int64()
 	// add by liangc : seal call this func must skip validate signer
 	if (validateSigner) {
 		signer, err := ecrecover(header, self.tribe)
+		// verify difficulty
+		if number > 3 && !params.IsChiefBlock(header.Number) {
+			difficulty := self.InTurnForVerify(number, header.ParentHash, signer)
+			if difficulty.Cmp(header.Difficulty) != 0 {
+				log.Error("** verifySeal ERROR **", "diff", header.Difficulty.String(), "err", errInvalidDifficulty)
+				return errInvalidDifficulty
+			}
+		}
+		// verify signer
 		if err != nil {
 			return err
 		}
