@@ -540,8 +540,8 @@ func (t *Tribe) APIs(chain consensus.ChainReader) []rpc.API {
 }
 
 func (t *Tribe) GetPeriod(header *types.Header, signers []*Signer) (p uint64) {
-	// 14 , 15 , 16
-	Main, Subs, Other := t.config.Period-1, t.config.Period, t.config.Period+1
+	// 14 , 18 , 22
+	Main, Subs, Other := t.config.Period-1, t.config.Period+3, t.config.Period+7
 	p, number, parentHash, miner := Other, header.Number, header.ParentHash, header.Coinbase
 
 	if number.Int64() <= 3 {
