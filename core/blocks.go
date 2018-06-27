@@ -32,4 +32,5 @@ var BadHashes = map[common.Hash]bool{
 	// add by liangc : testnet : rollback 525233 in testnet for test block time : 14 18 22
 	common.HexToHash("0x49109562155ac528c52873dcede7bfa2666e5c7bc21f95d6f742baca7a4abbc7"): true,
 	common.HexToHash("0x8857ce7c4e17c5ff1605a5da8bdd172b669e6eaa8a5b2ebf7d4b574f7e36ec97"): true,
+	common.HexToHash("0xf127c1bb9061264744cc62654647562a058f510231d5203ff21f6f9299407bcf"): true,
 }

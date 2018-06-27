@@ -203,18 +203,19 @@ func (self *TribeStatus) InTurnForCalc(signer common.Address, parent *types.Head
 	signers := self.GetSigners()
 	if idx, _, err := self.fetchOnSigners(signer, signers); err == nil {
 		sl := len(signers)
-		if params.IsNR002Block(parent.Number) {
+		if params.IsNR002Block(big.NewInt(number)) {
 			if sl > 0 && number%int64(sl) == idx.Int64() {
 				return diffInTurnMain
 			} else if sl > 0 && (number+1)%int64(sl) == idx.Int64() {
 				return diffInTurn
 			}
-		}else{
+		} else {
 			if sl > 0 && number%int64(sl) == idx.Int64() {
 				return diffInTurn
 			}
 		}
 	}
+
 	return diffNoTurn
 }
 func (self *TribeStatus) InTurnForVerify(number int64, parentHash common.Hash, signer common.Address) *big.Int {
@@ -236,7 +237,7 @@ func (self *TribeStatus) InTurnForVerify(number int64, parentHash common.Hash, s
 			} else if sl > 0 && (number+1)%int64(sl) == idx.Int64() {
 				return diffInTurn
 			}
-		}else{
+		} else {
 			if sl > 0 && number%int64(sl) == idx.Int64() {
 				return diffInTurn
 			}
@@ -343,7 +344,7 @@ func (self *TribeStatus) ValidateBlock(parent, block *types.Block, validateSigne
 		if number > 3 && !params.IsChiefBlock(header.Number) {
 			difficulty := self.InTurnForVerify(number, header.ParentHash, signer)
 			if difficulty.Cmp(header.Difficulty) != 0 {
-				log.Error("** verifySeal ERROR **", "diff", header.Difficulty.String(), "err", errInvalidDifficulty)
+				log.Error("** verifySeal ERROR **", "head.diff", header.Difficulty.String(), "target.diff", difficulty.String(), "err", errInvalidDifficulty)
 				return errInvalidDifficulty
 			}
 		}
