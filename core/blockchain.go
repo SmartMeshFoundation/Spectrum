@@ -642,7 +642,7 @@ func (bc *BlockChain) procFutureBlocks() {
 type WriteStatus byte
 
 const (
-	NonStatTy WriteStatus = iota
+	NonStatTy   WriteStatus = iota
 	CanonStatTy
 	SideStatTy
 )
@@ -955,7 +955,7 @@ func (bc *BlockChain) insertChain(chain types.Blocks) (int, []interface{}, []*ty
 
 		err := <-results
 		if err == nil {
-			err = bc.Validator().ValidateBody(bc.GetBlockByHash(block.ParentHash()),block)
+			err = bc.Validator().ValidateBody(bc.GetBlockByHash(block.ParentHash()), block)
 		}
 		if err != nil {
 			if err == ErrKnownBlock {
@@ -1070,9 +1070,16 @@ func (st *insertStats) report(chain []*types.Block, index int) {
 			txs = countTransactions(chain[st.lastIndex : index+1])
 		)
 		context := []interface{}{
-			"blocks", st.processed, "txs", txs, "mgas", float64(st.usedGas) / 1000000,
-			"elapsed", common.PrettyDuration(elapsed), "mgasps", float64(st.usedGas) * 1000 / float64(elapsed),
-			"number", end.Number(), "hash", end.Hash(),
+			"blocks", st.processed,
+			"txs", txs,
+			/*
+			"mgas", float64(st.usedGas) / 1000000,
+			"elapsed", common.PrettyDuration(elapsed),
+			"mgasps", float64(st.usedGas) * 1000 / float64(elapsed),
+			*/
+			"number", end.Number(),
+			"miner", end.Coinbase().Hex(),
+			"hash", end.Hash().Hex(),
 		}
 		if st.queued > 0 {
 			context = append(context, []interface{}{"queued", st.queued}...)
@@ -1080,7 +1087,8 @@ func (st *insertStats) report(chain []*types.Block, index int) {
 		if st.ignored > 0 {
 			context = append(context, []interface{}{"ignored", st.ignored}...)
 		}
-		log.Info("Imported new chain segment", context...)
+		log.Info(fmt.Sprintf("-> num=%d , diff=%d , hash=%s , miner=%s", end.Number(), end.Difficulty(), end.Hash().Hex(), end.Coinbase().Hex()))
+		//log.Info("Imported new chain segment", context...)
 
 		*st = insertStats{startTime: now, lastIndex: index + 1}
 	}

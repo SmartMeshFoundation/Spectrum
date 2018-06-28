@@ -755,23 +755,6 @@ func (pool *TxPool) IncFailTx(txHash common.Hash) {
 	*/
 }
 
-// check counter and remove
-func (pool *TxPool) CheckFailTx() {
-	/*
-		pool.failMu.Lock()
-		defer pool.failMu.Unlock()
-		if len(pool.fail) > 0 {
-			for k, v := range pool.fail {
-				if v >= FailLimit {
-					pool.removeTx(k)
-					delete(pool.fail, k)
-					log.Warn("remove_fail_tx : ", "hex", k.Hex(), "retry", v)
-				}
-			}
-		}
-	*/
-}
-
 /*
 func (pool *TxPool) fixChief(tx *types.Transaction) error {
 	if tx.To() != nil && *tx.To() == common.HexToAddress(params.ChiefAddress) {

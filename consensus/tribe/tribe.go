@@ -497,6 +497,7 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 	}
 	select {
 	case <-stop:
+		log.Warn(fmt.Sprintf("❌ == cancel ==> num=%d, diff=%d, miner=%s",number,header.Difficulty,header.Coinbase.Hex()))
 		return nil, nil
 	case <-time.After(delay):
 	}
@@ -508,6 +509,7 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 	}
 	copy(header.Extra[len(header.Extra)-extraSeal:], sighash)
 	blk := block.WithSeal(header)
+	log.Warn(fmt.Sprintf("😄 == done ==> num=%d, diff=%d, miner=%s",number,header.Difficulty,header.Coinbase.Hex()))
 	return blk, nil
 }
 
@@ -531,7 +533,7 @@ func (t *Tribe) APIs(chain consensus.ChainReader) []rpc.API {
 }
 
 func (t *Tribe) GetPeriod(header *types.Header, signers []*Signer) (p uint64) {
-	// 14 , 18 , 22
+	// 14 , 18 , 22(random add 0~4.5s)
 	Main, Subs, Other := t.config.Period-1, t.config.Period+3, t.config.Period+7
 	p, number, parentHash, miner := Other, header.Number, header.ParentHash, header.Coinbase
 

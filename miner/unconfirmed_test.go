@@ -83,3 +83,11 @@ func TestUnconfirmedShifts(t *testing.T) {
 		t.Errorf("unconfirmed count mismatch: have %d, want %d", n, 0)
 	}
 }
+
+func TestChannelClose(t *testing.T) {
+	ch := make(chan struct{})
+	t.Log("isNull",ch==nil)
+	close(ch)
+	t.Log("isNull",ch==nil)
+
+}
