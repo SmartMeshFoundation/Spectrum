@@ -509,7 +509,6 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 	}
 	copy(header.Extra[len(header.Extra)-extraSeal:], sighash)
 	blk := block.WithSeal(header)
-	log.Warn(fmt.Sprintf("😄 == done ==> num=%d, diff=%d, miner=%s",number,header.Difficulty,header.Coinbase.Hex()))
 	return blk, nil
 }
 

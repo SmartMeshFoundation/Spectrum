@@ -23,6 +23,7 @@ import (
 
 	"github.com/SmartMeshFoundation/Spectrum/consensus"
 	"github.com/SmartMeshFoundation/Spectrum/log"
+	"fmt"
 )
 
 type CpuAgent struct {
@@ -58,7 +59,7 @@ func (self *CpuAgent) Stop() {
 	}
 	self.stop <- struct{}{}
 done:
-	// Empty work channel
+// Empty work channel
 	for {
 		select {
 		case <-self.workCh:
@@ -102,7 +103,8 @@ out:
 func (self *CpuAgent) mine(work *Work, stop <-chan struct{}) {
 	//fmt.Println("---- mine.block.Transactions --->",work.Block.Transactions())
 	if result, err := self.engine.Seal(self.chain, work.Block, stop); result != nil {
-		log.Info("Successfully sealed new block", "number", result.Number(), "hash", result.Hash())
+		//log.Info("Successfully sealed new block", "number", result.Number(), "hash", result.Hash())
+		log.Warn(fmt.Sprintf("😄 [%d] == done ==> num=%d, diff=%d, miner=%s, local_current_num=%d", self.chain.CurrentHeader().Number, result.Number(), result.Header().Difficulty, result.Header().Coinbase.Hex()))
 		//fmt.Println("---- mine.result.Transactions --->",result.Transactions())
 		self.returnCh <- &Result{work, result}
 	} else {

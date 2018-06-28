@@ -24,7 +24,8 @@ const (
 	VersionMajor = 0       // Major version component of the current release
 	VersionMinor = 3       // Minor version component of the current release
 	VersionPatch = 3       // Patch version component of the current release
-	VersionMeta  = "release" // alpha / beta / release / stable
+	VersionMeta  = "dev"
+	//VersionMeta  = "release" // alpha / beta / release / stable
 )
 
 // Version holds the textual version string.
