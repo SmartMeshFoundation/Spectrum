@@ -318,7 +318,6 @@ func (self *TribeStatus) Update(currentNumber *big.Int, hash common.Hash) {
 		log.Debug("TribeStatus.Update :", "num", currentNumber.Int64(), "success", success)
 		self.LoadSignersFromChief(hash, currentNumber)
 	}
-	return
 }
 
 func (self *TribeStatus) ValidateSigner(parentHeader, header *types.Header, signer common.Address) bool {

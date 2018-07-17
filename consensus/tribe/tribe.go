@@ -468,11 +468,12 @@ func (t *Tribe) Authorize(signer common.Address, signFn SignerFn) {
 // the local signing credentials.
 func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-chan struct{}) (*types.Block, error) {
 	if err := t.Status.ValidateBlock(chain.GetBlock(block.ParentHash(), block.NumberU64()-1), block, false); err != nil {
-		log.Error("Tribe_Seal", "retry", atomic.LoadUint32(&t.SealErrorCounter), "number", block.Number().Int64(), "err", err)
+		log.Error("Tribe_Seal", "number", block.Number().Int64(), "err", err)
+		//log.Error("Tribe_Seal", "retry", atomic.LoadUint32(&t.SealErrorCounter), "number", block.Number().Int64(), "err", err)
 		t.SealErrorCh <- err
 		return nil, err
 	}
-	atomic.StoreUint32(&t.SealErrorCounter, 0)
+	//atomic.StoreUint32(&t.SealErrorCounter, 0)
 	header := block.Header()
 	// Sealing the genesis block is not supported
 	number := header.Number.Int64()

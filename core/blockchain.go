@@ -807,10 +807,10 @@ func (bc *BlockChain) WriteBlockAndState(block *types.Block, receipts []*types.R
 	// Make sure no inconsistent state is leaked during insertion
 	bc.mu.Lock()
 	defer func() {
-		bc.mu.Unlock()
 		if tribe, ok := bc.engine.(*tribe.Tribe); ok {
 			tribe.Status.Update(bc.currentBlock.Number(), bc.currentBlock.Hash())
 		}
+		bc.mu.Unlock()
 	}()
 
 	localTd := bc.GetTd(bc.currentBlock.Hash(), bc.currentBlock.NumberU64())

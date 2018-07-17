@@ -164,11 +164,11 @@ func newWorker(config *params.ChainConfig, engine consensus.Engine, coinbase com
 	go worker.update()
 	go worker.wait()
 	if _, ok := engine.(*tribe.Tribe); ok {
-		go func(){
-			<- params.InitTribe
+		go func() {
+			<-params.InitTribe
 			worker.commitNewWork()
 		}()
-	}else{
+	} else {
 		worker.commitNewWork()
 	}
 	// add by liangc
@@ -328,6 +328,7 @@ func (self *worker) wait() {
 			if result == nil {
 				// add by liangc
 				if tribe, ok := self.engine.(*tribe.Tribe); ok {
+					/*
 					select {
 					case err := <-tribe.SealErrorCh:
 						counter := atomic.LoadUint32(&tribe.SealErrorCounter)
@@ -340,6 +341,13 @@ func (self *worker) wait() {
 						}
 					default:
 					}
+					*/
+					// modify by liangc : retry is a failed logic
+					h := self.chain.CurrentHeader()
+					log.Warn("wait_new_work_will_retry_tribe.update","current_num",h.Number.Int64(),"current_hash",h.Hash().Hex())
+					tribe.Status.Update(h.Number, h.Hash())
+					self.commitNewWork()
+					log.Warn("wait_new_work_will_retry_commitNewWork","current_num",h.Number.Int64(),"current_hash",h.Hash().Hex())
 				}
 				continue
 			}
@@ -513,6 +521,7 @@ func (self *worker) commitNewWork() {
 	}
 	// debug <--- */
 
+	log.Debug("pending_len", "cn", parent.Number().Int64(), "len",len(pending))
 	txs := types.NewTransactionsByPriceAndNonce(self.current.signer, pending)
 	work.commitTransactions(self.mux, txs, self.chain, self.coinbase)
 
@@ -603,10 +612,10 @@ func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsB
 		env.state.Prepare(tx.Hash(), common.Hash{}, env.tcount)
 		err, logs := env.commitTransaction(tx, bc, coinbase, gp)
 		if err != nil {
-			if tx.To()!=nil {
-				log.Debug("cc14514_TODO_004", "tx", tx.Hash().Hex(),"to",*tx.To(), "err", err)
-			}else{
-				log.Debug("cc14514_TODO_004", "tx", tx.Hash().Hex(), "err", err)
+			if tx.To() != nil {
+				log.Debug("cc14514_TODO_004", "cn", bc.CurrentHeader().Number.Int64(), "tx", tx.Hash().Hex(), "to", *tx.To(), "err", err)
+			} else {
+				log.Debug("cc14514_TODO_004", "cn", bc.CurrentHeader().Number.Int64(), "tx", tx.Hash().Hex(), "err", err)
 			}
 			appendToFailTx(tx.Hash())
 		}

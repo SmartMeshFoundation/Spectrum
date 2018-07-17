@@ -108,7 +108,7 @@ type Tribe struct {
 	lock             sync.RWMutex // Protects the signer fields
 	Status           *TribeStatus
 	SealErrorCh      chan error // when error from seal fun, may be need commit a new work
-	SealErrorCounter uint32     // less then 3 , retry commit new work
+	//SealErrorCounter uint32     // less then 3 , retry commit new work
 	isInit           bool
 }
 
