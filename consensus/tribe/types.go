@@ -126,6 +126,12 @@ type Signer struct {
 	Score   int64          `json:"score"`   // 分数
 }
 
+// append chief vsn 0.0.6
+type Volunteer struct {
+	Address common.Address `json:"address"` // 候选人
+	Weight  int64          `json:"weight"`  // 权重
+}
+
 func (self *Signer) String() string {
 	return fmt.Sprintf("%s:%d", self.Address.Hex(), self.Score)
 }
@@ -139,20 +145,27 @@ type History struct {
 }
 
 type TribeStatus struct {
-	Signers      []*Signer        `json:"signers"`
-	Volunteers   []common.Address `json:"volunteers"`
-	SignerLevel  string           `json:"signerLevel"` // None -> Volunteer -> Signer
-	Number       int64            `json:"number"`      // last block.number
-	BlackListLen int              `json:"totalSinner"` // length of blacklist
+	Signers        []*Signer        `json:"signers"`
+	Volunteers     []common.Address `json:"volunteers"`     // Discarded on vsn 0.0.6
+	TotalVolunteer *big.Int         `json:"totalVolunteer"` // add by vsn 0.0.6
+	SignerLevel    string           `json:"signerLevel"`    // None -> Volunteer -> Signer
+	Number         int64            `json:"number"`         // last block.number
+	BlackListLen   int              `json:"totalSinner"`    // length of blacklist
 	// for watch the set method result
 	Epoch          *big.Int `json:"epoch"`
 	SignerLimit    *big.Int `json:"signerLimit"`
 	VolunteerLimit *big.Int `json:"volunteerLimit"`
+	Vsn            string           `json:"version"` // chief version
 
 	blackList []common.Address
 	mining    int32 // 1 mining start , 0 mining stop
 	nodeKey   *ecdsa.PrivateKey
 	tribe     *Tribe
+}
+
+type TribeVolunteers struct {
+	Length     *big.Int     `json:length`
+	Volunteers []*Volunteer `json:"volunteers"`
 }
 
 type TribeMiner struct {

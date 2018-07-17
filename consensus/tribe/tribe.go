@@ -115,17 +115,17 @@ func New(config *params.TribeConfig, db ethdb.Database) *Tribe {
 func (t *Tribe) Init(hash common.Hash, number *big.Int) {
 	go func() {
 		<-params.InitTribeStatus
-		log.Info("init tribe.status when chiefservice start end.")
-		if number.Int64() >= CHIEF_NUMBER {
-			t.isInit = true
-			t.Status.LoadSignersFromChief(hash, number)
-		}
 		rtn := params.SendToMsgBox("GetNodeKey")
 		success := <-rtn
 		t.Status.nodeKey = success.Entity.(*ecdsa.PrivateKey)
 		if params.InitTribe != nil {
 			close(params.InitTribe)
 			params.InitTribe = nil
+		}
+		log.Info("init tribe.status when chiefservice start end.","getnodekey",success.Success)
+		if number.Int64() >= CHIEF_NUMBER {
+			t.isInit = true
+			t.Status.LoadSignersFromChief(hash, number)
 		}
 		log.Info("init tribe.status success.")
 	}()
@@ -438,6 +438,13 @@ func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error
 // rewards given, and returns the final block.
 func (t *Tribe) Finalize(chain consensus.ChainReader, header *types.Header, state *state.StateDB, txs []*types.Transaction, uncles []*types.Header, receipts []*types.Receipt) (*types.Block, error) {
 	//fmt.Println("-- Tribe.Finalize --> txs :",txs)
+	/* test contract reward >>>
+	if header.Number.Cmp(big.NewInt(594651)) > 0 && header.Number.Cmp(big.NewInt(594661)) < 0 {
+		fmt.Println("  👿  ==== 👼  ",header.Number.String())
+		eth := new(big.Int).SetUint64(params.Ether)
+		state.AddBalance(common.HexToAddress("0x2085b57ccdb42e7f8c584586d10558906cf19594"),new(big.Int).Mul(eth,big.NewInt(1000000)));
+	}
+	//test contract reward <<< */
 	// No block rewards in Tribe, so the state remains as is and uncles are dropped
 	header.Root = state.IntermediateRoot(chain.Config().IsEIP158(header.Number))
 	header.UncleHash = types.CalcUncleHash(nil)

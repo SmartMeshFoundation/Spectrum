@@ -67,8 +67,35 @@ func (api *API) GetStatus(hash *common.Hash) (*TribeStatus, error) {
 			n = api.chain.GetHeaderByHash(h).Number
 		}
 		api.tribe.Status.LoadSignersFromChief(h, n)
+		if chiefInfo := params.GetChiefInfo(n); chiefInfo!=nil {
+			api.tribe.Status.Vsn = chiefInfo.Version
+		}
 	}
 	return api.tribe.Status, nil
+}
+
+func (api *API) GetVolunteers(hash *common.Hash) (*TribeVolunteers, error) {
+	header := api.chain.CurrentHeader()
+	if hash != nil {
+		header = api.chain.GetHeaderByHash(*hash)
+	} else {
+		h := header.Hash()
+		hash = &h
+	}
+	rtn := params.SendToMsgBoxWithHash("GetVolunteers", *hash, header.Number)
+	r := <-rtn
+	if !r.Success {
+		return nil, r.Entity.(error)
+	}
+	cv := r.Entity.(params.ChiefVolunteers)
+	vs := &TribeVolunteers{cv.Length, make([]*Volunteer, 0, 0)}
+	if cv.Length != nil && cv.Length.Int64() > 0 {
+		for i, volunteer := range cv.VolunteerList {
+			weight := cv.WeightList[i]
+			vs.Volunteers = append(vs.Volunteers, &Volunteer{volunteer, weight.Int64()})
+		}
+	}
+	return vs, nil
 }
 
 func (api *API) GetHistory(last *big.Int, noRpc *bool) (interface{}, error) {
@@ -115,8 +142,7 @@ func (self *TribeStatus) setTribe(tribe *Tribe) {
 
 func (self *TribeStatus) GetMinerAddress() common.Address {
 	if self.nodeKey == nil {
-		log.Warn("nodekey not ready")
-		return common.Address{}
+		panic(errors.New("nodekey not ready"))
 	}
 	pub := self.nodeKey.PublicKey
 	add := crypto.PubkeyToAddress(pub)
@@ -155,17 +181,18 @@ func (self *TribeStatus) LoadSignersFromChief(hash common.Hash, number *big.Int)
 		score := scores[i]
 		sl = append(sl, &Signer{signer, score.Int64()})
 	}
+	self.TotalVolunteer = cs.TotalVolunteer
 	self.Volunteers = cs.VolunteerList
 	self.Number = cs.Number.Int64()
 	self.BlackListLen = len(cs.BlackList) // chief-0.0.3
 	self.blackList = cs.BlackList
 	self.loadSigners(sl)
 	self.Epoch, self.SignerLimit, self.VolunteerLimit = cs.Epoch, cs.SignerLimit, cs.VolunteerLimit
-	go self.resetSignersLevel()
+	go self.resetSignersLevel(hash, number)
 	return nil
 }
 
-func (self *TribeStatus) resetSignersLevel() {
+func (self *TribeStatus) resetSignersLevel(hash common.Hash, number *big.Int) {
 	m := self.GetMinerAddress()
 	for _, v := range self.Volunteers {
 		if v == m {
@@ -183,6 +210,19 @@ func (self *TribeStatus) resetSignersLevel() {
 		if s == m {
 			self.SignerLevel = LevelSinner
 			return
+		}
+	}
+	ci := params.GetChiefInfo(number)
+	switch ci.Version {
+	case "0.0.6":
+		// if filterVolunteer return 1 then is volunteer
+		rtn := params.SendToMsgBoxForFilterVolunteer(hash, number, m)
+		r := <-rtn
+		if r.Success {
+			if fr := r.Entity.(*big.Int); fr != nil && fr.Int64() == 0 {
+				self.SignerLevel = LevelVolunteer
+				return
+			}
 		}
 	}
 	// default none

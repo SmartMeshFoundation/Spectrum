@@ -7,19 +7,12 @@ contract TribeChief_0_0_6 {
     string vsn = "0.0.6";
 
     //config >>>>
-
-
-    // block time 15s, 5760 block = 24H
-    // block time 14s, 6171 block = 24H
-    uint epoch = 6171;
-    //uint epoch = 16;
-    // epoch / signerLimit == 363
-    //uint signerLimit = 17;
-    uint signerLimit = 3;
-    uint volunteerLimit = 300;
+    uint epoch = 6171; // block time 14s, 6171 block = 24H
+    uint signerLimit = 17;
+    uint volunteerLimit = 1234;
+    //config <<<<
 
     mapping(address => bool) genesisSigner; // genesis signer address
-    //config <<<<
 
     uint blockNumber;
 
@@ -50,7 +43,10 @@ contract TribeChief_0_0_6 {
     // the mapping of the blacklist and block number
     mapping(address => uint) blMap;
 
-    function TribeChief_0_0_6(address[] genesisSigners) public {
+    function TribeChief_0_0_6(address[] genesisSigners, uint _epoch, uint _signerLimit, uint _volunteerLimit) public {
+        if (_epoch > 0) epoch = _epoch;
+        if (_signerLimit > 0) signerLimit = _signerLimit;
+        if (_volunteerLimit > 0) volunteerLimit = _volunteerLimit;
         _owner = msg.sender;
         uint len = genesisSigners.length;
         if (len > 0) {
@@ -58,7 +54,7 @@ contract TribeChief_0_0_6 {
                 address g = genesisSigners[i];
                 genesisSigner[g] = true;
                 _genesisSignerList.push(g);
-                pushSigner(g, 3);
+                if (i == 0) pushSigner(g, 3);
             }
         } else {
             // normal default for testing
@@ -121,6 +117,7 @@ contract TribeChief_0_0_6 {
     // append a volunteer
     function pushVolunteer(address volunteer, uint weight) private {
         if (weight == 0) {
+            // weight == 0 表示要删除这个候选人，并放到黑名单里冷静一个 epoch
             if (_volunteerList.length > 0) {
                 for (uint i = 0; i < _volunteerList.length; i++) {
                     if (volunteer == _volunteerList[i]) {
@@ -131,10 +128,12 @@ contract TribeChief_0_0_6 {
             }
             pushBlackList(volunteer);
         } else if (weight == 5 && _volunteerList.length < volunteerLimit && volunteersMap[volunteer].number == 0 && blMap[volunteer] == 0 && signersMap[volunteer].number == 0) {
+            //满员或者已经存在于签名人or候选人则不添加
             _volunteerList.push(volunteer);
             volunteersMap[volunteer].weight = weight;
             volunteersMap[volunteer].number = block.number;
         } else if (weight < 5 && volunteersMap[volunteer].number > 0) {
+            //这种情况只是为了给 weight - 1 ，所以无条件修改
             volunteersMap[volunteer].weight = weight;
             volunteersMap[volunteer].number = block.number;
         }
@@ -187,6 +186,8 @@ contract TribeChief_0_0_6 {
     */
     function _cleanVolunteerList() private {
         _cleanIdx.length = 0;
+        // 清除低分的志愿者，如果不足 5 分的多于 1/2 则按照分数从低到高只清除到 1/2 ,
+        // 如果志愿者列表长度不足 limit 的 1/2 则不清除
         uint vlen = _volunteerList.length;
         if (vlen > volunteerLimit / 2) {
             for (uint i1 = 0; i1 < vlen; i1++) {
@@ -195,8 +196,10 @@ contract TribeChief_0_0_6 {
                 }
             }
             if (_cleanIdx.length > volunteerLimit / 2) {
+                // 小于 5 的超过 1/2 时，随机清理掉多于 1/2 的部分
                 uint total = _cleanIdx.length - (volunteerLimit / 2);
                 uint[] memory tiList = new uint[](total);
+                // 随机挑选出超过 1/2 的部分的索引，放在 tiList 数组中
                 for (uint i2 = 0; i2 < _cleanIdx.length; i2++) {
                     uint ti = getRandomIdx(_volunteerList[i2], (_cleanIdx.length - uint(1)));
                     //skip out of range
@@ -207,6 +210,7 @@ contract TribeChief_0_0_6 {
                     if (total == 0) break;
                     total -= 1;
                 }
+                // 清掉 tiList 数组中记录的索引信息，并将 address 放入 blackList 等到下一个 epoch 解禁
                 for (uint i3 = 0; i3 < tiList.length; i3++) {
                     uint idx = tiList[i3];
                     deleteVolunteer(idx);
@@ -231,14 +235,28 @@ contract TribeChief_0_0_6 {
         在志愿者列表中随机选出17个节点替换当前列表,
         在进入这个方法之前，已经判断过志愿者列表尺寸了，所以这里只管随机拼装即可
     */
-
-    //TODO : function generateSignersRule3() private {
-    function generateSignersRule3() public {
+    function generateSignersRule3() private {
         address g = _signerList[0];
-        for (uint i0 = _signerList.length; i0 > 0; i0--) {
-            deleteSigner(i0 - 1);
+        // 清理旧的列表
+        address[] memory sl = new address[](_signerList.length);
+        for (uint j = 0; j < sl.length; j++) {
+            sl[j] = _signerList[j];
         }
+        for (uint i0 = sl.length; i0 > 0; i0--) {
+            uint sIndex = i0 - 1;
+            deleteSigner(sIndex);
+
+            address signerI = sl[sIndex];
+            if (sIndex > 0 && signerI != uint160(0)) {
+                if (volunteersMap[signerI].weight == 0) {
+                    pushVolunteer(signerI, 5);
+                }
+                pushVolunteer(signerI, volunteersMap[signerI].weight - 1);
+            }
+        }
+        // 顺序选出一个创世签名人放到首位
         if (genesisSigner[g] && _genesisSignerList.length > 1) {
+            // 这个循环一定会找到一个 genesisSigner 放到 signers 中
             for (uint i1 = 0; i1 < _genesisSignerList.length; i1++) {
                 if (_genesisSignerList[i1] == g) {
                     if (i1 == (_genesisSignerList.length - 1)) {
@@ -252,6 +270,8 @@ contract TribeChief_0_0_6 {
         } else {
             pushSigner(_genesisSignerList[0], 3);
         }
+        // 随机填满整个 signerList , 走到这个逻辑时 volunteer 一定比 signers 多，所以一定能填满
+        // 这个地方循环下来很可能造成 signerList.length < signerLimit 的情况, 后续需要补充
         uint[] memory tiList = new uint[](signerLimit);
         uint ii = 0;
         for (uint i2 = 0; i2 < _volunteerList.length; i2++) {
@@ -262,9 +282,12 @@ contract TribeChief_0_0_6 {
             tiList[ii] = ti;
             ii = ii + 1;
         }
+        // 如果不满需要补满
         if (ii < signerLimit) {
             for (uint i3 = 0; i3 < _volunteerList.length; i3++) {
+                //不存在就放进去
                 if (signersMap[_volunteerList[i3]].number == 0) pushSigner(_volunteerList[i3], 3);
+                //放满了就退出循环
                 if (_signerList.length >= signerLimit) break;
             }
         }
@@ -280,22 +303,26 @@ contract TribeChief_0_0_6 {
         当 weight == 0 时则移入黑名单，等待下一个 epoch
         假设出块节点列表最大长度 17 ，候选节点列表最大长度与 epoch 相等。每一轮出块，指的就是每 17 个块，每笔交易的确认时间也是 17 块，但是对于交易所来说应该至少经过 34 个块才能确认一笔交易。
     */
-    function updateRule3() public {
+    function updateRule3() private {
         blockNumber = block.number;
         uint l = _signerList.length;
         uint signerIdx = uint(blockNumber % l);
         address si = _signerList[signerIdx];
+        //1 : 初始签名人不做处理,不是正常签名人 0 分放回志愿者列表,否则 weight - 1
         if (signerIdx > uint(0)) {
-            if (msg.sender == si) {
-                pushVolunteer(msg.sender, volunteersMap[msg.sender].weight - 1);
-            } else {
+            // 序号对应的不是我，把序号对应的 signer 以 weight=0 扔回志愿者列表 (其实就是删除)
+            if (msg.sender != si) {
                 pushVolunteer(si, 0);
+                //此处还不能直接删除，因为不能破坏列表长度，否则对后续取模逻辑有影响，用 0 占位吧
                 delete signersMap[si];
                 _signerList[signerIdx] = uint160(0);
             }
         }
 
+        //2 : 如果当前块是签名人列表的最后一块，则生成下一轮的列表
         if (signerIdx == uint(l - 1)) {
+            //if (volunteersMap[msg.sender].weight == 0) {pushVolunteer(msg.sender, 5);}
+            //pushVolunteer(msg.sender, volunteersMap[msg.sender].weight - 1);
             generateSignersRule3();
         }
     }
@@ -312,11 +339,16 @@ contract TribeChief_0_0_6 {
     function updateRule1() private {
         debugFunc = "updateRule1";
         blockNumber = block.number;
+        // mine
+        // 如果当前块 不是 signers[ blockNumber % signers.length ] 出的，就给这个 signer 减分
+        // 否则恢复成 3 分
         uint signerIdx = blockNumber % _signerList.length;
+        //初始签名人不做处理
         if (!genesisSigner[_signerList[signerIdx]]) {
 
             SignerInfo storage signer = signersMap[_signerList[signerIdx]];
 
+            // 序号对应的不是我，则扣它一分
             if (msg.sender != _signerList[signerIdx]) {
                 if (signer.score > 1) {
                     signer.score -= 1;
@@ -329,31 +361,42 @@ contract TribeChief_0_0_6 {
                     deleteSigner(signerIdx);
                 }
             } else {
+                // 恢复分数
                 signer.score = 3;
             }
         }
 
+        //是否提拔一个人到签名人
+        //后进先出的规则
         if (_signerList.length < signerLimit && _volunteerList.length > 0) {
+            //将候选人列表首个添加到签名人列表
             pushSigner(_volunteerList[_volunteerList.length - 1], 3);
+            //删除该候补志愿者
             deleteVolunteer(_volunteerList.length - 1);
         }
     }
 
-    //function update(address volunteer) public apply(msg.sender) {
-    function update(address volunteer) public {
+    function update(address volunteer) public apply(msg.sender) {
         debugFunc = "update";
+        // 每个 epoch 的行为都是固定的，执行完了会决定接下来的行为
         if (block.number > epoch && block.number % epoch == 0) {
+            // 先清理 blacklist , 因为清理志愿者时还会产生新的 blacklist 成员
             _cleanBlacklist();
-            _cleanVolunteerList();
+
+            // 志愿者列表是否需要清理，这是个问题
+            //_cleanVolunteerList();
         }
 
+        // 选拔一个志愿者
         if (volunteer != uint160(0)) {
             pushVolunteer(volunteer, 5);
         }
 
         if (_signerList.length < signerLimit || _volunteerList.length < _signerList.length) {
+            // rule 1 和 rule 2 合并为一个函数
             updateRule1();
         } else {
+            // rule 3 开始执行新规则
             updateRule3();
         }
     }
@@ -376,11 +419,12 @@ contract TribeChief_0_0_6 {
 
 
     function getStatus() public constant returns (
-        address[] volunteerList,
+    //address[] volunteerList,
         address[] signerList,
         address[] blackList, // vsn 0.0.3
         uint[] memory scoreList,
         uint[] memory numberList,
+        uint totalVolunteer,
         uint number
     ) {
         scoreList = new uint[](_signerList.length);
@@ -389,41 +433,50 @@ contract TribeChief_0_0_6 {
             scoreList[i] = signersMap[_signerList[i]].score;
             numberList[i] = signersMap[_signerList[i]].number;
         }
-        volunteerList = _volunteerList;
-        signerList = _signerList;
+        //这个还是单独获取吧，没有任何意义
+        //volunteerList = new address[](0);
+        totalVolunteer = _volunteerList.length;
         blackList = _blackList;
+        signerList = _signerList;
         // vsn 0.0.3
         number = blockNumber;
         return;
     }
 
-    // ================
-    // TEST AND DEBUG
-    // ================
-
-    function getDebugData() public constant returns (address, address, bool) {
-        uint signerIdx = blockNumber % _signerList.length;
-        if (uint160(msg.sender) != uint160(_signerList[signerIdx])) {
+    // 鉴别一批志愿者是否可用
+    function filterVolunteer(address[] volunteers) public constant returns (uint[] result) {
+        result = new uint[](volunteers.length);
+        if (_volunteerList.length < volunteerLimit) {
+            for (uint i = 0; i < volunteers.length; i++) {
+                address volunteer = volunteers[i];
+                if (volunteersMap[volunteer].number == 0 && blMap[volunteer] == 0 && signersMap[volunteer].number == 0) {
+                    result[i] = 1; // true
+                } else {
+                    result[i] = 0; // false
+                }
+            }
         }
-        return (msg.sender, _signerList[signerIdx], msg.sender == _signerList[signerIdx]);
+        return;
     }
 
     function getVolunteers() public constant returns (
         address[] volunteerList,
-        uint[] weightList
+        uint[] weightList,
+        uint length
     ){
         weightList = new uint[](_volunteerList.length);
         volunteerList = _volunteerList;
         for (uint i = 0; i < _volunteerList.length; i++) {
             weightList[i] = volunteersMap[_volunteerList[i]].weight;
         }
+        length = volunteerList.length;
         return;
     }
 
-    function getBlockNumber() public constant returns (uint){
-        return block.number;
-    }
-
+    /*
+    //================
+    // TEST AND DEBUG
+    //================
     function fillSignerForTest() public {
         //TODO : for test >>>>
         address g2 = uint160(371457687117486736155821182390123011782146942856);
@@ -445,7 +498,6 @@ contract TribeChief_0_0_6 {
         blockNumber = block.number;
         fillVolunteerForTest();
     }
-
     function fillVolunteerForTest() public {
         //0xca35b7d915458ef540ade6068dfe2f44e8fa7330
         uint160 b = uint160(1154414090619811796818182302139415280051214250800);
@@ -454,16 +506,6 @@ contract TribeChief_0_0_6 {
             pushVolunteer(uint160(b + i), 5);
         }
     }
+    */
 
-    function pushVolunteerTest5(address volunteer) public {
-        pushVolunteer(volunteer, 5);
-    }
-
-    function pushVolunteerTest1(address volunteer) public {
-        pushVolunteer(volunteer, 1);
-    }
-
-    function pushVolunteerTest0(address volunteer) public {
-        pushVolunteer(volunteer, 0);
-    }
 }
