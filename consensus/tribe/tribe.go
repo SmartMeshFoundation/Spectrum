@@ -106,7 +106,7 @@ func New(config *params.TribeConfig, db ethdb.Database) *Tribe {
 		db:          db,
 		Status:      status,
 		sigcache:    sigcache,
-		SealErrorCh: make(chan error, 1),
+		//SealErrorCh: make(chan error, 1),
 	}
 	status.setTribe(tribe)
 	return tribe
@@ -470,7 +470,7 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 	if err := t.Status.ValidateBlock(chain.GetBlock(block.ParentHash(), block.NumberU64()-1), block, false); err != nil {
 		log.Error("Tribe_Seal", "number", block.Number().Int64(), "err", err)
 		//log.Error("Tribe_Seal", "retry", atomic.LoadUint32(&t.SealErrorCounter), "number", block.Number().Int64(), "err", err)
-		t.SealErrorCh <- err
+		//t.SealErrorCh <- err
 		return nil, err
 	}
 	//atomic.StoreUint32(&t.SealErrorCounter, 0)

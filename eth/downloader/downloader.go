@@ -437,7 +437,7 @@ func (d *Downloader) syncWithPeer(p *peerConnection, hash common.Hash, td *big.I
 	}
 	d.syncStatsChainHeight = height
 	d.syncStatsLock.Unlock()
-	fmt.Println("::: ORIGIN ::: d.syncStatsChainHeight=", d.syncStatsChainHeight, "d.syncStatsChainHeight=", d.syncStatsChainHeight)
+	fmt.Println("::: ORIGIN ::: d.syncStatsChainHeight=", d.syncStatsChainHeight, "current=", d.blockchain.CurrentHeader().Number.Int64())
 	fmt.Println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 	// Initiate the sync using a concurrent header and content retrieval algorithm
 	pivot := uint64(0)
@@ -1485,6 +1485,7 @@ func (d *Downloader) commitFastSyncData(results []*fetchResult, stateSync *state
 }
 
 func (d *Downloader) commitPivotBlock(result *fetchResult) error {
+	fmt.Println("<<commitPivotBlock>> num=",result.Header.Number.Int64())
 	b := types.NewBlockWithHeader(result.Header).WithBody(result.Transactions, result.Uncles)
 	// Sync the pivot block state. This should complete reasonably quickly because
 	// we've already synced up to the reported head block state earlier.
