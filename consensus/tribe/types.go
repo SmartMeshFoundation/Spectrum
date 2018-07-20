@@ -107,7 +107,7 @@ type Tribe struct {
 	signFn           SignerFn     // Signer function to authorize hashes with
 	lock             sync.RWMutex // Protects the signer fields
 	Status           *TribeStatus
-	//SealErrorCh      chan error // when error from seal fun, may be need commit a new work
+	SealErrorCh      map[int64]error // when error from seal fun, may be need commit a new work
 	//SealErrorCounter uint32     // less then 3 , retry commit new work
 	isInit           bool
 }

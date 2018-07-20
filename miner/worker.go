@@ -344,10 +344,14 @@ func (self *worker) wait() {
 					*/
 					// modify by liangc : retry is a failed logic
 					h := self.chain.CurrentHeader()
-					log.Warn("wait_new_work_will_retry_tribe.update","current_num",h.Number.Int64(),"current_hash",h.Hash().Hex())
-					tribe.Status.Update(h.Number, h.Hash())
-					self.commitNewWork()
-					log.Warn("wait_new_work_will_retry_commitNewWork","current_num",h.Number.Int64(),"current_hash",h.Hash().Hex())
+					if sealErr, ok := tribe.SealErrorCh[h.Number.Int64()]; ok {
+						log.Error("SealErrorCh", "currentNumber", h.Number.Int64(), "err", sealErr)
+						log.Warn("wait_new_work_will_retry_tribe.update", "current_num", h.Number.Int64(), "current_hash", h.Hash().Hex())
+						tribe.Status.Update(h.Number, h.Hash())
+						self.commitNewWork()
+						log.Warn("wait_new_work_will_retry_commitNewWork", "current_num", h.Number.Int64(), "current_hash", h.Hash().Hex())
+						delete(tribe.SealErrorCh,h.Number.Int64())
+					}
 				}
 				continue
 			}
@@ -521,7 +525,7 @@ func (self *worker) commitNewWork() {
 	}
 	// debug <--- */
 
-	log.Debug("pending_len", "cn", parent.Number().Int64(), "len",len(pending))
+	log.Debug("pending_len", "cn", parent.Number().Int64(), "len", len(pending))
 	txs := types.NewTransactionsByPriceAndNonce(self.current.signer, pending)
 	work.commitTransactions(self.mux, txs, self.chain, self.coinbase)
 
