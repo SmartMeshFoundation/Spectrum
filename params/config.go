@@ -82,7 +82,7 @@ var (
 		Chief005Address: common.HexToAddress("0xe90da8175922925dfb40e6505b508f1042e807aa"),
 		// 0.0.6 : ready for release
 		Chief006Block:   big.NewInt(595710),
-		Chief006Address: common.HexToAddress("0x430dfe3305e6aefd3ece63705148896e14413163"),
+		Chief006Address: common.HexToAddress("0x53cb83888e6d28cf7ec168308c65172001f441aa"),
 		// new rules for chief.tx of gaspool
 		NR001Block: big.NewInt(176222),
 		NR002Block: big.NewInt(525233),
