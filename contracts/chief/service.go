@@ -33,6 +33,9 @@ type Service interface {
 }
 */
 
+// volunteer : peer.td - current.td < 51
+var min_td = big.NewInt(51);
+
 //implements node.Service
 type TribeService struct {
 	tribeChief_0_0_2 *chieflib.TribeChief
@@ -44,6 +47,7 @@ type TribeService struct {
 	server           *p2p.Server // peers and nodekey ...
 	ipcpath          string
 	client           *ethclient.Client
+	ethereum         *eth.Ethereum
 }
 
 func NewTribeService(ctx *node.ServiceContext) (node.Service, error) {
@@ -61,8 +65,9 @@ func NewTribeService(ctx *node.ServiceContext) (node.Service, error) {
 	}
 	ipcpath := params.GetIPCPath()
 	ts := &TribeService{
-		quit:    make(chan int),
-		ipcpath: ipcpath,
+		quit:     make(chan int),
+		ipcpath:  ipcpath,
+		ethereum: ethereum,
 	}
 	if v0_0_2 := params.GetChiefInfoByVsn("0.0.2"); v0_0_2 != nil {
 		contract_0_0_2, err := chieflib.NewTribeChief(v0_0_2.Addr, eth.NewContractBackend(apiBackend))
@@ -460,18 +465,26 @@ func (self *TribeService) isVolunteer(dict map[common.Address]interface{}, add c
 	return true
 }
 
-//TODO 0.0.6 : volunteerList is nil on vsn0.0.6
+//0.0.6 : volunteerList is nil on vsn0.0.6
 func (self *TribeService) fetchVolunteer(blockNumber *big.Int, vsn string) common.Address {
-	peers := self.server.Peers()
-	if len(peers) > 0 {
+	ch := self.ethereum.BlockChain().CurrentHeader()
+	TD := self.ethereum.BlockChain().GetTd(ch.Hash(), ch.Number.Uint64())
+	min := new(big.Int).Sub(TD, min_td)
+	vs := self.ethereum.FetchVolunteers(min)
+
+	if len(vs) > 0 {
 		chiefStatus, err := self.getChiefStatus(blockNumber, nil)
 		if err != nil {
 			log.Error("getChiefStatus fail", "err", err)
 		}
-		// exclude signers and volunteers
-		vl := append(chiefStatus.VolunteerList[:], chiefStatus.SignerList...)
+		// exclude signers
+		vl := chiefStatus.SignerList
+		if chiefStatus.VolunteerList != nil {
+			// exclude volunteers
+			vl = append(vl[:], chiefStatus.VolunteerList...)
+		}
 		if chiefStatus.BlackList != nil {
-			// exclude blacklist address
+			// exclude blacklist
 			vl = append(vl[:], chiefStatus.BlackList...)
 		}
 		switch vsn {
@@ -480,8 +493,7 @@ func (self *TribeService) fetchVolunteer(blockNumber *big.Int, vsn string) commo
 			for _, v := range vl {
 				vmap[v] = struct{}{}
 			}
-			for _, peer := range peers {
-				pub, _ := peer.ID().Pubkey()
+			for _, pub := range vs {
 				add := crypto.PubkeyToAddress(*pub)
 				ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 				defer cancel()
@@ -492,8 +504,7 @@ func (self *TribeService) fetchVolunteer(blockNumber *big.Int, vsn string) commo
 			}
 		case "0.0.6":
 			vlist := make([]common.Address, 0, 0)
-			for _, peer := range peers {
-				pub, _ := peer.ID().Pubkey()
+			for _, pub := range vs {
 				add := crypto.PubkeyToAddress(*pub)
 				ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 				defer cancel()

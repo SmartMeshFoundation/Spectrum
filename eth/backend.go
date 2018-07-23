@@ -49,6 +49,7 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/rlp"
 	"github.com/SmartMeshFoundation/Spectrum/rpc"
 	"github.com/SmartMeshFoundation/Spectrum/consensus/tribe"
+	"crypto/ecdsa"
 )
 
 type LesServer interface {
@@ -177,7 +178,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Ethereum, error) {
 	}
 	eth.ApiBackend.gpo = gasprice.NewOracle(eth.ApiBackend, gpoParams)
 	// add by liangc
-	if tribe,ok := eth.engine.(*tribe.Tribe) ; ok{
+	if tribe, ok := eth.engine.(*tribe.Tribe); ok {
 		tribe.Init(eth.BlockChain().CurrentHeader().Hash(), eth.BlockChain().CurrentHeader().Number)
 	}
 	return eth, nil
@@ -216,7 +217,7 @@ func CreateDB(ctx *node.ServiceContext, config *Config, name string) (ethdb.Data
 func CreateConsensusEngine(ctx *node.ServiceContext, config *ethash.Config, chainConfig *params.ChainConfig, db ethdb.Database) consensus.Engine {
 	// add by liangc : start tribe engine : DPOA ??
 	if chainConfig.Tribe != nil {
-		return tribe.New(chainConfig.Tribe,db)
+		return tribe.New(chainConfig.Tribe, db)
 	}
 	// If proof-of-authority is requested, set it up
 	if chainConfig.Clique != nil {
@@ -314,7 +315,7 @@ func (s *Ethereum) Etherbase() (eb common.Address, err error) {
 	s.lock.RUnlock()
 
 	if tribe, ok := s.engine.(*tribe.Tribe); ok {
-		return tribe.Status.GetMinerAddress() , nil
+		return tribe.Status.GetMinerAddress(), nil
 	}
 	if etherbase != (common.Address{}) {
 		return etherbase, nil
@@ -351,7 +352,7 @@ func (s *Ethereum) StartMining(local bool) error {
 	}
 
 	if tribe, ok := s.engine.(*tribe.Tribe); ok {
-		tribe.Authorize( common.Address{}, nil)
+		tribe.Authorize(common.Address{}, nil)
 	}
 	if clique, ok := s.engine.(*clique.Clique); ok {
 		wallet, err := s.accountManager.Find(accounts.Account{Address: eb})
@@ -441,4 +442,16 @@ func (s *Ethereum) Stop() error {
 	close(s.shutdownChan)
 
 	return nil
+}
+
+// return td big then minTD peer.ID() array
+func (s *Ethereum) FetchVolunteers(minTD *big.Int) (volunteers []*ecdsa.PublicKey) {
+	for _, p := range s.protocolManager.peers.peers {
+		log.Debug("ethereum.FetchVolunteers","num",s.blockchain.CurrentHeader().Number.Int64(),"min",minTD.Int64(),"td",p.td.Int64(),"p.id",p.ID().String())
+		if p != nil && p.td.Cmp(minTD) > 0 {
+			pk,_ := p.ID().Pubkey()
+			volunteers = append(volunteers[:],pk)
+		}
+	}
+	return
 }
