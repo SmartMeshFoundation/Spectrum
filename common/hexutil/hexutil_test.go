@@ -201,3 +201,15 @@ func TestDecodeUint64(t *testing.T) {
 		}
 	}
 }
+
+func TestEncodeStr(t *testing.T) {
+	r := Encode([]byte("hello world"))
+	t.Log(r)
+	r = Encode([]byte("你好世界"))
+	t.Log(r)
+}
+
+func TestDecodeStr(t *testing.T) {
+	r,e := Decode("0x68656c6c6f20776f726c64")
+	t.Log(e,string(r))
+}

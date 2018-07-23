@@ -2,8 +2,6 @@ pragma solidity ^0.4.19;
 
 contract TribeChief_0_0_6 {
 
-    string debugFunc = "";
-
     string vsn = "0.0.6";
 
     //config >>>>
@@ -304,7 +302,6 @@ contract TribeChief_0_0_6 {
         假设出块节点列表最大长度 17 ，候选节点列表最大长度与 epoch 相等。每一轮出块，指的就是每 17 个块，每笔交易的确认时间也是 17 块，但是对于交易所来说应该至少经过 34 个块才能确认一笔交易。
     */
     function updateRule3() private {
-        blockNumber = block.number;
         uint l = _signerList.length;
         uint signerIdx = uint(blockNumber % l);
         address si = _signerList[signerIdx];
@@ -327,6 +324,8 @@ contract TribeChief_0_0_6 {
         }
     }
 
+
+
     /*
     rule 1 : 出块节点列表未满
         每个节点3分，每错出或漏出一个块扣1分，0分时被放入黑名单
@@ -337,8 +336,7 @@ contract TribeChief_0_0_6 {
         出块规则与 “出块节点列表未满” 时的规则相同
     */
     function updateRule1() private {
-        debugFunc = "updateRule1";
-        blockNumber = block.number;
+        fixRule1();
         // mine
         // 如果当前块 不是 signers[ blockNumber % signers.length ] 出的，就给这个 signer 减分
         // 否则恢复成 3 分
@@ -376,13 +374,35 @@ contract TribeChief_0_0_6 {
         }
     }
 
+    function fixRule1() private {
+        // clean signers
+        for (uint i = 0; i < _signerList.length; i++) {
+            if (_signerList[i] == uint160(0)) {
+                deleteSigner(i);
+                i--;
+            }
+        }
+        // clean volunteers
+        // volunteers.length <= signerLimit now.
+        for (uint j = 0; j < _signerList.length; j++) {
+            address v = _signerList[j];
+            if (volunteersMap[v].number > 0) {
+                for (uint k = 0; k < _volunteerList.length; k++) {
+                    if (v == _volunteerList[k]) {
+                        deleteVolunteer(k);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
     function update(address volunteer) public apply(msg.sender) {
-        debugFunc = "update";
+        blockNumber = block.number;
         // 每个 epoch 的行为都是固定的，执行完了会决定接下来的行为
-        if (block.number > epoch && block.number % epoch == 0) {
+        if (blockNumber > epoch && blockNumber % epoch == 0) {
             // 先清理 blacklist , 因为清理志愿者时还会产生新的 blacklist 成员
             _cleanBlacklist();
-
             // 志愿者列表是否需要清理，这是个问题
             //_cleanVolunteerList();
         }
@@ -450,9 +470,11 @@ contract TribeChief_0_0_6 {
             for (uint i = 0; i < volunteers.length; i++) {
                 address volunteer = volunteers[i];
                 if (volunteersMap[volunteer].number == 0 && blMap[volunteer] == 0 && signersMap[volunteer].number == 0) {
-                    result[i] = 1; // true
+                    result[i] = 1;
+                    // true
                 } else {
-                    result[i] = 0; // false
+                    result[i] = 0;
+                    // false
                 }
             }
         }
