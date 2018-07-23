@@ -160,7 +160,7 @@ func (self *TribeService) getVolunteers(mbox params.Mbox) {
 
 	chiefInfo := params.GetChiefInfo(blockNumber)
 	if chiefInfo == nil {
-		fmt.Println("=>TribeService.getVolunteers", "empty_chief", chiefInfo.Version, "blockNumber", blockNumber, "blockHash", blockHash.Hex())
+		log.Debug("=>TribeService.getVolunteers", "empty_chief", chiefInfo.Version, "blockNumber", blockNumber, "blockHash", blockHash.Hex())
 		success.Success = false
 		success.Entity = errors.New("can_not_empty_chiefInfo")
 	} else {
@@ -174,13 +174,13 @@ func (self *TribeService) getVolunteers(mbox params.Mbox) {
 			opts.Hash = blockHash
 			v, err := self.tribeChief_0_0_6.GetVolunteers(opts)
 			if err != nil {
-				fmt.Println("=>TribeService.getVolunteers", "err", err, "blockNumber", blockNumber, "blockHash", blockHash.Hex())
+				log.Error("=>TribeService.getVolunteers", "err", err, "blockNumber", blockNumber, "blockHash", blockHash.Hex())
 				success.Success = false
 				success.Entity = err
 			}
 			success.Entity = params.ChiefVolunteers{v.VolunteerList, v.WeightList, v.Length}
 		default:
-			fmt.Println("=>TribeService.getVolunteers", "fail_vsn", chiefInfo.Version, "blockNumber", blockNumber, "blockHash", blockHash.Hex())
+			log.Error("=>TribeService.getVolunteers", "fail_vsn", chiefInfo.Version, "blockNumber", blockNumber, "blockHash", blockHash.Hex())
 			success.Success = false
 			success.Entity = errors.New("fail_vsn_now")
 		}
@@ -208,13 +208,13 @@ func (self *TribeService) filterVolunteer(mbox params.Mbox) {
 		addr = a.(common.Address)
 		vlist = append(vlist[:], addr)
 	}
-	fmt.Println("=>TribeService.filterVolunteer", "blockNumber", blockNumber, "blockHash", blockHash.Hex(), "addr", addr.Hex())
+	log.Debug("=>TribeService.filterVolunteer", "blockNumber", blockNumber, "blockHash", blockHash.Hex(), "addr", addr.Hex())
 
 	chiefInfo := params.GetChiefInfo(blockNumber)
 	if chiefInfo == nil {
-		fmt.Println("=>TribeService.filterVolunteer", "empty_chief", chiefInfo.Version, "blockNumber", blockNumber, "blockHash", blockHash.Hex())
+		log.Error("=>TribeService.filterVolunteer", "empty_chief", chiefInfo.Version, "blockNumber", blockNumber, "blockHash", blockHash.Hex())
 		success.Success = false
-		success.Entity = errors.New("can_not_empty_chiefInfo")
+		success.Entity = errors.New("cchiefInfo_can_not_empty")
 	} else {
 		switch chiefInfo.Version {
 		case "0.0.6":
@@ -225,13 +225,13 @@ func (self *TribeService) filterVolunteer(mbox params.Mbox) {
 			opts.Hash = blockHash
 			rlist, err := self.tribeChief_0_0_6.FilterVolunteer(opts, vlist)
 			if err != nil {
-				fmt.Println("=>TribeService.filterVolunteer", "err", err, "blockNumber", blockNumber, "blockHash", blockHash.Hex())
+				log.Error("=>TribeService.filterVolunteer", "err", err, "blockNumber", blockNumber, "blockHash", blockHash.Hex())
 				success.Success = false
 				success.Entity = err
 			}
 			success.Entity = rlist[0]
 		default:
-			fmt.Println("=>TribeService.filterVolunteer", "fail_vsn", chiefInfo.Version, "blockNumber", blockNumber, "blockHash", blockHash.Hex())
+			log.Error("=>TribeService.filterVolunteer", "fail_vsn", chiefInfo.Version, "blockNumber", blockNumber, "blockHash", blockHash.Hex())
 			success.Success = false
 			success.Entity = errors.New("fail_vsn_now")
 		}
@@ -513,14 +513,14 @@ func (self *TribeService) fetchVolunteer(blockNumber *big.Int, vsn string) commo
 					vlist = append(vlist, add)
 				}
 			}
-			fmt.Println("=> [0.0.6] TribeService.fetchVolunteer : vlist=", len(vlist))
+			log.Debug("=> [0.0.6] TribeService.fetchVolunteer :", "vlist", len(vlist))
 			if len(vlist) > 0 {
 				ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 				defer cancel()
 				opts := new(bind.CallOptsWithNumber)
 				opts.Context = ctx
 				if rlist, err := self.tribeChief_0_0_6.FilterVolunteer(opts, vlist); err == nil {
-					fmt.Println("=> [0.0.6] TribeService.fetchVolunteer : rlist=", len(rlist), rlist)
+					log.Debug("=> [0.0.6] TribeService.fetchVolunteer :", "len", len(rlist), "rlist", rlist)
 					for i, r := range rlist {
 						if r.Int64() > 0 {
 							return vlist[i]
