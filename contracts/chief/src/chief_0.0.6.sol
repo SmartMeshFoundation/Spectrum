@@ -125,7 +125,7 @@ contract TribeChief_0_0_6 {
                 }
             }
             pushBlackList(volunteer);
-        } else if (weight == 5 && _volunteerList.length < volunteerLimit && volunteersMap[volunteer].number == 0 && blMap[volunteer] == 0 && signersMap[volunteer].number == 0) {
+        } else if (!genesisSigner[volunteer] && weight == 5 && _volunteerList.length < volunteerLimit && volunteersMap[volunteer].number == 0 && blMap[volunteer] == 0 && signersMap[volunteer].number == 0) {
             //满员或者已经存在于签名人or候选人则不添加
             _volunteerList.push(volunteer);
             volunteersMap[volunteer].weight = weight;
