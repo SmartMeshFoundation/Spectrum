@@ -169,7 +169,6 @@ func (self *TribeService) getVolunteers(mbox params.Mbox) {
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 			defer cancel()
 			opts := new(bind.CallOptsWithNumber)
-			opts.Hash = blockHash
 			opts.Context = ctx
 			opts.Hash = blockHash
 			v, err := self.tribeChief_0_0_6.GetVolunteers(opts)
