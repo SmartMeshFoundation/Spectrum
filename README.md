@@ -2,8 +2,6 @@
 
 Spectrum is an [Ethereum-compatible](https://github.com/SmartMeshFoundation/Spectrum) project. It uses a new consensus and new block reward for SmartMesh ecosystem devices and IOT. 
 
-Spectrum is still in the development stage, and this version is just for testing.
-
 ## Build the source 
 
 For prerequisites and detailed build instructions please read the [Installation Instructions](https://github.com/SmartMeshFoundation/Spectrum/wiki/Building-Specturm) on the wiki.
