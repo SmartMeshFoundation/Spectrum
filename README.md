@@ -10,10 +10,17 @@ For prerequisites and detailed build instructions please read the [Installation 
 
 Building geth requires both a Go (version 1.9.2 or later) and a C compiler. You can install them using your favourite package manager.
     
+## Encrypt your nodekey
+
+     $ ./build/bin/geth security --passwd
+## Decrypt your nodekey
+
+     $ ./build/bin/geth security --unlock
+     
 ## Run fast node to test geth
 
-    $ ./build/bin/geth console
-
+    $ ./build/bin/geth console     
+    
 ## Create new account
 
     > personal.newAccount()
