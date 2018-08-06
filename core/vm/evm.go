@@ -49,6 +49,17 @@ func run(evm *EVM, contract *Contract, input []byte) ([]byte, error) {
 			return RunPrecompiledContract(p, input, contract)
 		}
 	}
+	var chiefAddress     common.Address
+	if params.IsTestnet() {
+		  chiefAddress = params.TestnetChainConfig.Chief006Address
+	} else {
+          chiefAddress =  params.MainnetChainConfig.Chief005Address
+	}
+	if contract.Address().Hex() == chiefAddress.Hex() {
+		  evm.interpreter.cfg.DisableGasMetering = true
+	} else{
+           evm.interpreter.cfg.DisableGasMetering = false
+    }
 	return evm.interpreter.Run(contract, input)
 }
 
@@ -182,6 +193,7 @@ func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas 
 		}()
 	}
 	ret, err = run(evm, contract, input)
+
 
 	// When an error was returned by the EVM or when setting the creation code
 	// above we revert to the snapshot and consume any gas remaining. Additionally
