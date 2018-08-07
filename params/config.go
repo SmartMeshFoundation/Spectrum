@@ -46,11 +46,11 @@ var (
 		Chief005Block:   big.NewInt(2),
 		Chief005Address: common.HexToAddress("0xf0d2ad4e0d25cfea98e9640329993bbc52396abd"),
 		// 0.0.6 : ready for release
-		//Chief006Block:   big.NewInt(600000),
-		//Chief006Address: common.HexToAddress(""),
+		Chief006Block:   big.NewInt(588888),
+		Chief006Address: common.HexToAddress("0xba7f507d5aab3e931312512c234fbeb85cbd9dce"),
 
 		NR001Block: big.NewInt(0), // new rules for chief.tx of gaspool
-		NR002Block: big.NewInt(0),
+		NR002Block: big.NewInt(588888),
 		Tribe:           &TribeConfig{},
 	}
 
