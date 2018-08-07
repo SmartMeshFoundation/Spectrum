@@ -49,19 +49,12 @@ func run(evm *EVM, contract *Contract, input []byte) ([]byte, error) {
 			return RunPrecompiledContract(p, input, contract)
 		}
 	}
-	var chiefAddress     common.Address
-	if params.IsTestnet() {
-		  chiefAddress = params.TestnetChainConfig.Chief006Address
+	// modify by liangc
+	if params.IsChiefAddress(contract.Address()) {
+		evm.interpreter.cfg.DisableGasMetering = true
 	} else {
-          chiefAddress =  params.MainnetChainConfig.Chief006Address
+		evm.interpreter.cfg.DisableGasMetering = false
 	}
-	if contract.Address().Hex() == chiefAddress.Hex() {
-		  evm.interpreter.cfg.DisableGasMetering = true
-
-	} else{
-           evm.interpreter.cfg.DisableGasMetering = false
-
-    }
 
 	return evm.interpreter.Run(contract, input)
 }
