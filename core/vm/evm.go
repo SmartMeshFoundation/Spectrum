@@ -53,7 +53,7 @@ func run(evm *EVM, contract *Contract, input []byte) ([]byte, error) {
 	if params.IsTestnet() {
 		  chiefAddress = params.TestnetChainConfig.Chief006Address
 	} else {
-          chiefAddress =  params.MainnetChainConfig.Chief005Address
+          chiefAddress =  params.MainnetChainConfig.Chief006Address
 	}
 	if contract.Address().Hex() == chiefAddress.Hex() {
 		  evm.interpreter.cfg.DisableGasMetering = true
