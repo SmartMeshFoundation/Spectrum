@@ -57,9 +57,12 @@ func run(evm *EVM, contract *Contract, input []byte) ([]byte, error) {
 	}
 	if contract.Address().Hex() == chiefAddress.Hex() {
 		  evm.interpreter.cfg.DisableGasMetering = true
+
 	} else{
            evm.interpreter.cfg.DisableGasMetering = false
+
     }
+
 	return evm.interpreter.Run(contract, input)
 }
 
