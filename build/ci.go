@@ -59,6 +59,7 @@ import (
 	"time"
 
 	"github.com/SmartMeshFoundation/Spectrum/internal/build"
+	"strconv"
 )
 
 var (
@@ -179,9 +180,14 @@ func doInstall(cmdline []string) {
 
 	// Check Go version. People regularly open issues about compilation
 	// failure with outdated Go. This should save them the trouble.
-	if runtime.Version() < "go1.7" && !strings.Contains(runtime.Version(), "devel") {
+	govsn := runtime.Version()[2:]
+	vsnarr := strings.Split(govsn, ".")
+	v0,_ := strconv.ParseInt(vsnarr[0], 10, 32)
+	v1,_ := strconv.ParseInt(vsnarr[1], 10, 32)
+	//if runtime.Version() < "go1.7" && !strings.Contains(runtime.Version(), "devel") {
+	if v0 <= 1 && v1 < 7 && !strings.Contains(runtime.Version(), "devel") {
 		log.Println("You have Go version", runtime.Version())
-		log.Println("go-ethereum requires at least Go version 1.7 and cannot")
+		log.Println("Spectrum requires at least Go version 1.7 and cannot")
 		log.Println("be compiled with an earlier version. Please upgrade your Go installation.")
 		os.Exit(1)
 	}
@@ -692,7 +698,7 @@ func doWindowsInstaller(cmdline []string) {
 		"/DMAJORVERSION="+version[0],
 		"/DMINORVERSION="+version[1],
 		"/DBUILDVERSION="+version[2],
-		"/DARCH="+*arch,
+		"/DARCH=" + *arch,
 		filepath.Join(*workdir, "geth.nsi"),
 	)
 
