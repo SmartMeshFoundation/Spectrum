@@ -49,6 +49,13 @@ func run(evm *EVM, contract *Contract, input []byte) ([]byte, error) {
 			return RunPrecompiledContract(p, input, contract)
 		}
 	}
+	// modify by liangc
+	if params.IsChiefAddress(contract.Address()) {
+		evm.interpreter.cfg.DisableGasMetering = true
+	} else {
+		evm.interpreter.cfg.DisableGasMetering = false
+	}
+
 	return evm.interpreter.Run(contract, input)
 }
 
@@ -182,6 +189,7 @@ func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas 
 		}()
 	}
 	ret, err = run(evm, contract, input)
+
 
 	// When an error was returned by the EVM or when setting the creation code
 	// above we revert to the snapshot and consume any gas remaining. Additionally
