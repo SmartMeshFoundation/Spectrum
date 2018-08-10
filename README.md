@@ -31,42 +31,25 @@ Building Spectrum requires both a Go (version 1.9.2 or later) and a C compiler. 
 
 ### Mac
 
-1）Install Go
 
-        $ brew install go
-
-2）Install git
+	1）download the latest *Spectrum* source code from the github 
 	
-        $ brew install git 
+        	$ git clone https://github.com/SmartMeshFoundation/Spectrum.git
 
-3）download the latest *Spectrum* source code from the github 
+	2）Install by using source code
+
+        	$ cd Spectrum
+        	$ make smc
+
+		If any error happens during the compiling and prompt message shows " lacking of the header file that is related to the Mac OS", you may try to install the xcode command-line tool before executing above commands:
 	
-        $ git clone https://github.com/SmartMeshFoundation/Spectrum.git
+	        $ xcode-select --install
 
-4）Install by using source code
-
-        $ cd Spectrum
-        $ make smc
-
-If any error happens during the compiling and prompt message shows " lacking of the header file that is related to the Mac OS", you may try to install the xcode command-line tool before executing above commands:
+	3） startup
 	
-        $ xcode-select --install
-
-5） startup
-	
-        $ build/bin/smc console
+        	$ build/bin/smc console
 
 ### Windows
-
-1）Install by using binary file：
-	
-        1）download the binary file from http://
-        2）decompress the file " spectrum.zip " and and extract it to "c:\Users\xxx"
-        3）start the cmd window
-        4）run the program
-		c:\Users\xxx> smc console
-
-2）Install by using source code
 
 	1）First of all, you need to install a package management software for Windows named "chocolatey". Please refer to https://chocolatey.org for Installation method.
 	2）Install git, golang, mingw by using chocolatey
