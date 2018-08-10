@@ -185,9 +185,9 @@ func doInstall(cmdline []string) {
 	v0,_ := strconv.ParseInt(vsnarr[0], 10, 32)
 	v1,_ := strconv.ParseInt(vsnarr[1], 10, 32)
 	//if runtime.Version() < "go1.7" && !strings.Contains(runtime.Version(), "devel") {
-	if v0 <= 1 && v1 < 7 && !strings.Contains(runtime.Version(), "devel") {
+	if v0 <= 1 && v1 < 9 && !strings.Contains(runtime.Version(), "devel") {
 		log.Println("You have Go version", runtime.Version())
-		log.Println("Spectrum requires at least Go version 1.7 and cannot")
+		log.Println("Spectrum requires at least Go version 1.9 and cannot")
 		log.Println("be compiled with an earlier version. Please upgrade your Go installation.")
 		os.Exit(1)
 	}

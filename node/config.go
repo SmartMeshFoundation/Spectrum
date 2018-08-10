@@ -331,7 +331,7 @@ func (c *Config) loadECDSAWithPwd() (*ecdsa.PrivateKey, error) {
 	}
 	overFunc := func(){
 		fmt.Println("=================================================")
-		fmt.Println(`> Must be first execute "geth security --unlock" `)
+		fmt.Println(`> Must be first execute "smc security --unlock" `)
 		fmt.Println("=================================================")
 		os.Exit(-1)
 	}
