@@ -10,7 +10,7 @@ Building Spectrum requires both a Go (version 1.9.2 or later) and a C compiler. 
 
 1）Install by using binary file
 
-	1）download the binary file from http://
+	1）download the binary file from https://github.com/SmartMeshFoundation/Spectrum/archive/0.4.2.tar.gz
 	2）decompress the file "spectrum.tar.gz" and extract it to the current directory
 		$ tar -zxvf spectrum.tar.gz
 	3）switch to the run directory
