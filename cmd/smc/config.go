@@ -18,7 +18,6 @@ package main
 
 import (
 	"bufio"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -29,7 +28,6 @@ import (
 	"gopkg.in/urfave/cli.v1"
 
 	"github.com/SmartMeshFoundation/Spectrum/cmd/utils"
-	"github.com/SmartMeshFoundation/Spectrum/contracts/release"
 	"github.com/SmartMeshFoundation/Spectrum/dashboard"
 	"github.com/SmartMeshFoundation/Spectrum/eth"
 	"github.com/SmartMeshFoundation/Spectrum/node"
@@ -184,7 +182,7 @@ func makeFullNode(ctx *cli.Context) *node.Node {
 	if cfg.Ethstats.URL != "" {
 		utils.RegisterEthStatsService(stack, cfg.Ethstats.URL)
 	}
-
+	/*
 	// Add the release oracle service so it boots along with node.
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
 		config := release.Config{
@@ -199,6 +197,7 @@ func makeFullNode(ctx *cli.Context) *node.Node {
 	}); err != nil {
 		utils.Fatalf("Failed to register the Geth release oracle service: %v", err)
 	}
+	*/
 	return stack
 }
 

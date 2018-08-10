@@ -28,7 +28,6 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/accounts"
 	"github.com/SmartMeshFoundation/Spectrum/accounts/keystore"
 	"github.com/SmartMeshFoundation/Spectrum/cmd/utils"
-	"github.com/SmartMeshFoundation/Spectrum/common"
 	"github.com/SmartMeshFoundation/Spectrum/console"
 	"github.com/SmartMeshFoundation/Spectrum/eth"
 	"github.com/SmartMeshFoundation/Spectrum/ethclient"
@@ -47,7 +46,7 @@ var (
 	// Git SHA1 commit hash of the release (set via linker flags)
 	gitCommit = ""
 	// Ethereum address of the Geth release oracle.
-	relOracle = common.HexToAddress("0xfa7b9770ca4cb04296cac84f37736d4041251cdf")
+	// relOracle = common.HexToAddress("0xfa7b9770ca4cb04296cac84f37736d4041251cdf")
 	// The app that holds all commands and flags.
 	app = utils.NewApp(gitCommit, "the Spectrum command line interface")
 	// flags that configure the node
