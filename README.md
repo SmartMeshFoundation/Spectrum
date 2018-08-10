@@ -6,18 +6,18 @@ Spectrum is an [Ethereum-compatible](https://github.com/SmartMeshFoundation/Spec
 
 For prerequisites and detailed build instructions please read the [Installation Instructions](https://github.com/SmartMeshFoundation/Spectrum/wiki/Building-Specturm) on the wiki.
 
-Building geth requires both a Go (version 1.9.2 or later) and a C compiler. You can install them using your favourite package manager.
+Building Spectrum requires both a Go (version 1.9.2 or later) and a C compiler. You can install them using your favourite package manager.
     
 ## Encrypt your nodekey
 
-     $ ./build/bin/geth security --passwd
+     $ ./build/bin/smc security --passwd
 ## Decrypt your nodekey
 
-     $ ./build/bin/geth security --unlock
+     $ ./build/bin/smc security --unlock
      
-## Run fast node to test geth
+## Run fast node to test smc
 
-    $ ./build/bin/geth console     
+    $ ./build/bin/smc console
     
 ## Create new account
 
