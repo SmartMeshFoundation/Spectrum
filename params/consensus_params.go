@@ -114,7 +114,7 @@ func chiefAddressList() (list ChiefInfoList) {
 		list = ChiefInfoList{
 			// at same account and block number to deploy this contract can be get the same address
 			newChiefInfo(MainnetChainConfig.Chief005Block, "0.0.5", MainnetChainConfig.Chief005Address, TribeChief_0_0_5ABI),
-			//newChiefInfo(MainnetChainConfig.Chief006Block, "0.0.6", MainnetChainConfig.Chief006Address, TribeChief_0_0_6ABI),
+			newChiefInfo(MainnetChainConfig.Chief006Block, "0.0.6", MainnetChainConfig.Chief006Address, TribeChief_0_0_6ABI),
 		}
 	}
 	chiefInfoList = list
