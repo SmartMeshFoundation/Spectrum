@@ -4,10 +4,105 @@ Spectrum is an [Ethereum-compatible](https://github.com/SmartMeshFoundation/Spec
 
 ## Build the source 
 
-For prerequisites and detailed build instructions please read the [Installation Instructions](https://github.com/SmartMeshFoundation/Spectrum/wiki/Building-Specturm) on the wiki.
-
 Building Spectrum requires both a Go (version 1.9.2 or later) and a C compiler. You can install them using your favourite package manager.
-    
+
+### Ubuntu:
+
+1）Install by using binary file
+
+	1）download the binary file from http://
+	2）decompress the file "spectrum.tar.gz" and extract it to the current directory
+		$ tar -zxvf spectrum.tar.gz
+	3）switch to the run directory
+		$ cd Spectrum
+	4）run the program
+		$ ./smc console
+
+2）Install by using source code
+
+	1）Install git
+		$ apt-get install git
+		$ apt-get install golang
+	2）Install golang in the directory of {GOHOME}
+		$ cd {GOHOME}
+		$ tar -zxvf go1.9.2.linux-amd64.tar
+		$ mkdir {GOHOME}/gopath
+		$ export GOAPTH={GOHOME}/gopath 
+		$ export GOROOT=${GOHOME}/go 
+		$ export PATH=$GOROOT/bin:$PATH
+	3）download the source on the git
+		$ cd {GOPATH}
+		$ mkdirs src\github.com\SmartMeshFoundation\
+		$ cd src\github.com\SmartMeshFoundation\
+		$ git clone https://github.com/SmartMeshFoundation/Spectrum.git
+	4）compile the source code
+		$ cd Spectrum
+		$ make smc
+	5）run the program
+		$ ./build/bin/smc console
+
+### Mac
+
+1）Install Go
+
+        $ brew install go
+
+2）Install git
+	
+        $ brew install git 
+
+3）download the latest *Spectrum* source code from the github 
+	
+        $ git clone https://github.com/SmartMeshFoundation/Spectrum.git
+
+4）Install by using source code
+
+        $ cd Spectrum
+        $ make smc
+
+If any error happens during the compiling and prompt message shows " lacking of the header file that is related to the Mac OS", you may try to install the xcode command-line tool before executing above commands:
+	
+        $ xcode-select --install
+
+5） startup
+	
+        $ build/bin/smc console
+
+### Windows
+
+1）Install by using binary file：
+	
+        1）download the binary file from http://
+        2）decompress the file " spectrum.zip " and and extract it to "c:\Users\xxx"
+        3）start the cmd window
+        4）run the program
+		c:\Users\xxx> smc console
+
+2）Install by using source code
+
+	1）First of all, you need to install a package management software for Windows named "chocolatey". Please refer to https://chocolatey.org for Installation method.
+	2）Install git, golang, mingw by using chocolatey
+		c:\Users\xxx> choco install git
+		c:\Users\xxx> cholo install golang 
+		c:\Users\xxx> cholo install mingw
+
+	3）Set environment variables {GOPATH} of golang：
+		c:\Users\xxx> mkdir {GOPATH}
+		c:\Users\xxx> set "GOPATH={GOPATH}"
+		c:\Users\xxx> set "Path={GOPATH}\bin;%Path%"
+	4）download the source on the git： 
+		c:\Users\xxx> cd {GOPATH}
+		{GOPATH}> mkdir src\github.com\SmartMeshFoundation\
+		{GOPATH}> cd src\github.com\SmartMeshFoundation\
+		...\SmartMeshFoundation> git clone https://github.com/SmartMeshFoundation/Spectrum.git
+	5）compile source code：
+		...\SmartMeshFoundation> cd Spectrum
+		...\SmartMeshFoundation> go install -v ./cmd/...
+	6）run the program：
+		c:\Users\xxx> smc console
+
+
+
 ## Encrypt your nodekey
 
      $ ./build/bin/smc security --passwd
