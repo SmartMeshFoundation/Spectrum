@@ -8,10 +8,6 @@ Building Spectrum requires both a Go (version 1.9.2 or later) and a C compiler. 
 
 ### Ubuntu:
 
-
-
-Install by using source code
-
 	1）Install git
 		$ apt-get install git
 		$ apt-get install golang
