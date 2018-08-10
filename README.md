@@ -4,6 +4,8 @@ Spectrum is an [Ethereum-compatible](https://github.com/SmartMeshFoundation/Spec
 
 ## Build the source 
 
+For prerequisites and detailed build instructions please read the [Installation Instructions](https://github.com/SmartMeshFoundation/Spectrum/wiki/Building-Specturm) on the wiki.
+
 Building Spectrum requires both a Go (version 1.9.2 or later) and a C compiler. You can install them using your favourite package manager.
 
 ## Encrypt your nodekey
