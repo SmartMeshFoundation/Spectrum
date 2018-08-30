@@ -339,7 +339,7 @@ func testBrokenChain(t *testing.T, full bool) {
 
 type bproc struct{}
 
-func (bproc) ValidateBody(*types.Block) error { return nil }
+func (bproc) ValidateBody(parent, block *types.Block) error { return nil }
 func (bproc) ValidateState(block, parent *types.Block, state *state.StateDB, receipts types.Receipts, usedGas *big.Int) error {
 	return nil
 }

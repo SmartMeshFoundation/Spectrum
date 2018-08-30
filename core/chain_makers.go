@@ -39,10 +39,11 @@ var (
 // BlockGen creates blocks for testing.
 // See GenerateChain for a detailed explanation.
 type BlockGen struct {
-	i           int
-	parent      *types.Block
-	chain       []*types.Block
-	chainReader consensus.ChainReader
+	i      int
+	parent *types.Block
+	chain  []*types.Block
+	//chainReader consensus.ChainReader
+	chainReader *BlockChain
 	header      *types.Header
 	statedb     *state.StateDB
 
@@ -86,7 +87,7 @@ func (b *BlockGen) AddTx(tx *types.Transaction) {
 		b.SetCoinbase(common.Address{})
 	}
 	b.statedb.Prepare(tx.Hash(), common.Hash{}, len(b.txs))
-	receipt, _, err := ApplyTransaction(b.config, nil, &b.header.Coinbase, b.gasPool, b.statedb, b.header, tx, b.header.GasUsed, vm.Config{})
+	receipt, _, err := ApplyTransaction(b.config, b.chainReader, &b.header.Coinbase, b.gasPool, b.statedb, b.header, tx, b.header.GasUsed, vm.Config{})
 	if err != nil {
 		panic(err)
 	}
