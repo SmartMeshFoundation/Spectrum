@@ -1,3 +1,6 @@
 build/bin
 build/_workspace
 .idea
+.vscode/
+debug.test
+debug
