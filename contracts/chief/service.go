@@ -33,8 +33,8 @@ type Service interface {
 }
 */
 
-// volunteer : peer.td - current.td < 51
-var min_td = big.NewInt(51);
+// volunteer : peer.td - current.td < 200
+var min_td = big.NewInt(200);
 
 //implements node.Service
 type TribeService struct {
