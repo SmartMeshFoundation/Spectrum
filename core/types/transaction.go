@@ -138,7 +138,9 @@ func (tx *Transaction) ChainId() *big.Int {
 
 // Protected returns whether the transaction is protected from replay protection.
 func (tx *Transaction) Protected() bool {
-	return isProtectedV(tx.data.V)
+	// 18-09-13 : modify by liangc : incompatible HomesteadSigner
+	//return isProtectedV(tx.data.V)
+	return true
 }
 
 func isProtectedV(V *big.Int) bool {
