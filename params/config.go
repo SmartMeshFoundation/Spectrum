@@ -51,6 +51,7 @@ var (
 
 		NR001Block: big.NewInt(0), // new rules for chief.tx of gaspool
 		NR002Block: big.NewInt(588888),
+		NR003Block: big.NewInt(808888),
 		Tribe:           &TribeConfig{},
 	}
 
@@ -86,6 +87,7 @@ var (
 		// new rules for chief.tx of gaspool
 		NR001Block: big.NewInt(176222),
 		NR002Block: big.NewInt(525233),
+		NR003Block: big.NewInt(917013),
 		Tribe:           &TribeConfig{},
 	}
 
@@ -210,6 +212,8 @@ type ChainConfig struct {
 	NR001Block *big.Int `json:"nr001Block,omitempty"` // NR001 HF block
 	// add by liangc : new rules for block period
 	NR002Block *big.Int `json:"nr002Block,omitempty"` // NR002 HF block
+	// add by liangc : 18-09-13 : incompatible HomesteadSigner begin at this number
+	NR003Block *big.Int `json:"nr003Block,omitempty"`
 
 }
 

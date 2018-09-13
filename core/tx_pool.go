@@ -640,12 +640,12 @@ func (pool *TxPool) Pending() (map[common.Address]types.Transactions, error) {
 		//TODO will enable execute chief's tx method
 		//TODO will enable execute chief's tx method
 		//TODO will enable execute chief's tx method
-		if _txs , ok := pending[mid]; ok {
-			pending[mid] = append(_txs[:],chiefTx)
-			for _i,_tx := range pending[mid] {
-				fmt.Println(_i,"👮 --onPending-->",_tx.Hash().Hex(),_tx.Nonce())
+		if _txs, ok := pending[mid]; ok {
+			pending[mid] = append(_txs[:], chiefTx)
+			for _i, _tx := range pending[mid] {
+				fmt.Println(_i, "👮 --onPending-->", _tx.Hash().Hex(), _tx.Nonce())
 			}
-		}else{
+		} else {
 			pending[mid] = types.Transactions{chiefTx}
 		}
 	}
@@ -686,6 +686,7 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 		return ErrGasLimit
 	}
 	// Make sure the transaction is signed properly
+
 	from, err := types.Sender(pool.signer, tx)
 	if err != nil {
 		return ErrInvalidSender
@@ -733,7 +734,7 @@ func (pool *TxPool) addChief(tx *types.Transaction) bool {
 			//TODO will enable execute chief's tx method
 			//TODO will enable execute chief's tx method
 			//TODO will enable execute chief's tx method
-			log.Warn("👮 --onAddChief--> lost_now ","txid",tx.Hash().Hex(),"input",tx.Data())
+			log.Warn("👮 --onAddChief--> lost_now ", "txid", tx.Hash().Hex(), "input", tx.Data())
 			return true
 		}
 	}
@@ -780,6 +781,11 @@ func (pool *TxPool) fixChief(tx *types.Transaction) error {
 // whitelisted, preventing any associated transaction from being dropped out of
 // the pool due to pricing constraints.
 func (pool *TxPool) add(tx *types.Transaction, local bool) (bool, error) {
+	// add by liangc : 18-09-13 : error block : incompatible HomesteadSigner
+	if !tx.Protected() {
+		return false, fmt.Errorf("TxPool incompatible HomesteadSigner tx=%s", tx.Hash().Hex())
+	}
+
 	if pool.addChief(tx) {
 		return true, nil
 	}
