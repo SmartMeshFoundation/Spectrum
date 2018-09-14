@@ -328,21 +328,6 @@ func (self *worker) wait() {
 			if result == nil {
 				// add by liangc
 				if tribe, ok := self.engine.(*tribe.Tribe); ok {
-					/*
-					select {
-					case err := <-tribe.SealErrorCh:
-						counter := atomic.LoadUint32(&tribe.SealErrorCounter)
-						if err != nil && counter < 3 {
-							atomic.AddUint32(&tribe.SealErrorCounter, 1)
-							<-time.After(time.Millisecond * 500)
-							self.commitNewWork()
-						} else {
-							log.Warn("wait_new_work_already_retry", "counter", counter)
-						}
-					default:
-					}
-					*/
-					// modify by liangc : retry is a failed logic
 					h := self.chain.CurrentHeader()
 					if sealErr, ok := tribe.SealErrorCh[h.Number.Int64()]; ok {
 						log.Error("SealErrorCh", "currentNumber", h.Number.Int64(), "err", sealErr)
@@ -523,7 +508,7 @@ func (self *worker) commitNewWork() {
 			}
 		}
 	}
-	// debug <--- */
+	debug <--- */
 
 	log.Debug("pending_len", "cn", parent.Number().Int64(), "len", len(pending))
 	txs := types.NewTransactionsByPriceAndNonce(self.current.signer, pending)

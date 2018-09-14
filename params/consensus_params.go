@@ -96,6 +96,21 @@ func IsNR002Block(num *big.Int) bool {
 	return false
 }
 
+// add by liangc : 18-09-13 : incompatible HomesteadSigner begin at this number
+func IsNR003Block(num *big.Int) bool {
+	if IsTestnet() {
+		if TestnetChainConfig.NR003Block.Cmp(big.NewInt(0)) > 0 && TestnetChainConfig.NR003Block.Cmp(num) <= 0 {
+			return true
+		}
+	} else {
+		if MainnetChainConfig.NR003Block.Cmp(big.NewInt(0)) > 0 && MainnetChainConfig.NR003Block.Cmp(num) <= 0 {
+			return true
+		}
+	}
+	return false
+}
+
+
 // startNumber and address must from chain's config
 func chiefAddressList() (list ChiefInfoList) {
 	if chiefInfoList != nil {
