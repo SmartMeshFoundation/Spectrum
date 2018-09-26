@@ -4,7 +4,7 @@ Spectrum is an [Ethereum-compatible](https://github.com/SmartMeshFoundation/Spec
 
 Since the list of signers is 17, it is recommended that the confirmation number of general transfer transaction block be set to 17 (one round), and that of exchange block be set to 34 (two rounds).
 
-## Warring 
+## Warning
 
 We suggest that the GasPrice should not be less than 18Gwei, otherwise the transaction may not be packaged into the block.
 
