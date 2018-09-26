@@ -2,6 +2,10 @@
 
 Spectrum is an [Ethereum-compatible](https://github.com/SmartMeshFoundation/Spectrum) project. It uses a new consensus and new block reward for SmartMesh ecosystem devices and IOT. 
 
+## Warning
+
+We suggest that the GasPrice should not be less than 18Gwei, otherwise the transaction may not be packaged into the block.
+
 ## Build the source 
 
 Building Spectrum requires both a Go (version 1.9.2 or later) and a C compiler. You can install them using your favourite package manager.
