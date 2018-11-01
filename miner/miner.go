@@ -104,6 +104,8 @@ out:
 	}
 }
 
+// liangc : The caller will prevents multiple execution.
+// async run
 func (self *Miner) Start(coinbase common.Address) {
 	atomic.StoreInt32(&self.shouldStart, 1)
 
@@ -118,26 +120,32 @@ func (self *Miner) Start(coinbase common.Address) {
 
 	if tribe, ok := self.engine.(*tribe.Tribe); ok {
 		i := 0
-	ENDCHECK:
 		for {
 			m := tribe.Status.GetMinerAddress()
 			s, err := self.worker.chain.State()
 			if err != nil {
-				log.Error("😦 miner start fail", err)
+				log.Error("miner start fail", err)
 			}
-			if s.GetBalance(m).Cmp(params.ChiefBaseBalance) < 0 {
-				if i % 10 == 0 {
-					log.Warn(fmt.Sprintf("🏆   Wait send 1 finney at least to \"%s\" to upgrade to signature node", m.Hex()))
-				}
-			} else {
-				break ENDCHECK
+			if s.GetBalance(m).Cmp(params.ChiefBaseBalance) >= 0 {
+				break
 			}
-			<-time.After(time.Second * 3)
+			if i%6 == 0 {
+				log.Warn(fmt.Sprintf("⚠️ You need pay 1 finney to \"%s\" address to upgrade your node to be a miner", m.Hex()))
+			}
+			if atomic.LoadInt32(&self.mining) == 0 {
+				return
+			}
+			<-time.After(time.Second * 5)
 			i++
 		}
 	}
-	self.worker.start()
-	self.worker.commitNewWork()
+	// may be pending at 'tribe.WaitingNomination' in 'worker.start' so change to async
+	go func() {
+		s := make(chan int)
+		self.worker.start(s)
+		<-s
+		self.worker.commitNewWork()
+	}()
 }
 
 func (self *Miner) Stop() {

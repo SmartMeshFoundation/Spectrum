@@ -222,22 +222,34 @@ func (self *worker) pendingBlock() *types.Block {
 	return self.current.Block
 }
 
-func (self *worker) start() {
+func (self *worker) start(s chan int) {
 	self.mu.Lock()
 	defer self.mu.Unlock()
 	atomic.StoreInt32(&self.mining, 1)
 	//add by liangc : sync mining status
+	wg := new(sync.WaitGroup)
 	if tribe, ok := self.engine.(*tribe.Tribe); ok {
-		log.Info(" ⏳   Everything is ready, Waiting for nomination")
-		if self.chain.CurrentHeader().Number.Int64() > 1 { // free for genesis signer
-			<-tribe.WaitingNomination()
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if self.chain.CurrentHeader().Number.Int64() > 1 { // free for genesis signer
+				log.Info("⚠️ Everything is ready, Waiting for nomination, pending until miner level upgrade")
+				// pending until miner level upgrade
+				tribe.WaitingNomination()
+			}
+			tribe.SetMining(1, self.chain.CurrentBlock().Number(), self.chain.CurrentHeader().Hash())
+		}()
+	}
+	go func() {
+		defer func() { s <- 1 }()
+		wg.Wait()
+		if atomic.LoadInt32(&self.mining) == 1 {
+			// spin up agents
+			for agent := range self.agents {
+				agent.Start()
+			}
 		}
-		tribe.SetMining(1, self.chain.CurrentBlock().Number(), self.chain.CurrentHeader().Hash())
-	}
-	// spin up agents
-	for agent := range self.agents {
-		agent.Start()
-	}
+	}()
 }
 
 func (self *worker) stop() {
@@ -335,7 +347,7 @@ func (self *worker) wait() {
 						tribe.Status.Update(h.Number, h.Hash())
 						self.commitNewWork()
 						log.Warn("wait_new_work_will_retry_commitNewWork", "current_num", h.Number.Int64(), "current_hash", h.Hash().Hex())
-						delete(tribe.SealErrorCh,h.Number.Int64())
+						delete(tribe.SealErrorCh, h.Number.Int64())
 					}
 				}
 				continue

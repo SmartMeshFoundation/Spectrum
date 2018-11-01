@@ -122,7 +122,7 @@ func (t *Tribe) Init(hash common.Hash, number *big.Int) {
 			close(params.InitTribe)
 			params.InitTribe = nil
 		}
-		log.Info("init tribe.status when chiefservice start end.","getnodekey",success.Success)
+		log.Info("init tribe.status when chiefservice start end.", "getnodekey", success.Success)
 		if number.Int64() >= CHIEF_NUMBER {
 			t.isInit = true
 			t.Status.LoadSignersFromChief(hash, number)
@@ -132,20 +132,15 @@ func (t *Tribe) Init(hash common.Hash, number *big.Int) {
 }
 
 // called by miner.start
-func (t *Tribe) WaitingNomination() chan struct{} {
-	ch := make(chan struct{})
-	go func() {
-		for {
-			if t.Status.SignerLevel != LevelNone {
-				ch <- struct{}{}
-				return
-			}
-			//TODO
-			fmt.Println(":: WaitingNomination ::> ", t.Status.GetMinerAddress().Hex(), t.Status.SignerLevel)
-			<-time.After(time.Second * 3)
+func (t *Tribe) WaitingNomination() {
+	for {
+		if t.Status.SignerLevel != LevelNone {
+			return
 		}
-	}()
-	return ch
+		fmt.Println(":: WaitingNomination ::> ", t.Status.GetMinerAddress().Hex(), t.Status.SignerLevel)
+		<-time.After(time.Second * 10)
+	}
+	return
 }
 
 // called by worker.start and worker.stop
@@ -505,7 +500,7 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 	}
 	select {
 	case <-stop:
-		log.Warn(fmt.Sprintf("❌ == cancel ==> num=%d, diff=%d, miner=%s",number,header.Difficulty,header.Coinbase.Hex()))
+		log.Warn(fmt.Sprintf("❌ == cancel ==> num=%d, diff=%d, miner=%s", number, header.Difficulty, header.Coinbase.Hex()))
 		return nil, nil
 	case <-time.After(delay):
 	}
