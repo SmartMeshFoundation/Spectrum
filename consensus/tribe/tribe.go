@@ -432,24 +432,15 @@ func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error
 // Finalize implements consensus.Engine, ensuring no uncles are set, nor block
 // rewards given, and returns the final block.
 func (t *Tribe) Finalize(chain consensus.ChainReader, header *types.Header, state *state.StateDB, txs []*types.Transaction, uncles []*types.Header, receipts []*types.Receipt) (*types.Block, error) {
-	//fmt.Println("-- Tribe.Finalize --> txs :",txs)
-	/* test contract reward >>>
-	if header.Number.Cmp(big.NewInt(594651)) > 0 && header.Number.Cmp(big.NewInt(594661)) < 0 {
-		fmt.Println("  👿  ==== 👼  ",header.Number.String())
-		eth := new(big.Int).SetUint64(params.Ether)
-		state.AddBalance(common.HexToAddress("0x2085b57ccdb42e7f8c584586d10558906cf19594"),new(big.Int).Mul(eth,big.NewInt(1000000)));
-	}
-	//test contract reward <<< */
 	// No block rewards in Tribe, so the state remains as is and uncles are dropped
 	header.Root = state.IntermediateRoot(chain.Config().IsEIP158(header.Number))
 	header.UncleHash = types.CalcUncleHash(nil)
-	// Assemble and return the final block for sealing
 	return types.NewBlock(header, txs, nil, receipts), nil
 }
 
 // Authorize injects a private key into the consensus engine to mint new blocks
 // with.
-func (t *Tribe) Authorize(signer common.Address, signFn SignerFn) {
+func (t *Tribe) Authorize(a common.Address, b SignerFn) {
 	t.lock.Lock()
 	defer t.lock.Unlock()
 	prv := t.Status.nodeKey
@@ -500,7 +491,7 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 	}
 	select {
 	case <-stop:
-		log.Warn(fmt.Sprintf("❌ == cancel ==> num=%d, diff=%d, miner=%s", number, header.Difficulty, header.Coinbase.Hex()))
+		log.Warn(fmt.Sprintf("🐦 cancel -> num=%d, diff=%d, miner=%s", number, header.Difficulty, header.Coinbase.Hex()))
 		return nil, nil
 	case <-time.After(delay):
 	}

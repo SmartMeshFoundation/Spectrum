@@ -69,6 +69,16 @@ func New(eth Backend, config *params.ChainConfig, mux *event.TypeMux, engine con
 	}
 	miner.Register(NewCpuAgent(eth.BlockChain(), engine))
 	go miner.update()
+	if tribe, ok := miner.engine.(*tribe.Tribe); ok {
+		go func() {
+			rtn := make(chan common.Address)
+			tribe.Status.GetMinerAddressByChan(rtn)
+			tma := <-rtn
+			tribe.Authorize(common.Address{}, nil)
+			go miner.Start(tma)
+			log.Info("👷 Tribe and miner is started .")
+		}()
+	}
 	return miner
 }
 
@@ -106,7 +116,10 @@ out:
 
 // liangc : The caller will prevents multiple execution.
 // async run
+var xx int32 = 0
+
 func (self *Miner) Start(coinbase common.Address) {
+	atomic.AddInt32(&xx, 1)
 	atomic.StoreInt32(&self.shouldStart, 1)
 
 	self.worker.setEtherbase(coinbase)
@@ -129,7 +142,8 @@ func (self *Miner) Start(coinbase common.Address) {
 			if s.GetBalance(m).Cmp(params.ChiefBaseBalance) >= 0 {
 				break
 			}
-			if i%6 == 0 {
+			if i%5 == 0 {
+				fmt.Println("----->", xx)
 				log.Warn(fmt.Sprintf("⚠️ You need pay 1 finney to \"%s\" address to upgrade your node to be a miner", m.Hex()))
 			}
 			if atomic.LoadInt32(&self.mining) == 0 {

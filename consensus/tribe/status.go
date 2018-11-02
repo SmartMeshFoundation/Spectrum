@@ -67,7 +67,7 @@ func (api *API) GetStatus(hash *common.Hash) (*TribeStatus, error) {
 			n = api.chain.GetHeaderByHash(h).Number
 		}
 		api.tribe.Status.LoadSignersFromChief(h, n)
-		if chiefInfo := params.GetChiefInfo(n); chiefInfo!=nil {
+		if chiefInfo := params.GetChiefInfo(n); chiefInfo != nil {
 			api.tribe.Status.Vsn = chiefInfo.Version
 		}
 	}
@@ -147,6 +147,19 @@ func (self *TribeStatus) GetMinerAddress() common.Address {
 	pub := self.nodeKey.PublicKey
 	add := crypto.PubkeyToAddress(pub)
 	return add
+}
+
+func (self *TribeStatus) GetMinerAddressByChan(rtn chan common.Address) {
+	go func() {
+		for {
+			if self.nodeKey != nil && self.tribe.isInit {
+				break
+			}
+			<-time.After(time.Second)
+		}
+		pub := self.nodeKey.PublicKey
+		rtn <- crypto.PubkeyToAddress(pub)
+	}()
 }
 
 func (self *TribeStatus) GetSignersFromChiefByHash(hash common.Hash, number *big.Int) ([]*Signer, error) {
