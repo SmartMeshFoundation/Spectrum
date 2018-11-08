@@ -1,15 +1,12 @@
 # Spectrum
 
-[![](https://travis-ci.org/wangbaojin/Spectrum.svg?branch=master)](https://travis-ci.org/wangbaojin/Spectrum)
-
-
 ![光谱logo2(1).png](https://upload-images.jianshu.io/upload_images/528413-0c926281c1d94539.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/440)
 
 
 
 
 
-
+[![](https://travis-ci.org/wangbaojin/Spectrum.svg?branch=master)](https://travis-ci.org/wangbaojin/Spectrum)
 
 Spectrum is an [Ethereum-compatible](https://github.com/SmartMeshFoundation/Spectrum) project. It uses a new consensus and new block reward for SmartMesh ecosystem devices and IOT. 
 
