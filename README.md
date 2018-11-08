@@ -1,7 +1,6 @@
 # Spectrum
 
-[![Build status]([](https://travis-ci.org/wangbaojin/Spectrum.svg?branch=master)
-)](https://travis-ci.org/wangbaojin/Spectrum)
+[![](https://travis-ci.org/wangbaojin/Spectrum.svg?branch=master)](https://travis-ci.org/wangbaojin/Spectrum)
 
 
 ![光谱logo2.png](https://upload-images.jianshu.io/upload_images/528413-133995937e22bf34.png?imageMogr2/auto-orient/strip%7CimageView2/3/w/240)
