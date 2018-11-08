@@ -1,5 +1,17 @@
 # Spectrum
 
+[![Build status]([](https://travis-ci.org/wangbaojin/Spectrum.svg?branch=master)
+)](https://travis-ci.org/wangbaojin/Spectrum)
+
+
+![光谱logo2.png](https://upload-images.jianshu.io/upload_images/528413-133995937e22bf34.png?imageMogr2/auto-orient/strip%7CimageView2/3/w/240)
+
+
+
+
+
+
+
 Spectrum is an [Ethereum-compatible](https://github.com/SmartMeshFoundation/Spectrum) project. It uses a new consensus and new block reward for SmartMesh ecosystem devices and IOT. 
 
 Since the list of signers is 17, it is recommended that the confirmation number of general transfer transaction block be set to 17 (one round), and that of exchange block be set to 34 (two rounds).
