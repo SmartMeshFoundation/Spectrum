@@ -137,8 +137,8 @@ func (t *Tribe) WaitingNomination() {
 		if t.Status.SignerLevel != LevelNone {
 			return
 		}
-		fmt.Println(":: WaitingNomination ::> ", t.Status.GetMinerAddress().Hex(), t.Status.SignerLevel)
-		<-time.After(time.Second * 10)
+		//fmt.Println(":: WaitingNomination ::> ", t.Status.GetMinerAddress().Hex(), t.Status.SignerLevel)
+		<-time.After(time.Second * 7)
 	}
 	return
 }

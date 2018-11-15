@@ -143,8 +143,7 @@ func (self *Miner) Start(coinbase common.Address) {
 				break
 			}
 			if i%5 == 0 {
-				fmt.Println("----->", xx)
-				log.Warn(fmt.Sprintf("⚠️ You need pay 1 finney to \"%s\" address to upgrade your node to be a miner", m.Hex()))
+				log.Warn(fmt.Sprintf("[%d] ⚠️ You need pay 1 finney to \"%s\" address to upgrade your node to be a miner", xx, m.Hex()))
 			}
 			if atomic.LoadInt32(&self.mining) == 0 {
 				return
