@@ -184,7 +184,6 @@ func (t *Tribe) VerifyHeader(chain consensus.ChainReader, header *types.Header, 
 // retrieve the async verifications (the order is that of the input slice).
 func (t *Tribe) VerifyHeaders(chain consensus.ChainReader, headers []*types.Header, seals []bool) (chan<- struct{}, <-chan error) {
 	abort := make(chan struct{})
-	// TODO ********** 一个临时方案，此处需要优化，最终目标是 async / sync 通过 header.nonce 来同步
 	results := make(chan error)
 	log.Debug("==> VerifyHeaders ", "currentNum", chain.CurrentHeader().Number.Int64(), "headers.len", len(headers))
 	go func() {
