@@ -104,7 +104,7 @@ out:
 			atomic.StoreInt32(&self.canStart, 1)
 			atomic.StoreInt32(&self.shouldStart, 0)
 			if shouldStart {
-				self.Start(self.coinbase)
+				go self.Start(self.coinbase)
 			}
 			// unsubscribe. we're only interested in this event once
 			events.Unsubscribe()
@@ -142,7 +142,7 @@ func (self *Miner) Start(coinbase common.Address) {
 			if s.GetBalance(m).Cmp(params.ChiefBaseBalance) >= 0 {
 				break
 			}
-			if i%5 == 0 {
+			if i%10 == 0 {
 				log.Warn(fmt.Sprintf("[%d] ⚠️ You need pay 1 finney to \"%s\" address to upgrade your node to be a miner", xx, m.Hex()))
 			}
 			if atomic.LoadInt32(&self.mining) == 0 {
