@@ -117,6 +117,7 @@ func (journal *txJournal) insert(tx *types.Transaction) error {
 	return nil
 }
 
+// TODO liangc : why loop run rotate ??? "Regenerated local transaction journal"
 // rotate regenerates the transaction journal based on the current contents of
 // the transaction pool.
 func (journal *txJournal) rotate(all map[common.Address]types.Transactions) error {

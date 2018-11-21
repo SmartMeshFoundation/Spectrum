@@ -445,12 +445,18 @@ func (s *Ethereum) Stop() error {
 }
 
 // return td big then minTD peer.ID() array
-func (s *Ethereum) FetchVolunteers(minTD *big.Int) (volunteers []*ecdsa.PublicKey) {
+func (s *Ethereum) FetchVolunteers(minTD *big.Int, filter func(key *ecdsa.PublicKey) bool) (volunteers []*ecdsa.PublicKey) {
 	for _, p := range s.protocolManager.peers.peers {
-		log.Debug("ethereum.FetchVolunteers","num",s.blockchain.CurrentHeader().Number.Int64(),"min",minTD.Int64(),"td",p.td.Int64(),"p.id",p.ID().String())
+		log.Debug("ethereum.FetchVolunteers", "num", s.blockchain.CurrentHeader().Number.Int64(), "min", minTD.Int64(), "td", p.td.Int64(), "p.id", p.ID().String())
 		if p != nil && p.td.Cmp(minTD) > 0 {
-			pk,_ := p.ID().Pubkey()
-			volunteers = append(volunteers[:],pk)
+			pk, _ := p.ID().Pubkey()
+			if filter != nil {
+				if filter(pk) {
+					volunteers = append(volunteers[:], pk)
+				}
+			} else {
+				volunteers = append(volunteers[:], pk)
+			}
 		}
 	}
 	return

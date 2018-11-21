@@ -8,10 +8,10 @@ import (
 )
 
 var data = ChiefInfoList{
-	newChiefInfo(TestnetChainConfig.Chief002Block, "0.0.2", TestnetChainConfig.Chief002Address,TribeChief_0_0_2ABI),
-	newChiefInfo(TestnetChainConfig.Chief003Block, "0.0.3", TestnetChainConfig.Chief003Address,TribeChief_0_0_3ABI),
-	newChiefInfo(TestnetChainConfig.Chief004Block, "0.0.4", TestnetChainConfig.Chief004Address,TribeChief_0_0_4ABI),
-	newChiefInfo(TestnetChainConfig.Chief005Block, "0.0.5", TestnetChainConfig.Chief005Address,TribeChief_0_0_5ABI),
+	newChiefInfo(TestnetChainConfig.Chief002Block, "0.0.2", TestnetChainConfig.Chief002Address, TribeChief_0_0_2ABI),
+	newChiefInfo(TestnetChainConfig.Chief003Block, "0.0.3", TestnetChainConfig.Chief003Address, TribeChief_0_0_3ABI),
+	newChiefInfo(TestnetChainConfig.Chief004Block, "0.0.4", TestnetChainConfig.Chief004Address, TribeChief_0_0_4ABI),
+	newChiefInfo(TestnetChainConfig.Chief005Block, "0.0.5", TestnetChainConfig.Chief005Address, TribeChief_0_0_5ABI),
 }
 
 func TestChiefInfoList(t *testing.T) {
@@ -56,8 +56,15 @@ func TestFooBar(t *testing.T) {
 }
 
 func TestIsChiefUpdate(t *testing.T) {
-	data := []byte{28,27,135,114,0,0}
+	data := []byte{28, 27, 135, 114, 0, 0}
 	t.Log(IsChiefUpdate(data))
-	data = []byte{28,27,135,115,0,0}
+	data = []byte{28, 27, 135, 115, 0, 0}
 	t.Log(IsChiefUpdate(data))
+
+}
+
+func TestAddr(t *testing.T) {
+	add1 := common.HexToAddress("0xAd4c80164065a3c33dD2014908c7563eFf88aB49")
+	add2 := common.HexToAddress("0xAd4c80164065a3c33dD2014908c7563eFf88Ab49")
+	t.Log(add1 == add2)
 }
