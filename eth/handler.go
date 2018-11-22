@@ -40,6 +40,7 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/p2p/discover"
 	"github.com/SmartMeshFoundation/Spectrum/params"
 	"github.com/SmartMeshFoundation/Spectrum/rlp"
+	"github.com/SmartMeshFoundation/Spectrum/crypto"
 )
 
 const (
@@ -329,7 +330,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 		// Status messages should never arrive after the handshake
 		return errResp(ErrExtraStatusMsg, "uncontrolled status message")
 
-	// Block header query, collect the requested headers and reply
+		// Block header query, collect the requested headers and reply
 	case msg.Code == GetBlockHeadersMsg:
 		// Decode the complex header query
 		var query getBlockHeadersData
@@ -638,8 +639,19 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 			trueHead = request.Block.ParentHash()
 			trueTD   = new(big.Int).Sub(request.TD, request.Block.Difficulty())
 		)
-		_,tttt := p.Head()
-		log.Debug("<<NewBlockMsg>>","trueTD",trueTD,"p.td",tttt,"p.id",p.ID().String())
+		_, tttt := p.Head()
+
+		currentBlock := pm.blockchain.CurrentBlock()
+		peerpub, _ := p.ID().Pubkey()
+		peeraddr := crypto.PubkeyToAddress(*peerpub)
+		log.Debug("<<NewBlockMsg>>",
+			"currentBlock", currentBlock,
+			"recvBlock", request.Block.Number(),
+			"currentTD", pm.blockchain.GetTd(currentBlock.Hash(), currentBlock.NumberU64()),
+			"trueTD", trueTD,
+			"p.td", tttt,
+			"p.id", peeraddr.Hex(),
+		)
 		// Update the peers total difficulty if better than the previous
 		if _, td := p.Head(); trueTD.Cmp(td) > 0 {
 			p.SetHead(trueHead, trueTD)
@@ -647,7 +659,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 			// Schedule a sync if above ours. Note, this will not fire a sync for a gap of
 			// a singe block (as the true TD is below the propagated block), however this
 			// scenario should easily be covered by the fetcher.
-			currentBlock := pm.blockchain.CurrentBlock()
+			//currentBlock := pm.blockchain.CurrentBlock()
 			if trueTD.Cmp(pm.blockchain.GetTd(currentBlock.Hash(), currentBlock.NumberU64())) > 0 {
 				go pm.synchronise(p)
 			}
@@ -746,10 +758,10 @@ func (self *ProtocolManager) txBroadcastLoop() {
 		select {
 		case event := <-self.txCh:
 			// add by liangc
-			if event.Tx.To() == nil || !( params.IsChiefAddress(*event.Tx.To()) && params.IsChiefUpdate(event.Tx.Data()) ){
+			if event.Tx.To() == nil || !(params.IsChiefAddress(*event.Tx.To()) && params.IsChiefUpdate(event.Tx.Data())) {
 				self.BroadcastTx(event.Tx.Hash(), event.Tx)
 			}
-		// Err() channel will be closed when unsubscribing.
+			// Err() channel will be closed when unsubscribing.
 		case <-self.txSub.Err():
 			return
 		}
