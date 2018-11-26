@@ -719,7 +719,7 @@ func testHashMemoryExhaustionAttack(t *testing.T, protocol int) {
 		if i < maxQueueDist {
 			tester.fetcher.Notify("valid", hashes[len(hashes)-2-i], uint64(i+1), time.Now(), validHeaderFetcher, validBodyFetcher)
 		}
-		tester.fetcher.Notify("attacker", attack[i], 1 /* don't distance drop */, time.Now(), attackerHeaderFetcher, attackerBodyFetcher)
+		tester.fetcher.Notify("attacker", attack[i], 1 /* don't distance drop */ , time.Now(), attackerHeaderFetcher, attackerBodyFetcher)
 	}
 	if count := atomic.LoadInt32(&announces); count != hashLimit+maxQueueDist {
 		t.Fatalf("queued announce count mismatch: have %d, want %d", count, hashLimit+maxQueueDist)
@@ -787,4 +787,11 @@ func TestBlockMemoryExhaustionAttack(t *testing.T) {
 		verifyImportEvent(t, imported, true)
 	}
 	verifyImportDone(t, imported)
+}
+
+func TestEmpey(t *testing.T) {
+	hash := common.HexToHash("0xff")
+	queued := make(map[common.Hash]*inject)
+	_, ok := queued[hash]
+	t.Log(hash.Hex(),ok)
 }

@@ -31,6 +31,7 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/consensus/misc"
 	"github.com/SmartMeshFoundation/Spectrum/core"
 	"github.com/SmartMeshFoundation/Spectrum/core/types"
+	"github.com/SmartMeshFoundation/Spectrum/crypto"
 	"github.com/SmartMeshFoundation/Spectrum/eth/downloader"
 	"github.com/SmartMeshFoundation/Spectrum/eth/fetcher"
 	"github.com/SmartMeshFoundation/Spectrum/ethdb"
@@ -40,7 +41,6 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/p2p/discover"
 	"github.com/SmartMeshFoundation/Spectrum/params"
 	"github.com/SmartMeshFoundation/Spectrum/rlp"
-	"github.com/SmartMeshFoundation/Spectrum/crypto"
 )
 
 const (
@@ -635,15 +635,15 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 
 		// Assuming the block is importable by the peer, but possibly not yet done so,
 		// calculate the head hash and TD that the peer truly must have.
+		peerpub, _ := p.ID().Pubkey()
 		var (
-			trueHead = request.Block.ParentHash()
-			trueTD   = new(big.Int).Sub(request.TD, request.Block.Difficulty())
+			trueHead     = request.Block.ParentHash()
+			trueTD       = new(big.Int).Sub(request.TD, request.Block.Difficulty())
+			currentBlock = pm.blockchain.CurrentBlock()
+			peeraddr     = crypto.PubkeyToAddress(*peerpub)
 		)
 		_, tttt := p.Head()
 
-		currentBlock := pm.blockchain.CurrentBlock()
-		peerpub, _ := p.ID().Pubkey()
-		peeraddr := crypto.PubkeyToAddress(*peerpub)
 		log.Debug("<<NewBlockMsg>>",
 			"currentBlock", currentBlock,
 			"recvBlock", request.Block.Number(),
@@ -651,6 +651,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 			"trueTD", trueTD,
 			"p.td", tttt,
 			"p.id", peeraddr.Hex(),
+			"synchronise", trueTD.Cmp(pm.blockchain.GetTd(currentBlock.Hash(), currentBlock.NumberU64())),
 		)
 		// Update the peers total difficulty if better than the previous
 		if _, td := p.Head(); trueTD.Cmp(td) > 0 {
