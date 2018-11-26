@@ -645,7 +645,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 		_, tttt := p.Head()
 
 		log.Debug("<<NewBlockMsg>>",
-			"currentBlock", currentBlock,
+			"currentBlock", currentBlock.Number(),
 			"recvBlock", request.Block.Number(),
 			"currentTD", pm.blockchain.GetTd(currentBlock.Hash(), currentBlock.NumberU64()),
 			"trueTD", trueTD,
