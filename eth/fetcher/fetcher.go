@@ -642,7 +642,7 @@ func (f *Fetcher) insert(peer string, block *types.Block) {
 	log.Debug("Importing propagated block", "peer", peer, "number", block.Number(), "hash", hash)
 	go func() {
 		defer func() {
-			log.Debug("insert_done","number",block.Number())
+			log.Debug("insert_done", "number", block.Number())
 			f.done <- hash
 		}()
 
@@ -669,12 +669,13 @@ func (f *Fetcher) insert(peer string, block *types.Block) {
 			return
 		}
 		// Run the actual import and log any issues
-		log.Debug("insert_begin","number",block.Number())
-		if _, err := f.insertChain(types.Blocks{block}); err != nil {
+		log.Debug("insert_begin", "number", block.Number())
+		_, err := f.insertChain(types.Blocks{block})
+		log.Debug("insert_end", "number", block.Number(), "err", err)
+		if err != nil {
 			log.Debug("Propagated block import failed", "peer", peer, "number", block.Number(), "hash", hash, "err", err)
 			return
 		}
-		log.Debug("insert_end","number",block.Number())
 		// If import succeeded, broadcast the block
 		propAnnounceOutTimer.UpdateSince(block.ReceivedAt)
 		go f.broadcastBlock(block, false)
