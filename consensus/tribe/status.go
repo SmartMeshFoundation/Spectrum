@@ -8,6 +8,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"fmt"
 	"github.com/SmartMeshFoundation/Spectrum/common"
 	"github.com/SmartMeshFoundation/Spectrum/core/types"
 	"github.com/SmartMeshFoundation/Spectrum/crypto"
@@ -15,7 +16,6 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/log"
 	"github.com/SmartMeshFoundation/Spectrum/params"
 	"github.com/SmartMeshFoundation/Spectrum/rpc"
-	"fmt"
 )
 
 func (api *API) GetMiner(number *rpc.BlockNumber) (*TribeMiner, error) {
@@ -326,9 +326,9 @@ func (self *TribeStatus) fetchOnSigners(address common.Address, signers []*Signe
 func (self *TribeStatus) Update(currentNumber *big.Int, hash common.Hash) {
 	if currentNumber.Int64() >= CHIEF_NUMBER && atomic.LoadInt32(&self.mining) == 1 {
 		// mining start
-		//success := <-params.SendToMsgBox("Update")
+		log.Debug("TribeStatus.Update_begin :", "num", currentNumber.Int64())
 		success := <-params.SendToMsgBoxWithNumber("Update", currentNumber)
-		log.Debug("TribeStatus.Update :", "num", currentNumber.Int64(), "success", success)
+		log.Debug("TribeStatus.Update_end :", "num", currentNumber.Int64(), "success", success)
 		self.LoadSignersFromChief(hash, currentNumber)
 	}
 }
