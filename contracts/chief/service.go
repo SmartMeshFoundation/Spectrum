@@ -6,9 +6,12 @@ import (
 	"math/big"
 	"time"
 
+	"crypto/ecdsa"
+	"fmt"
 	"github.com/SmartMeshFoundation/Spectrum/accounts/abi/bind"
 	"github.com/SmartMeshFoundation/Spectrum/common"
 	"github.com/SmartMeshFoundation/Spectrum/contracts/chief/lib"
+	"github.com/SmartMeshFoundation/Spectrum/core"
 	"github.com/SmartMeshFoundation/Spectrum/core/types"
 	"github.com/SmartMeshFoundation/Spectrum/crypto"
 	"github.com/SmartMeshFoundation/Spectrum/eth"
@@ -20,9 +23,6 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/p2p"
 	"github.com/SmartMeshFoundation/Spectrum/params"
 	"github.com/SmartMeshFoundation/Spectrum/rpc"
-	"github.com/SmartMeshFoundation/Spectrum/core"
-	"fmt"
-	"crypto/ecdsa"
 )
 
 /*
@@ -269,7 +269,8 @@ func (self *TribeService) getstatus(mbox params.Mbox) {
 	} else {
 		entity := chiefStatus
 		success.Entity = entity
-		log.Debug("chief.mbox.rtn: getstatus <-", "success", success.Success, "entity", entity)
+		log.Debug("chief.mbox.rtn: getstatus <-", "success", success.Success)
+		//log.Debug("chief.mbox.rtn: getstatus <-", "success", success.Success, "entity", entity)
 	}
 	mbox.Rtn <- success
 }

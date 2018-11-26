@@ -328,7 +328,7 @@ func (self *TribeStatus) Update(currentNumber *big.Int, hash common.Hash) {
 		// mining start
 		log.Debug("TribeStatus.Update_begin :", "num", currentNumber.Int64())
 		success := <-params.SendToMsgBoxWithNumber("Update", currentNumber)
-		log.Debug("TribeStatus.Update_end :", "num", currentNumber.Int64(), "success", success)
+		log.Debug("TribeStatus.Update_end :", "num", currentNumber.Int64(), "success", success.Success)
 		self.LoadSignersFromChief(hash, currentNumber)
 	}
 }
