@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with go-ethereum. If not, see <http://www.gnu.org/licenses/>.
 
-// geth is the official command-line client for Ethereum.
 package main
 
 import (
@@ -59,12 +58,7 @@ var (
 		utils.BootnodesV5Flag,
 		utils.DataDirFlag,
 		utils.KeyStoreDirFlag,
-		utils.NoUSBFlag,
-		utils.DashboardEnabledFlag,
-		utils.DashboardAddrFlag,
-		utils.DashboardPortFlag,
-		utils.DashboardRefreshFlag,
-		utils.DashboardAssetsFlag,
+
 		utils.EthashCacheDirFlag,
 		utils.EthashCachesInMemoryFlag,
 		utils.EthashCachesOnDiskFlag,
@@ -81,12 +75,26 @@ var (
 		utils.TxPoolAccountQueueFlag,
 		utils.TxPoolGlobalQueueFlag,
 		utils.TxPoolLifetimeFlag,
+		/* add by liangc : disable
 		utils.FastSyncFlag,
 		utils.LightModeFlag,
 		utils.SyncModeFlag,
 		utils.LightServFlag,
 		utils.LightPeersFlag,
 		utils.LightKDFFlag,
+
+
+		utils.DashboardEnabledFlag,
+		utils.DashboardAddrFlag,
+		utils.DashboardPortFlag,
+		utils.DashboardRefreshFlag,
+		utils.DashboardAssetsFlag,
+
+		utils.NoUSBFlag,
+
+		utils.NodeKeyFileFlag,
+		utils.NodeKeyHexFlag,
+		*/
 		utils.CacheFlag,
 		utils.TrieCacheGenFlag,
 		utils.ListenPortFlag,
@@ -101,10 +109,6 @@ var (
 		utils.NoDiscoverFlag,
 		utils.DiscoveryV5Flag,
 		utils.NetrestrictFlag,
-		/* add by liangc : disable
-		utils.NodeKeyFileFlag,
-		utils.NodeKeyHexFlag,
-		*/
 		utils.DeveloperFlag,
 		utils.DeveloperPeriodFlag,
 		utils.TestnetFlag,
@@ -145,7 +149,7 @@ var (
 
 func init() {
 	// Initialize the CLI app and start Geth
-	app.Action = geth
+	app.Action = smc
 	app.HideVersion = true // we have a command to print the version
 	app.Copyright = "Copyright 2017-2018 The Spectrum Author (Ethereum-based:1.8.0)"
 	app.Commands = []cli.Command{
@@ -186,16 +190,16 @@ func init() {
 
 	app.Before = func(ctx *cli.Context) error {
 		// add by liangc : append testnet flag
-		if tn := ctx.GlobalBool(utils.TestnetFlag.Name);tn {
-			log.Info("is_testnet :",tn)
-			os.Setenv("TESTNET","1")
+		if tn := ctx.GlobalBool(utils.TestnetFlag.Name); tn {
+			log.Info("is_testnet :", tn)
+			os.Setenv("TESTNET", "1")
 		}
 		ipc := node.DefaultIPCEndpoint(clientIdentifier)
 
-		if dir := ctx.GlobalString(utils.DataDirFlag.Name);ctx.GlobalIsSet(utils.DataDirFlag.Name){
-			ipc = node.DefaultIPCEndpointWithDir(dir,clientIdentifier)
+		if dir := ctx.GlobalString(utils.DataDirFlag.Name); ctx.GlobalIsSet(utils.DataDirFlag.Name) {
+			ipc = node.DefaultIPCEndpointWithDir(dir, clientIdentifier)
 		}
-		os.Setenv("IPCPATH",ipc)
+		os.Setenv("IPCPATH", ipc)
 
 		runtime.GOMAXPROCS(runtime.NumCPU())
 		if err := debug.Setup(ctx); err != nil {
@@ -222,10 +226,7 @@ func main() {
 	}
 }
 
-// geth is the main entry point into the system if no special subcommand is ran.
-// It creates a default node based on the command line arguments and runs it in
-// blocking mode, waiting for it to be shut down.
-func geth(ctx *cli.Context) error {
+func smc(ctx *cli.Context) error {
 	node := makeFullNode(ctx)
 	startNode(ctx, node)
 	node.Wait()
