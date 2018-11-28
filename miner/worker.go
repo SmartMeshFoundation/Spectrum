@@ -224,6 +224,9 @@ func (self *worker) pendingBlock() *types.Block {
 
 func (self *worker) start(s chan int) {
 
+	self.mu.Lock()
+	defer self.mu.Unlock()
+
 	//add by liangc : sync mining status
 	wg := new(sync.WaitGroup)
 	if tribe, ok := self.engine.(*tribe.Tribe); ok {
@@ -239,18 +242,13 @@ func (self *worker) start(s chan int) {
 		}()
 	}
 
-	self.mu.Lock()
-	defer self.mu.Unlock()
-	atomic.StoreInt32(&self.mining, 1)
-
 	go func() {
 		defer func() { s <- 1 }()
 		wg.Wait()
-		if atomic.LoadInt32(&self.mining) == 1 {
-			// spin up agents
-			for agent := range self.agents {
-				agent.Start()
-			}
+		atomic.StoreInt32(&self.mining, 1)
+		// spin up agents
+		for agent := range self.agents {
+			agent.Start()
 		}
 	}()
 }
