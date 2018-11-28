@@ -293,8 +293,10 @@ func (self *worker) update() {
 		// A real event arrived, process interesting content
 		select {
 		// Handle ChainHeadEvent
-		case <-self.chainHeadCh:
-			self.commitNewWork()
+		case cc := <-self.chainHeadCh:
+			fmt.Println("pppp_start:", cc.Block.Number())
+			self.commitNewWork("pppp")
+			fmt.Println("pppp_end:", cc.Block.Number())
 
 			// Handle ChainSideEvent
 		case ev := <-self.chainSideCh:
@@ -442,7 +444,14 @@ func (self *worker) makeCurrent(parent *types.Block, header *types.Header) error
 	return nil
 }
 
-func (self *worker) commitNewWork() {
+func (self *worker) commitNewWork(debug ... string) {
+	// for debug pending point
+	debuginfo := func(info interface{}) {
+		if len(debug) > 0 {
+			fmt.Println(debug[0], info)
+		}
+	}
+
 	self.mu.Lock()
 	defer self.mu.Unlock()
 	self.uncleMu.Lock()
@@ -450,6 +459,7 @@ func (self *worker) commitNewWork() {
 	self.currentMu.Lock()
 	defer self.currentMu.Unlock()
 
+	debuginfo(1)
 	tstart := time.Now()
 	parent := self.chain.CurrentBlock()
 
@@ -464,6 +474,7 @@ func (self *worker) commitNewWork() {
 		time.Sleep(wait)
 	}
 
+	debuginfo(2)
 	num := parent.Number()
 	header := &types.Header{
 		ParentHash: parent.Hash(),
@@ -478,10 +489,12 @@ func (self *worker) commitNewWork() {
 	if atomic.LoadInt32(&self.mining) == 1 {
 		header.Coinbase = self.coinbase
 	}
+	debuginfo(3)
 	if err := self.engine.Prepare(self.chain, header); err != nil {
 		log.Error("Failed to prepare header for mining", "err", err)
 		return
 	}
+	debuginfo(4)
 	// If we are care about TheDAO hard-fork check whether to override the extra-data or not
 	if daoBlock := self.config.DAOForkBlock; daoBlock != nil {
 		// Check whether the block is among the fork extra-override range
@@ -495,18 +508,22 @@ func (self *worker) commitNewWork() {
 			}
 		}
 	}
+	debuginfo(5)
 	// Could potentially happen if starting to mine in an odd state.
 	err := self.makeCurrent(parent, header)
 	if err != nil {
 		log.Error("Failed to create mining context", "err", err)
 		return
 	}
+	debuginfo(6)
 	// Create the current work task and check any fork transitions needed
 	work := self.current
 	if self.config.DAOForkSupport && self.config.DAOForkBlock != nil && self.config.DAOForkBlock.Cmp(header.Number) == 0 {
 		misc.ApplyDAOHardFork(work.state)
 	}
+	debuginfo(7)
 	pending, err := self.eth.TxPool().Pending()
+	debuginfo(8)
 	//fmt.Println(header.Number.Int64(),err, "====== commitNewWork =======> pending.len:", len(pending))
 	if err != nil {
 		log.Error("Failed to fetch pending transactions", "err", err)
@@ -526,6 +543,7 @@ func (self *worker) commitNewWork() {
 	txs := types.NewTransactionsByPriceAndNonce(self.current.signer, pending)
 	work.commitTransactions(self.mux, txs, self.chain, self.coinbase)
 
+	debuginfo(9)
 	// compute uncles for the new block.
 	var (
 		uncles    []*types.Header
@@ -545,6 +563,7 @@ func (self *worker) commitNewWork() {
 			uncles = append(uncles, uncle.Header())
 		}
 	}
+	debuginfo(10)
 	for _, hash := range badUncles {
 		delete(self.possibleUncles, hash)
 	}
@@ -553,13 +572,16 @@ func (self *worker) commitNewWork() {
 		log.Error("Failed to finalize block for sealing", "err", err)
 		return
 	}
+	debuginfo(11)
 	// We only care about logging if we're actually mining.
 	if atomic.LoadInt32(&self.mining) == 1 {
 		log.Info("Commit new mining work", "number", work.Block.Number(), "txs", work.tcount, "uncles", len(uncles), "elapsed", common.PrettyDuration(time.Since(tstart)))
 		self.unconfirmed.Shift(work.Block.NumberU64() - 1)
 	}
+	debuginfo(12)
 	//fmt.Println("---- commitNewWork.Transactions ---->",work.Block.Transactions())
 	self.push(work)
+	debuginfo(13)
 }
 
 func (self *worker) commitUncle(work *Work, uncle *types.Header) error {
