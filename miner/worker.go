@@ -294,10 +294,8 @@ func (self *worker) update() {
 		// A real event arrived, process interesting content
 		select {
 		// Handle ChainHeadEvent
-		case cc := <-self.chainHeadCh:
-			fmt.Println("pppp_start:", cc.Block.Number())
+		case <-self.chainHeadCh:
 			self.commitNewWork()
-			fmt.Println("pppp_end:", cc.Block.Number())
 
 			// Handle ChainSideEvent
 		case ev := <-self.chainSideCh:
