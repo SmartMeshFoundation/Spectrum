@@ -373,18 +373,6 @@ func (self *TribeStatus) ValidateBlock(parent, block *types.Block, validateSigne
 		return nil
 	}
 
-	//TODO : ****** 这个地方是临时解决方案，后续需要做很大调整
-	//TODO : ****** 这个地方是临时解决方案，后续需要做很大调整
-	//如果 header.parent != currentBlockNumber , 则等一下，让 blockBody 追赶 header
-	//cn := chain.CurrentHeader().Number.Uint64()
-	//for cn < number-1 {
-	//for cn < number-1 && chain.CurrentHeader().Hash() != header.ParentHash {
-	/*
-		fmt.Println(cn, "--------------------------->")
-		fmt.Println(cn, "=1=> currentNum:", chain.CurrentHeader().Number.Int64(), "currentHash:", chain.CurrentHeader().Hash().Hex())
-		fmt.Println(cn, "=2=> parentNum:", parent.Number.Int64(), "parentHash:", parent.Hash().Hex())
-		fmt.Println(cn, "=3=> headerNum", header.Number.Int64(), "header.parentHex", header.ParentHash.Hex())
-	*/
 	header := block.Header()
 	number := header.Number.Int64()
 

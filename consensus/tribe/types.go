@@ -34,8 +34,8 @@ var (
 	blockPeriod    = uint64(15)                               // Default minimum difference between two consecutive block's timestamps
 	extraVanity    = 32                                       // Fixed number of extra-data prefix bytes reserved for signer vanity
 	extraSeal      = 65                                       // Fixed number of extra-data suffix bytes reserved for signer seal
-	nonceSync      = hexutil.MustDecode("0xffffffffffffffff") // Magic nonce number to vote on adding a new signer
-	nonceAsync     = hexutil.MustDecode("0x0000000000000000") // Magic nonce number to vote on removing a signer.
+	nonceSync      = hexutil.MustDecode("0xffffffffffffffff") // TODO Reserved to control behavior
+	nonceAsync     = hexutil.MustDecode("0x0000000000000000") // TODO Reserved to control behavior
 	uncleHash      = types.CalcUncleHash(nil)                 // Always Keccak256(RLP([])) as uncles are meaningless outside of PoW.
 	diffInTurnMain = big.NewInt(3)                            // Block difficulty for in-turn Main
 	diffInTurn     = big.NewInt(2)                            // Block difficulty for in-turn Sub
