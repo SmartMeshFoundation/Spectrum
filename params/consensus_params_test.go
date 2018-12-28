@@ -58,6 +58,8 @@ func TestFooBar(t *testing.T) {
 func TestIsChiefUpdate(t *testing.T) {
 	data := []byte{28, 27, 135, 114, 0, 0}
 	t.Log(IsChiefUpdate(data))
+	t.Log(IsChiefUpdate(data))
+	t.Log(IsChiefUpdate(data))
 	data = []byte{28, 27, 135, 115, 0, 0}
 	t.Log(IsChiefUpdate(data))
 
@@ -68,3 +70,4 @@ func TestAddr(t *testing.T) {
 	add2 := common.HexToAddress("0xAd4c80164065a3c33dD2014908c7563eFf88Ab49")
 	t.Log(add1 == add2)
 }
+

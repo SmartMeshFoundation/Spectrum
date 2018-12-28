@@ -1,18 +1,18 @@
 package params
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/SmartMeshFoundation/Spectrum/accounts/abi"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/log"
+	"github.com/hashicorp/golang-lru"
 	"math/big"
 	"os"
 	"sort"
-
-	"github.com/SmartMeshFoundation/Spectrum/common"
-	"github.com/SmartMeshFoundation/Spectrum/log"
 	"strings"
-	"encoding/json"
-	"github.com/SmartMeshFoundation/Spectrum/accounts/abi"
-	"bytes"
 )
 
 type ChiefInfo struct {
@@ -65,6 +65,7 @@ var (
 	chiefInfoList   ChiefInfoList = nil
 	// added by cai.zhihong
 	// ChiefTxGas = big.NewInt(400000)
+	abiCache *lru.Cache = nil
 )
 
 // if input num less then nr001block ,enable new role for chief.tx's gaspool
@@ -109,7 +110,6 @@ func IsNR003Block(num *big.Int) bool {
 	}
 	return false
 }
-
 
 // startNumber and address must from chain's config
 func chiefAddressList() (list ChiefInfoList) {
@@ -176,8 +176,18 @@ func isChiefBlock(list ChiefInfoList, blockNumber *big.Int) bool {
 	return false
 }
 
-//TODO optimize
 func IsChiefUpdate(data []byte) bool {
+	if abiCache == nil {
+		abiCache, _ = lru.New(10)
+	}
+	if len(data) < 4 {
+		return false
+	}
+	dk := append(data[:4], []byte{0, 0, 0, 0}...)
+	fmt.Println("dk = ", string(dk), dk)
+	if abiCache.Contains(string(dk)) {
+		return true
+	}
 	if len(data) > 4 {
 		for _, ci := range chiefAddressList() {
 			reader := strings.NewReader(ci.Abi)
@@ -187,6 +197,9 @@ func IsChiefUpdate(data []byte) bool {
 				panic(fmt.Errorf("chief_abi_error : vsn=%s", ci.Version))
 			}
 			buf, _ := abi.Pack("update", common.Address{})
+			bk := append(buf[:4], []byte{0, 0, 0, 0}...)
+			fmt.Println("bk = ", string(bk), bk, len(chiefAddressList()))
+			abiCache.Add(string(bk), string(bk))
 			if bytes.Equal(data[0:4], buf[0:4]) {
 				log.Debug("is_chief_update_true", "input", data)
 				return true
