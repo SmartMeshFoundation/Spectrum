@@ -1385,8 +1385,8 @@ func (d *Downloader) importBlockResults(results []*fetchResult) error {
 			log.Debug("Downloaded item processing failed", "number", results[index].Header.Number, "hash", results[index].Header.Hash(), "err", err)
 			return errInvalidChain
 		}
-		log.Info(fmt.Sprintf("[ downloader ] ==> importBlockResults() %d --> %d.",
-			blocks[0].NumberU64(), blocks[len(blocks)-1].NumberU64()))
+		ss, ee := blocks[0].NumberU64(), blocks[len(blocks)-1].NumberU64()
+		log.Info(fmt.Sprintf("[downloader] --> total=%d, range=(%d-%d).", (ee - ss), ss, ee))
 
 		// Shift the results to the next batch
 		results = results[items:]
@@ -1485,7 +1485,7 @@ func (d *Downloader) commitFastSyncData(results []*fetchResult, stateSync *state
 }
 
 func (d *Downloader) commitPivotBlock(result *fetchResult) error {
-	fmt.Println("<<commitPivotBlock>> num=",result.Header.Number.Int64())
+	fmt.Println("<<commitPivotBlock>> num=", result.Header.Number.Int64())
 	b := types.NewBlockWithHeader(result.Header).WithBody(result.Transactions, result.Uncles)
 	// Sync the pivot block state. This should complete reasonably quickly because
 	// we've already synced up to the reported head block state earlier.
