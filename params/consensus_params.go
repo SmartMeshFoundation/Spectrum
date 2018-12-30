@@ -184,7 +184,6 @@ func IsChiefUpdate(data []byte) bool {
 		return false
 	}
 	dk := append(data[:4], []byte{0, 0, 0, 0}...)
-	fmt.Println("dk = ", string(dk), dk)
 	if abiCache.Contains(string(dk)) {
 		return true
 	}
@@ -198,7 +197,6 @@ func IsChiefUpdate(data []byte) bool {
 			}
 			buf, _ := abi.Pack("update", common.Address{})
 			bk := append(buf[:4], []byte{0, 0, 0, 0}...)
-			fmt.Println("bk = ", string(bk), bk, len(chiefAddressList()))
 			abiCache.Add(string(bk), string(bk))
 			if bytes.Equal(data[0:4], buf[0:4]) {
 				log.Debug("is_chief_update_true", "input", data)
