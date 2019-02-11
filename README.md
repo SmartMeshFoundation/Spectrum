@@ -16,6 +16,11 @@ Since the list of signers is 17, it is recommended that the confirmation number 
 
 We suggest that the GasPrice should not be less than 18Gwei, otherwise the transaction may not be packaged into the block.
 
+## List of Chain ID's:
+| Chain(s)      |  CHAIN_ID  | 
+| ---------- | :-----------:  | 
+| mainnet     | 20180430     | 
+
 ## Build the source 
 
 Building Spectrum requires both a Go (version 1.9.2 or later) and a C compiler. You can install them using your favourite package manager.
@@ -85,11 +90,6 @@ Building Spectrum requires both a Go (version 1.9.2 or later) and a C compiler. 
 		...\SmartMeshFoundation> go install -v ./cmd/...
 	6）run the program：
 		c:\Users\xxx> smc console
-
-## List of Chain ID's:
-| Chain(s)      |  CHAIN_ID  | 
-| ---------- | :-----------:  | 
-| mainnet     | 20180430     | 
 
 ## Encrypt your nodekey
 
