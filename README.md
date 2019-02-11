@@ -86,8 +86,10 @@ Building Spectrum requires both a Go (version 1.9.2 or later) and a C compiler. 
 	6）run the program：
 		c:\Users\xxx> smc console
 
-## ChainId
-   mainnet: 20180430 
+## List of Chain ID's:
+| Chain(s)      |  CHAIN_ID  | 
+| ---------- | :-----------:  | 
+| mainnet     | 20180430     | 
 
 ## Encrypt your nodekey
 
