@@ -24,6 +24,7 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/accounts"
 	"github.com/SmartMeshFoundation/Spectrum/common"
 	"github.com/SmartMeshFoundation/Spectrum/consensus"
+	"github.com/SmartMeshFoundation/Spectrum/consensus/tribe"
 	"github.com/SmartMeshFoundation/Spectrum/core"
 	"github.com/SmartMeshFoundation/Spectrum/core/state"
 	"github.com/SmartMeshFoundation/Spectrum/core/types"
@@ -32,7 +33,6 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/event"
 	"github.com/SmartMeshFoundation/Spectrum/log"
 	"github.com/SmartMeshFoundation/Spectrum/params"
-	"github.com/SmartMeshFoundation/Spectrum/consensus/tribe"
 	"time"
 )
 
@@ -70,6 +70,7 @@ func New(eth Backend, config *params.ChainConfig, mux *event.TypeMux, engine con
 	miner.Register(NewCpuAgent(eth.BlockChain(), engine))
 	go miner.update()
 	if tribe, ok := miner.engine.(*tribe.Tribe); ok {
+		close(params.TribeReadyForAcceptTxs)
 		go func() {
 			rtn := make(chan common.Address)
 			tribe.Status.GetMinerAddressByChan(rtn)

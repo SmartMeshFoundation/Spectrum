@@ -25,12 +25,14 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"crypto/ecdsa"
 	"github.com/SmartMeshFoundation/Spectrum/accounts"
 	"github.com/SmartMeshFoundation/Spectrum/common"
 	"github.com/SmartMeshFoundation/Spectrum/common/hexutil"
 	"github.com/SmartMeshFoundation/Spectrum/consensus"
 	"github.com/SmartMeshFoundation/Spectrum/consensus/clique"
 	"github.com/SmartMeshFoundation/Spectrum/consensus/ethash"
+	"github.com/SmartMeshFoundation/Spectrum/consensus/tribe"
 	"github.com/SmartMeshFoundation/Spectrum/core"
 	"github.com/SmartMeshFoundation/Spectrum/core/bloombits"
 	"github.com/SmartMeshFoundation/Spectrum/core/types"
@@ -48,8 +50,6 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/params"
 	"github.com/SmartMeshFoundation/Spectrum/rlp"
 	"github.com/SmartMeshFoundation/Spectrum/rpc"
-	"github.com/SmartMeshFoundation/Spectrum/consensus/tribe"
-	"crypto/ecdsa"
 )
 
 type LesServer interface {
@@ -419,6 +419,7 @@ func (s *Ethereum) Start(srvr *p2p.Server) error {
 	if s.lesServer != nil {
 		s.lesServer.Start(srvr)
 	}
+	go s.tribeReadyForAcceptTxs()
 	return nil
 }
 
@@ -460,4 +461,14 @@ func (s *Ethereum) FetchVolunteers(minTD *big.Int, filter func(key *ecdsa.Public
 		}
 	}
 	return
+}
+
+func (s *Ethereum) tribeReadyForAcceptTxs() {
+	log.Info("ethereum.tribeReadyForAcceptTxs --> started")
+	select {
+	case <-params.TribeReadyForAcceptTxs:
+		atomic.StoreUint32(&s.protocolManager.acceptTxs, 1)
+	case <-s.shutdownChan:
+		break
+	}
 }

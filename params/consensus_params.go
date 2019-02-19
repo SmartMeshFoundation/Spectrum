@@ -59,7 +59,8 @@ var (
 	ChiefBaseBalance = new(big.Int).Mul(big.NewInt(1), big.NewInt(Finney))
 	MboxChan         = make(chan Mbox, 32)
 	//close at tribe.init
-	InitTribe = make(chan struct{})
+	TribeReadyForAcceptTxs = make(chan struct{})
+	InitTribe              = make(chan struct{})
 	//close at tribeService
 	InitTribeStatus               = make(chan struct{})
 	chiefInfoList   ChiefInfoList = nil
