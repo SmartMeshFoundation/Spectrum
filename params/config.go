@@ -49,7 +49,7 @@ var (
 		Chief006Block:   big.NewInt(595888),
 		Chief006Address: common.HexToAddress("0xba7f507d5aab3e931312512c234fbeb85cbd9dce"),
 
-		MeshboxBlock:   big.NewInt(1848671), // 2019-03-02 PM
+		MeshboxBlock:   big.NewInt(0),
 		MeshboxAddress: common.HexToAddress("0xf0ced0b1ce8738eeac06fdca51e0ff398328634b"),
 
 		NR001Block: big.NewInt(0), // new rules for chief.tx of gaspool
