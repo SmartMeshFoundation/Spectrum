@@ -1,10 +1,14 @@
 package params
 
 import (
-	"testing"
-	"sort"
-	"math/big"
+	"bytes"
+	"encoding/hex"
+	"github.com/SmartMeshFoundation/Spectrum/accounts/abi"
 	"github.com/SmartMeshFoundation/Spectrum/common"
+	"math/big"
+	"sort"
+	"strings"
+	"testing"
 )
 
 var data = ChiefInfoList{
@@ -71,3 +75,26 @@ func TestAddr(t *testing.T) {
 	t.Log(add1 == add2)
 }
 
+func TestRegisterContract(t *testing.T) {
+	t.Log(TribeChief_0_0_6ABI)
+	hexdata := "1c1b87720000000000000000000000000000000000000000000000000000000000000000"
+	data, err := hex.DecodeString(hexdata)
+	t.Log("1 err=", err, data)
+	_abi, err := abi.JSON(strings.NewReader(TribeChief_0_0_2ABI))
+	t.Log("2 err=", err)
+	method := _abi.Methods["update"]
+	id := new(common.Address)
+	r := []interface{}{id}
+	t.Log(len(data[4:]), len(data), data[:4])
+	err = method.Inputs.Unpack(id, data[4:])
+	t.Log("4 err=", err, r, id.Hex())
+
+	t.Log(bytes.Equal(data[:4], []byte{28, 27, 135, 114}),data[:4])
+
+	rrr, _ := _abi.Pack("update", common.HexToAddress("0xAd4c80164065a3c33dD2014908c7563eFf88Ab49"))
+	t.Log(rrr[4:])
+	aaa := common.Bytes2Hex(rrr[4:])
+	t.Log(common.HexToAddress(aaa) == common.HexToAddress("0xAd4c80164065a3c33dD2014908c7563eFf88Ab49"))
+	bbb := common.Bytes2Hex([]byte{0,0,0,0,0,0,0})
+	t.Log(common.HexToAddress(bbb) == common.HexToAddress(""))
+}

@@ -50,7 +50,7 @@ func newTestBlockChain(fake bool) *BlockChain {
 	if err != nil {
 		panic(err)
 	}
-	blockchain.SetValidator(bproc{})
+	//blockchain.SetValidator(bproc{})
 	return blockchain
 }
 

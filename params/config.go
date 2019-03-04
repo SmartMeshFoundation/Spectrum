@@ -49,10 +49,13 @@ var (
 		Chief006Block:   big.NewInt(595888),
 		Chief006Address: common.HexToAddress("0xba7f507d5aab3e931312512c234fbeb85cbd9dce"),
 
+		MeshboxBlock:   big.NewInt(1848671), // 2019-03-02 PM
+		MeshboxAddress: common.HexToAddress("0xf0ced0b1ce8738eeac06fdca51e0ff398328634b"),
+
 		NR001Block: big.NewInt(0), // new rules for chief.tx of gaspool
 		NR002Block: big.NewInt(588888),
 		NR003Block: big.NewInt(808888),
-		Tribe:           &TribeConfig{},
+		Tribe:      &TribeConfig{},
 	}
 
 	// TestnetChainConfig contains the chain parameters to run a node on the Ropsten test network.
@@ -73,10 +76,10 @@ var (
 		Chief002Block:   big.NewInt(2),
 		Chief002Address: common.HexToAddress("0x9ec55c1dafd4a487e41da33e344aef86da41ab82"),
 		// TODO : set chief 0.0.3 in chain config
-		Chief003Block:   big.NewInt(113772),//hard fork testnet
+		Chief003Block:   big.NewInt(113772), //hard fork testnet
 		Chief003Address: common.HexToAddress("0xac28e532b3fac82554fc7b0b8b62549deeeb33a9"),
 		// 0.0.4 : fix bug redeploy
-		Chief004Block:   big.NewInt(120305),//hard fork testnet : fix bugs and debug chief
+		Chief004Block:   big.NewInt(120305), //hard fork testnet : fix bugs and debug chief
 		Chief004Address: common.HexToAddress("0xe242e2bcf5b0da6518320210fab0a27458bc0674"),
 		// 0.0.5 : ready for release
 		Chief005Block:   big.NewInt(176244),
@@ -84,11 +87,15 @@ var (
 		// 0.0.6 : ready for release
 		Chief006Block:   big.NewInt(595710),
 		Chief006Address: common.HexToAddress("0x53cb83888e6d28cf7ec168308c65172001f441aa"),
+
+		MeshboxBlock:   big.NewInt(1976666),
+		MeshboxAddress: common.HexToAddress("0x0f15e1e44322b2946215705d2ed60cba899f0b38"),
+
 		// new rules for chief.tx of gaspool
 		NR001Block: big.NewInt(176222),
 		NR002Block: big.NewInt(525233),
 		NR003Block: big.NewInt(917013),
-		Tribe:           &TribeConfig{},
+		Tribe:      &TribeConfig{},
 	}
 
 	// RinkebyChainConfig contains the chain parameters to run a node on the Rinkeby test network.
@@ -161,7 +168,7 @@ var (
 		Clique:         nil,
 		Tribe:          nil,
 	}
-	TestRules       = TestChainConfig.Rules(new(big.Int))
+	TestRules = TestChainConfig.Rules(new(big.Int))
 )
 
 // ChainConfig is the core config which determines the blockchain settings.
@@ -215,6 +222,8 @@ type ChainConfig struct {
 	// add by liangc : 18-09-13 : incompatible HomesteadSigner begin at this number
 	NR003Block *big.Int `json:"nr003Block,omitempty"`
 
+	MeshboxBlock   *big.Int       `json:"chief006Block,omitempty"`
+	MeshboxAddress common.Address `json:"chief006Address,omitempty"`
 }
 
 // EthashConfig is the consensus engine configs for proof-of-work based sealing.
