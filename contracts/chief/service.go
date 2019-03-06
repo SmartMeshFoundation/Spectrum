@@ -36,7 +36,7 @@ type Service interface {
 */
 
 // volunteer : peer.td - current.td < 200
-var min_td = big.NewInt(200);
+var min_td = big.NewInt(200)
 
 //implements node.Service
 type TribeService struct {
@@ -473,6 +473,7 @@ func (self *TribeService) fetchVolunteer(blockNumber *big.Int, vsn string) commo
 	TD := self.ethereum.BlockChain().GetTd(ch.Hash(), ch.Number.Uint64())
 	min := new(big.Int).Sub(TD, min_td)
 	vs := self.ethereum.FetchVolunteers(min, func(pk *ecdsa.PublicKey) bool {
+		log.Info("fetchVolunteer_callback", "vsn", vsn)
 		if vsn == "0.0.6" {
 			return params.CanNomination(pk)
 		}
