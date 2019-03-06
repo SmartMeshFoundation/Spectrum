@@ -82,7 +82,7 @@ func (self *MeshboxService) Stop() error {
 // ===============================================================================
 
 func GetMeshboxService() (*MeshboxService, error) {
-	log.Info("<<meshbox.service.GetMeshboxService>>")
+	log.Debug("<<meshbox.service.GetMeshboxService>>")
 	select {
 	case <-params.InitMeshboxService:
 		return meshboxService, nil
@@ -92,7 +92,7 @@ func GetMeshboxService() (*MeshboxService, error) {
 }
 
 func (self *MeshboxService) ExistAddress(addr common.Address) (*big.Int, error) {
-	log.Info("<<meshbox.service.ExistAddress>>")
+	log.Debug("<<meshbox.service.ExistAddress>>")
 	select {
 	case <-params.InitMeshboxService:
 		var ctx = context.Background()
@@ -101,7 +101,7 @@ func (self *MeshboxService) ExistAddress(addr common.Address) (*big.Int, error) 
 		opts := new(bind.CallOptsWithNumber)
 		opts.Context = ctx
 		i, err := self.meshbox.ExistAddress(opts, addr)
-		log.Info("<<MeshboxService.ExistAddress>> r=%d, err=%v", i, err)
+		log.Info("<<MeshboxService.ExistAddress>>", "r", i, "err", err)
 		return i, err
 	default:
 		return nil, errors.New("wait init")
