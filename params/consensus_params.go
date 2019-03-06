@@ -1,18 +1,14 @@
 package params
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/log"
 	"math/big"
 	"os"
 	"sort"
-
-	"github.com/SmartMeshFoundation/Spectrum/common"
-	"github.com/SmartMeshFoundation/Spectrum/log"
-	"strings"
-	"encoding/json"
-	"github.com/SmartMeshFoundation/Spectrum/accounts/abi"
-	"bytes"
 )
 
 type ChiefInfo struct {
@@ -58,14 +54,33 @@ const (
 var (
 	ChiefBaseBalance = new(big.Int).Mul(big.NewInt(1), big.NewInt(Finney))
 	MboxChan         = make(chan Mbox, 32)
+	MeshboxService   = make(chan Mbox, 384)
 	//close at tribe.init
-	InitTribe = make(chan struct{})
+	TribeReadyForAcceptTxs = make(chan struct{})
+	InitTribe              = make(chan struct{})
+	InitMeshboxService     = make(chan struct{})
 	//close at tribeService
 	InitTribeStatus               = make(chan struct{})
 	chiefInfoList   ChiefInfoList = nil
 	// added by cai.zhihong
 	// ChiefTxGas = big.NewInt(400000)
+	//abiCache *lru.Cache = nil
 )
+
+func MeshboxInfo(num *big.Int) (n *big.Int, addr common.Address) {
+	if IsTestnet() {
+		n = TestnetChainConfig.MeshboxBlock
+		if TestnetChainConfig.MeshboxBlock.Cmp(big.NewInt(0)) > 0 && TestnetChainConfig.MeshboxBlock.Cmp(num) <= 0 {
+			addr = TestnetChainConfig.MeshboxAddress
+		}
+	} else {
+		n = MainnetChainConfig.MeshboxBlock
+		if MainnetChainConfig.MeshboxBlock.Cmp(big.NewInt(0)) > 0 && MainnetChainConfig.MeshboxBlock.Cmp(num) <= 0 {
+			addr = MainnetChainConfig.MeshboxAddress
+		}
+	}
+	return
+}
 
 // if input num less then nr001block ,enable new role for chief.tx's gaspool
 func IsNR001Block(num *big.Int) bool {
@@ -109,7 +124,6 @@ func IsNR003Block(num *big.Int) bool {
 	}
 	return false
 }
-
 
 // startNumber and address must from chain's config
 func chiefAddressList() (list ChiefInfoList) {
@@ -176,25 +190,59 @@ func isChiefBlock(list ChiefInfoList, blockNumber *big.Int) bool {
 	return false
 }
 
-//TODO optimize
 func IsChiefUpdate(data []byte) bool {
-	if len(data) > 4 {
-		for _, ci := range chiefAddressList() {
-			reader := strings.NewReader(ci.Abi)
-			dec := json.NewDecoder(reader)
-			var abi abi.ABI
-			if err := dec.Decode(&abi); err != nil {
-				panic(fmt.Errorf("chief_abi_error : vsn=%s", ci.Version))
-			}
-			buf, _ := abi.Pack("update", common.Address{})
-			if bytes.Equal(data[0:4], buf[0:4]) {
-				log.Debug("is_chief_update_true", "input", data)
+	if len(data) < 4 {
+		return false
+	} else {
+		if bytes.Equal(data[:4], []byte{28, 27, 135, 114}) {
+			volunteer := common.Bytes2Hex(data[4:])
+			if common.HexToAddress(volunteer) == common.HexToAddress("") {
+				log.Debug("meshbox.ExistAddress.EmptyInput", "addr", common.HexToAddress(volunteer).Hex())
 				return true
+			} else {
+				// TODO verify volunteer : in meshbox.sol or balance greate than 10w smt
+				i, err := meshboxExitAddress(common.HexToAddress(volunteer))
+				log.Debug("meshbox.ExistAddress", "addr", common.HexToAddress(volunteer).Hex(), "i", i, "err", err)
+				if err != nil {
+					switch err.Error() {
+					case "skip":
+						return true
+					default:
+						log.Error("IsChiefUpdate.meshbox.ExistAddress", "addr", common.HexToAddress(volunteer).Hex(), "err", err)
+						return false
+					}
+				}
+				if i > 0 {
+					return true
+				}
 			}
 		}
 	}
 	return false
 }
+
+func meshboxExitAddress(addr common.Address) (int64, error) {
+	select {
+	case <-InitMeshboxService:
+		rtn := make(chan MBoxSuccess)
+		m := Mbox{
+			Method: "existAddress",
+			Rtn:    rtn,
+		}
+		m.Params = map[string]interface{}{"addr": addr}
+		MeshboxService <- m
+		success := <-rtn
+		if success.Success {
+			return success.Entity.(int64), nil
+		} else {
+			return 0, success.Entity.(error)
+		}
+	default:
+		return 0, errors.New("skip")
+	}
+
+}
+
 func IsChiefAddress(addr common.Address) bool {
 	return isChiefAddress(chiefAddressList(), addr)
 }

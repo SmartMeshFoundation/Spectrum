@@ -20,6 +20,7 @@ import (
 	"context"
 	"math/big"
 
+	"errors"
 	"github.com/SmartMeshFoundation/Spectrum/accounts"
 	"github.com/SmartMeshFoundation/Spectrum/common"
 	"github.com/SmartMeshFoundation/Spectrum/common/math"
@@ -32,10 +33,9 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/eth/gasprice"
 	"github.com/SmartMeshFoundation/Spectrum/ethdb"
 	"github.com/SmartMeshFoundation/Spectrum/event"
+	"github.com/SmartMeshFoundation/Spectrum/log"
 	"github.com/SmartMeshFoundation/Spectrum/params"
 	"github.com/SmartMeshFoundation/Spectrum/rpc"
-	"github.com/SmartMeshFoundation/Spectrum/log"
-	"errors"
 )
 
 // EthApiBackend implements ethapi.Backend for full nodes
@@ -87,16 +87,16 @@ func (b *EthApiBackend) BlockByNumber(ctx context.Context, blockNr rpc.BlockNumb
 func (b *EthApiBackend) StateAndHeaderByHash(ctx context.Context, hash *common.Hash) (*state.StateDB, *types.Header, error) {
 	// Pending state is only known by the miner
 	// Otherwise resolve the block number and return its state
-	blk,err := b.GetBlock(ctx,*hash)
+	blk, err := b.GetBlock(ctx, *hash)
 	if err != nil {
 		return nil, nil, err
 	}
 	if blk == nil {
-		log.Error("EthApiBackend.StateAndHeaderByHash","err","block_not_found","hash",hash.Hex())
-		return nil,nil, errors.New("block_not_found")
+		log.Debug("EthApiBackend.StateAndHeaderByHash", "err", "block_not_found", "hash", hash.Hex())
+		return nil, nil, errors.New("block_not_found")
 	}
 	header := blk.Header()
-	log.Debug("EthApiBackend.StateAndHeaderByHash #>", "hex",hash.Hex())
+	log.Debug("EthApiBackend.StateAndHeaderByHash #>", "hex", hash.Hex())
 	stateDb, err := b.eth.BlockChain().StateAt(header.Root)
 	return stateDb, header, err
 }
@@ -108,7 +108,7 @@ func (b *EthApiBackend) StateAndHeaderByNumber(ctx context.Context, blockNr rpc.
 	}
 	// Otherwise resolve the block number and return its state
 	header, err := b.HeaderByNumber(ctx, blockNr)
-	log.Debug("EthApiBackend.StateAndHeaderByNumber #>", "number",blockNr.Int64())
+	log.Debug("EthApiBackend.StateAndHeaderByNumber #>", "number", blockNr.Int64())
 
 	if header == nil || err != nil {
 		return nil, nil, err

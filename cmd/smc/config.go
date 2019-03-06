@@ -20,6 +20,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"github.com/SmartMeshFoundation/Spectrum/contracts/meshbox"
 	"io"
 	"os"
 	"reflect"
@@ -28,13 +29,13 @@ import (
 	"gopkg.in/urfave/cli.v1"
 
 	"github.com/SmartMeshFoundation/Spectrum/cmd/utils"
+	"github.com/SmartMeshFoundation/Spectrum/contracts/chief"
 	"github.com/SmartMeshFoundation/Spectrum/dashboard"
 	"github.com/SmartMeshFoundation/Spectrum/eth"
 	"github.com/SmartMeshFoundation/Spectrum/node"
 	"github.com/SmartMeshFoundation/Spectrum/params"
 	whisper "github.com/SmartMeshFoundation/Spectrum/whisper/whisperv5"
 	"github.com/naoina/toml"
-	"github.com/SmartMeshFoundation/Spectrum/contracts/chief"
 )
 
 var (
@@ -159,7 +160,14 @@ func makeFullNode(ctx *cli.Context) *node.Node {
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
 		return chief.NewTribeService(ctx)
 	}); err != nil {
-		fmt.Println("error",err)
+		fmt.Println("error", err)
+	}
+
+	// add by liangc : add meshbox service
+	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
+		return meshbox.NewMeshboxService(ctx)
+	}); err != nil {
+		utils.Fatalf("Meshbox Service Start Fail : %v", err)
 	}
 
 	if ctx.GlobalBool(utils.DashboardEnabledFlag.Name) {

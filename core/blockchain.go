@@ -1077,8 +1077,8 @@ func (st *insertStats) report(chain []*types.Block, index int) {
 		if st.ignored > 0 {
 			context = append(context, []interface{}{"ignored", st.ignored}...)
 		}
-		log.Info(fmt.Sprintf("-> num=%d , diff=%d , hash=%s , miner=%s", end.Number(), end.Difficulty(), end.Hash().Hex(), end.Coinbase().Hex()))
-		//log.Info("Imported new chain segment", context...)
+		//log.Info(fmt.Sprintf("[report] new_block : num=%d , diff=%d , hash=%s , miner=%s", end.Number(), end.Difficulty(), end.Hash().Hex(), end.Coinbase().Hex()))
+		log.Info(fmt.Sprintf("[report] new_block : num=%d , diff=%d , miner=%s", end.Number(), end.Difficulty(), end.Coinbase().Hex()))
 
 		*st = insertStats{startTime: now, lastIndex: index + 1}
 	}

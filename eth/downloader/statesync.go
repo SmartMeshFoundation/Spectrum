@@ -300,6 +300,11 @@ func (s *stateSync) loop() error {
 				log.Warn("Stalling state sync, dropping peer", "peer", req.peer.id)
 				s.d.dropPeer(req.peer.id)
 			}
+			var bytes int
+			for _, dd := range req.response {
+				bytes += len(dd)
+			}
+			log.Debug("<<stateSync.loop.deliver>>", "peer", req.peer.id, "response_len", len(req.response), "byte_len", bytes)
 			// Process all the received blobs and check for stale delivery
 			stale, err := s.process(req)
 			if err != nil {

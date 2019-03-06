@@ -3,6 +3,7 @@ package chief
 import (
 	"context"
 	"errors"
+	"github.com/SmartMeshFoundation/Spectrum/contracts/meshbox"
 	"math/big"
 	"time"
 
@@ -35,7 +36,7 @@ type Service interface {
 */
 
 // volunteer : peer.td - current.td < 200
-var min_td = big.NewInt(200);
+var min_td = big.NewInt(200)
 
 //implements node.Service
 type TribeService struct {
@@ -472,6 +473,7 @@ func (self *TribeService) fetchVolunteer(blockNumber *big.Int, vsn string) commo
 	TD := self.ethereum.BlockChain().GetTd(ch.Hash(), ch.Number.Uint64())
 	min := new(big.Int).Sub(TD, min_td)
 	vs := self.ethereum.FetchVolunteers(min, func(pk *ecdsa.PublicKey) bool {
+		log.Debug("fetchVolunteer_callback", "vsn", vsn)
 		if vsn == "0.0.6" {
 			return params.CanNomination(pk)
 		}
@@ -527,9 +529,20 @@ func (self *TribeService) fetchVolunteer(blockNumber *big.Int, vsn string) commo
 				opts.Context = ctx
 				if rlist, err := self.tribeChief_0_0_6.FilterVolunteer(opts, vlist); err == nil {
 					log.Debug("=> [0.0.6] TribeService.fetchVolunteer :", "len", len(rlist), "rlist", rlist)
+
 					for i, r := range rlist {
 						if r.Int64() > 0 {
-							return vlist[i]
+							v := vlist[i]
+							if ms, err := meshbox.GetMeshboxService(); err == nil {
+								log.Info("<< fetchVolunteer.meshbox-rule >>")
+								if w, err := ms.ExistAddress(v); err == nil && w != nil && w.Int64() > 0 {
+									return v
+								}
+								log.Info("<< fetchVolunteer.skip >> not_a_meshbox", "addr", v.Hex())
+							} else {
+								log.Info("<< fetchVolunteer.normal-rule >>", "err", err)
+								return v
+							}
 						}
 					}
 				}

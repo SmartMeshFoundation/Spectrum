@@ -120,7 +120,7 @@ func TestSetupGenesis(t *testing.T) {
 				genesis := oldcustomg.MustCommit(db)
 				bc, _ := NewBlockChain(db, oldcustomg.Config, ethash.NewFullFaker(), vm.Config{})
 				defer bc.Stop()
-				bc.SetValidator(bproc{})
+				//bc.SetValidator(bproc{})
 				bc.InsertChain(makeBlockChainWithDiff(genesis, []int{2, 3, 4, 5}, 0))
 				bc.CurrentBlock()
 				// This should return a compatibility error.
@@ -161,12 +161,16 @@ func TestSetupGenesis(t *testing.T) {
 }
 
 func TestDecodePrealloc(t *testing.T){
-	mal := decodePrealloc(mainnetAllocData)
-	c := big.NewInt(0)
-	for k,v := range mal {
-		e := new(big.Int).Div(v.Balance,big.NewInt(1))
-		c = new(big.Int).Add(e,c)
-		t.Log(k.Hex(),new(big.Int).Div(v.Balance,big.NewInt(1)))
+	fn := func(alloc string) {
+		mal := decodePrealloc(alloc)
+		c := big.NewInt(0)
+		for k, v := range mal {
+			e := new(big.Int).Div(v.Balance, big.NewInt(1))
+			c = new(big.Int).Add(e, c)
+			t.Log(k.Hex(), new(big.Int).Div(v.Balance, big.NewInt(1)))
+		}
+		t.Log("---->", len(mal), c)
 	}
-	t.Log("---->",len(mal),c)
+	fn(mainnetAllocData)
+	fn(testnetAllocData)
 }

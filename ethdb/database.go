@@ -60,20 +60,22 @@ func NewLDBDatabase(file string, cache int, handles int) (*LDBDatabase, error) {
 	logger := log.New("database", file)
 
 	// Ensure we have some minimal caching and file guarantees
-	if cache < 16 {
-		cache = 16
+	// default cache = 128
+	if cache < 128 {
+		cache = 128 // 16
 	}
-	if handles < 16 {
-		handles = 16
+	if handles < 64 {
+		handles = 64 // 16
 	}
 	logger.Info("Allocated cache and file handles", "cache", cache, "handles", handles)
 
 	// Open the db and recover any potential corruptions
 	db, err := leveldb.OpenFile(file, &opt.Options{
 		OpenFilesCacheCapacity: handles,
-		BlockCacheCapacity:     cache / 2 * opt.MiB,
-		WriteBuffer:            cache / 4 * opt.MiB, // Two of these are used internally
-		Filter:                 filter.NewBloomFilter(10),
+		// default cache == 128
+		BlockCacheCapacity: cache / 2 * opt.MiB, // default : 128 / 2 = 64
+		WriteBuffer:        cache / 2 * opt.MiB, // Two of these are used internally , default : 128 / 4 = 32
+		Filter:             filter.NewBloomFilter(20),
 	})
 	if _, corrupted := err.(*errors.ErrCorrupted); corrupted {
 		db, err = leveldb.RecoverFile(file, nil)
@@ -198,8 +200,7 @@ func (db *LDBDatabase) Meter(prefix string) {
 	go db.meter(3 * time.Second)
 }
 
-// meter periodically retrieves internal leveldb counters and reports them to
-// the metrics subsystem.
+// meter periodically retrieves internal leveldb counters and reports them to the metrics subsystem.
 //
 // This is how a stats table look like (currently):
 //   Compactions

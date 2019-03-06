@@ -429,7 +429,7 @@ func (d *Downloader) syncWithPeer(p *peerConnection, hash common.Hash, td *big.I
 	if err != nil {
 		return err
 	}
-	fmt.Println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+	fmt.Println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 	fmt.Println("::: ORIGIN ::: origin=", origin, "height=", height)
 	d.syncStatsLock.Lock()
 	if d.syncStatsChainHeight <= origin || d.syncStatsChainOrigin > origin {
@@ -438,7 +438,8 @@ func (d *Downloader) syncWithPeer(p *peerConnection, hash common.Hash, td *big.I
 	d.syncStatsChainHeight = height
 	d.syncStatsLock.Unlock()
 	fmt.Println("::: ORIGIN ::: d.syncStatsChainHeight=", d.syncStatsChainHeight, "current=", d.blockchain.CurrentHeader().Number.Int64())
-	fmt.Println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+	fmt.Println("::: ORIGIN ::: Latest.Root =", latest.Root.Hex())
+	fmt.Println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 	// Initiate the sync using a concurrent header and content retrieval algorithm
 	pivot := uint64(0)
 	switch d.mode {
@@ -492,13 +493,13 @@ func (d *Downloader) syncWithPeer(p *peerConnection, hash common.Hash, td *big.I
 		},
 	}
 	if d.mode == FastSync {
-		fmt.Println("---- FastSync ---->")
+		fmt.Println("FastSync️")
 		fetchers = append(fetchers, func() error {
 			e := d.processFastSyncContent(latest)
 			return e
 		})
 	} else if d.mode == FullSync {
-		fmt.Println("---- FullSync ---->")
+		fmt.Println("FullSync")
 		fetchers = append(fetchers, d.processFullSyncContent)
 	}
 	err = d.spawnSync(fetchers)
@@ -1385,8 +1386,8 @@ func (d *Downloader) importBlockResults(results []*fetchResult) error {
 			log.Debug("Downloaded item processing failed", "number", results[index].Header.Number, "hash", results[index].Header.Hash(), "err", err)
 			return errInvalidChain
 		}
-		log.Info(fmt.Sprintf("[ downloader ] ==> importBlockResults() %d --> %d.",
-			blocks[0].NumberU64(), blocks[len(blocks)-1].NumberU64()))
+		ss, ee := blocks[0].NumberU64(), blocks[len(blocks)-1].NumberU64()
+		log.Info(fmt.Sprintf("[downloader] --> count=%d, range=(%d-%d).", (ee - ss), ss, ee))
 
 		// Shift the results to the next batch
 		results = results[items:]
@@ -1476,8 +1477,10 @@ func (d *Downloader) commitFastSyncData(results []*fetchResult, stateSync *state
 			log.Debug("Downloaded item processing failed", "number", results[index].Header.Number, "hash", results[index].Header.Hash(), "err", err)
 			return errInvalidChain
 		}
-		log.Info(fmt.Sprintf("[ downloader ] ==> InsertReceiptChain(), %d --> %d. ",
-			blocks[0].NumberU64(), blocks[len(blocks)-1].NumberU64()))
+		ss := blocks[0].NumberU64()
+		ee := blocks[len(blocks)-1].NumberU64()
+		tt := ee - ss
+		log.Info(fmt.Sprintf("[downloader-fast] --> total=%d, range=(%d-%d). ", tt, ss, ee))
 		// Shift the results to the next batch
 		results = results[items:]
 	}
@@ -1485,7 +1488,7 @@ func (d *Downloader) commitFastSyncData(results []*fetchResult, stateSync *state
 }
 
 func (d *Downloader) commitPivotBlock(result *fetchResult) error {
-	fmt.Println("<<commitPivotBlock>> num=",result.Header.Number.Int64())
+	log.Info("<<commitPivotBlock>>", "num", result.Header.Number.Int64(),"Root",result.Header.Root.Hex())
 	b := types.NewBlockWithHeader(result.Header).WithBody(result.Transactions, result.Uncles)
 	// Sync the pivot block state. This should complete reasonably quickly because
 	// we've already synced up to the reported head block state earlier.
