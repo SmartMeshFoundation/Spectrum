@@ -473,7 +473,7 @@ func (self *TribeService) fetchVolunteer(blockNumber *big.Int, vsn string) commo
 	TD := self.ethereum.BlockChain().GetTd(ch.Hash(), ch.Number.Uint64())
 	min := new(big.Int).Sub(TD, min_td)
 	vs := self.ethereum.FetchVolunteers(min, func(pk *ecdsa.PublicKey) bool {
-		log.Info("fetchVolunteer_callback", "vsn", vsn)
+		log.Debug("fetchVolunteer_callback", "vsn", vsn)
 		if vsn == "0.0.6" {
 			return params.CanNomination(pk)
 		}

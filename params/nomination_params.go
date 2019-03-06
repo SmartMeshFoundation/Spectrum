@@ -16,7 +16,7 @@ var exclude = map[common.Address]bool{
 // genesis node do not can be nomination
 func CanNomination(key *ecdsa.PublicKey) bool {
 	addr := crypto.PubkeyToAddress(*key)
-	log.Info("fetchVolunteer_callback.CanNomination ", "addr", addr.Hex(), "exclude", exclude[addr])
+	log.Debug("fetchVolunteer_callback.CanNomination ", "addr", addr.Hex(), "exclude", exclude[addr])
 	if exclude[addr] {
 		return false
 	}
