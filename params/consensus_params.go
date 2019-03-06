@@ -233,7 +233,6 @@ func meshboxExitAddress(addr common.Address) (int64, error) {
 		MeshboxService <- m
 		success := <-rtn
 		if success.Success {
-			fmt.Println("--> aaaa -->", addr, success)
 			return success.Entity.(int64), nil
 		} else {
 			return 0, success.Entity.(error)
