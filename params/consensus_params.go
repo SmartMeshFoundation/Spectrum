@@ -197,15 +197,20 @@ func IsChiefUpdate(data []byte) bool {
 		if bytes.Equal(data[:4], []byte{28, 27, 135, 114}) {
 			volunteer := common.Bytes2Hex(data[4:])
 			if common.HexToAddress(volunteer) == common.HexToAddress("") {
-				log.Info("meshbox.ExistAddress.EmptyInput", "addr", common.HexToAddress(volunteer).Hex())
+				log.Debug("meshbox.ExistAddress.EmptyInput", "addr", common.HexToAddress(volunteer).Hex())
 				return true
 			} else {
 				// TODO verify volunteer : in meshbox.sol or balance greate than 10w smt
 				i, err := meshboxExitAddress(common.HexToAddress(volunteer))
-				log.Info("meshbox.ExistAddress", "addr", common.HexToAddress(volunteer).Hex(), "i", i, "err", err)
+				log.Debug("meshbox.ExistAddress", "addr", common.HexToAddress(volunteer).Hex(), "i", i, "err", err)
 				if err != nil {
-					log.Error("IsChiefUpdate.meshbox.ExistAddress", "addr", common.HexToAddress(volunteer).Hex(), "err", err)
-					return false
+					switch err.Error() {
+					case "skip":
+						return true
+					default:
+						log.Error("IsChiefUpdate.meshbox.ExistAddress", "addr", common.HexToAddress(volunteer).Hex(), "err", err)
+						return false
+					}
 				}
 				if i > 0 {
 					return true
@@ -217,19 +222,26 @@ func IsChiefUpdate(data []byte) bool {
 }
 
 func meshboxExitAddress(addr common.Address) (int64, error) {
-	rtn := make(chan MBoxSuccess)
-	m := Mbox{
-		Method: "exitAddress",
-		Rtn:    rtn,
+	select {
+	case <-InitMeshboxService:
+		rtn := make(chan MBoxSuccess)
+		m := Mbox{
+			Method: "existAddress",
+			Rtn:    rtn,
+		}
+		m.Params = map[string]interface{}{"addr": addr}
+		MeshboxService <- m
+		success := <-rtn
+		if success.Success {
+			fmt.Println("--> aaaa -->", addr, success)
+			return success.Entity.(int64), nil
+		} else {
+			return 0, success.Entity.(error)
+		}
+	default:
+		return 0, errors.New("skip")
 	}
-	m.Params = map[string]interface{}{"addr": addr}
-	MeshboxService <- m
-	success := <-rtn
-	if success.Success {
-		return success.Entity.(int64), nil
-	} else {
-		return 0, success.Entity.(error)
-	}
+
 }
 
 func IsChiefAddress(addr common.Address) bool {

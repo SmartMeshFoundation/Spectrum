@@ -37,7 +37,7 @@ func NewMeshboxService(ctx *node.ServiceContext) (node.Service, error) {
 		ipcpath:  ipcpath,
 		ethereum: ethereum,
 	}
-
+	go meshboxService.loop()
 	return meshboxService, nil
 }
 
@@ -45,9 +45,11 @@ func (self *MeshboxService) Protocols() []p2p.Protocol { return nil }
 func (self *MeshboxService) APIs() []rpc.API           { return nil }
 func (self *MeshboxService) Start(server *p2p.Server) error {
 	go func() {
-		var be = eth.NewContractBackend(self.ethereum.ApiBackend)
 		for {
-			var cn = self.ethereum.BlockChain().CurrentBlock().Number()
+			var (
+				be = eth.NewContractBackend(self.ethereum.ApiBackend)
+				cn = self.ethereum.BlockChain().CurrentBlock().Number()
+			)
 			mn, maddr := params.MeshboxInfo(cn)
 			if maddr != common.HexToAddress("") {
 				contract, err := meshboxlib.NewMeshBox(maddr, be)
@@ -80,6 +82,7 @@ func (self *MeshboxService) Stop() error {
 // ===============================================================================
 
 func GetMeshboxService() (*MeshboxService, error) {
+	log.Info("<<meshbox.service.GetMeshboxService>>")
 	select {
 	case <-params.InitMeshboxService:
 		return meshboxService, nil
@@ -89,6 +92,7 @@ func GetMeshboxService() (*MeshboxService, error) {
 }
 
 func (self *MeshboxService) ExistAddress(addr common.Address) (*big.Int, error) {
+	log.Info("<<meshbox.service.ExistAddress>>")
 	select {
 	case <-params.InitMeshboxService:
 		var ctx = context.Background()
