@@ -201,6 +201,7 @@ func IsChiefUpdate(data []byte) bool {
 				return true
 			} else {
 				// TODO verify volunteer : in meshbox.sol or balance greate than 10w smt
+				// TODO master append cache ,one data need check 3 timesz
 				i, err := meshboxExitAddress(common.HexToAddress(volunteer))
 				log.Debug("meshbox.ExistAddress", "addr", common.HexToAddress(volunteer).Hex(), "i", i, "err", err)
 				if err != nil {

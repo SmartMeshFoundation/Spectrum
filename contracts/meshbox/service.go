@@ -101,7 +101,7 @@ func (self *MeshboxService) ExistAddress(addr common.Address) (*big.Int, error) 
 		opts := new(bind.CallOptsWithNumber)
 		opts.Context = ctx
 		i, err := self.meshbox.ExistAddress(opts, addr)
-		log.Info("<<MeshboxService.ExistAddress>>", "r", i, "err", err)
+		log.Debug("<<MeshboxService.ExistAddress>>", "r", i, "err", err)
 		return i, err
 	default:
 		return nil, errors.New("wait init")
@@ -112,7 +112,7 @@ func (self *MeshboxService) existAddress(mbox params.Mbox) {
 	success := params.MBoxSuccess{Success: true}
 	var addr common.Address
 	addr = mbox.Params["addr"].(common.Address)
-	log.Info("mbox.params", "addr", addr.Hex())
+	log.Debug("mbox.params", "addr", addr.Hex())
 	i, err := self.ExistAddress(addr)
 	if err != nil {
 		success.Success = false
