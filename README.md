@@ -9,7 +9,8 @@
 [![](https://travis-ci.org/wangbaojin/Spectrum.svg?branch=master)](https://travis-ci.org/wangbaojin/Spectrum)
 
 Spectrum is an [Ethereum-compatible](https://github.com/SmartMeshFoundation/Spectrum) project. It uses a new consensus and new block reward for SmartMesh ecosystem devices and IOT. And you can view the transactions on the [
-BlockChain Browser Address](https://spectrum.pub). 
+BlockChain Browser Address](https://spectrum.pub).
+
 
 Since the list of signers is 17, it is recommended that the confirmation number of general transfer transaction block be set to 17 (one round), and that of exchange block be set to 34 (two rounds).
 
@@ -91,8 +92,6 @@ Building Spectrum requires both a Go (version 1.9.2 or later) and a C compiler. 
 		...\SmartMeshFoundation> go install -v ./cmd/...
 	6）run the program：
 		c:\Users\xxx> smc console
-
-
 
 ## Encrypt your nodekey
 
