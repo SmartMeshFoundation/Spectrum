@@ -114,7 +114,6 @@ type Account struct {
 // newObject creates a state object.
 func newObject(db *StateDB, address common.Address, data Account, onDirty func(addr common.Address)) *stateObject {
 	if contractCodeCache == nil {
-		fmt.Println(">>>>>>>>>>>>>>> contractCodeSize -->", contractCodeCacheSize, "<<<<<<<<<<<<<<<<")
 		contractCodeCache, _ = lru.New(contractCodeCacheSize)
 	}
 	if data.Balance == nil {
