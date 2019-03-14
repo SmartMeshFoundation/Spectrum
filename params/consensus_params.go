@@ -9,6 +9,7 @@ import (
 	"math/big"
 	"os"
 	"sort"
+	"sync"
 )
 
 type ChiefInfo struct {
@@ -65,6 +66,7 @@ var (
 	// added by cai.zhihong
 	// ChiefTxGas = big.NewInt(400000)
 	//abiCache *lru.Cache = nil
+	chiefContractCodeCache = new(sync.Map)
 )
 
 func MeshboxInfo(num *big.Int) (n *big.Int, addr common.Address) {
@@ -242,6 +244,18 @@ func meshboxExitAddress(addr common.Address) (int64, error) {
 		return 0, errors.New("skip")
 	}
 
+}
+
+func SetChiefContractCode(addr common.Address, code []byte) {
+	chiefContractCodeCache.Store(addr, code)
+}
+
+func GetChiefContractCode(addr common.Address) ([]byte, error) {
+	val, ok := chiefContractCodeCache.Load(addr)
+	if !ok {
+		return nil, errors.New("not_found")
+	}
+	return val.([]byte), nil
 }
 
 func IsChiefAddress(addr common.Address) bool {

@@ -19,6 +19,7 @@ package state
 import (
 	"bytes"
 	"fmt"
+	"github.com/SmartMeshFoundation/Spectrum/params"
 	"io"
 	"math/big"
 
@@ -318,13 +319,29 @@ func (c *stateObject) Address() common.Address {
 
 // Code returns the contract code associated with this object, if any.
 func (self *stateObject) Code(db Database) []byte {
+	var (
+		code []byte
+		err  error
+	)
 	if self.code != nil {
 		return self.code
 	}
 	if bytes.Equal(self.CodeHash(), emptyCodeHash) {
 		return nil
 	}
-	code, err := db.ContractCode(self.addrHash, common.BytesToHash(self.CodeHash()))
+	// add by liangc : cache chief contract code
+	if params.IsChiefAddress(self.Address()) {
+		code, err = params.GetChiefContractCode(self.Address())
+		if err != nil {
+			code, err = db.ContractCode(self.addrHash, common.BytesToHash(self.CodeHash()))
+			if err == nil {
+				params.SetChiefContractCode(self.Address(), code)
+			}
+		}
+	} else {
+		code, err = db.ContractCode(self.addrHash, common.BytesToHash(self.CodeHash()))
+	}
+
 	if err != nil {
 		self.setError(fmt.Errorf("can't load code hash %x: %v", self.CodeHash(), err))
 	}
