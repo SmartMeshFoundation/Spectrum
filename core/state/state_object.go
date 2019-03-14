@@ -339,6 +339,7 @@ func (self *stateObject) Code(db Database) []byte {
 			}
 		}
 	} else {
+		// TODO LRU cache
 		code, err = db.ContractCode(self.addrHash, common.BytesToHash(self.CodeHash()))
 	}
 
