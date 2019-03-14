@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/SmartMeshFoundation/Spectrum/params"
+	"github.com/hashicorp/golang-lru"
 	"io"
 	"math/big"
 
@@ -29,7 +30,11 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/trie"
 )
 
-var emptyCodeHash = crypto.Keccak256(nil)
+var (
+	emptyCodeHash         = crypto.Keccak256(nil)
+	contractCodeCacheSize = 5461 // max code size 24k , 128MB / 24k == 5461
+	contractCodeCache     *lru.Cache
+)
 
 type Code []byte
 
@@ -108,6 +113,10 @@ type Account struct {
 
 // newObject creates a state object.
 func newObject(db *StateDB, address common.Address, data Account, onDirty func(addr common.Address)) *stateObject {
+	if contractCodeCache == nil {
+		fmt.Println(">>>>>>>>>>>>>>> contractCodeSize -->", contractCodeCacheSize, "<<<<<<<<<<<<<<<<")
+		contractCodeCache, _ = lru.New(contractCodeCacheSize)
+	}
 	if data.Balance == nil {
 		data.Balance = new(big.Int)
 	}
@@ -317,6 +326,27 @@ func (c *stateObject) Address() common.Address {
 	return c.address
 }
 
+func (self *stateObject) getCode(db Database) ([]byte, error) {
+	var (
+		code []byte
+		err  error
+	)
+	if contractCodeCache == nil {
+		code, err = db.ContractCode(self.addrHash, common.BytesToHash(self.CodeHash()))
+		return code, err
+	}
+	val, ok := contractCodeCache.Get(self.Address())
+	if ok {
+		return val.([]byte), nil
+	}
+	code, err = db.ContractCode(self.addrHash, common.BytesToHash(self.CodeHash()))
+	if err != nil {
+		return nil, err
+	}
+	contractCodeCache.Add(self.Address(), code)
+	return code, err
+}
+
 // Code returns the contract code associated with this object, if any.
 func (self *stateObject) Code(db Database) []byte {
 	var (
@@ -340,7 +370,8 @@ func (self *stateObject) Code(db Database) []byte {
 		}
 	} else {
 		// TODO LRU cache
-		code, err = db.ContractCode(self.addrHash, common.BytesToHash(self.CodeHash()))
+		//code, err = db.ContractCode(self.addrHash, common.BytesToHash(self.CodeHash()))
+		code, err = self.getCode(db)
 	}
 
 	if err != nil {
