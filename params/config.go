@@ -55,6 +55,7 @@ var (
 		NR001Block: big.NewInt(0), // new rules for chief.tx of gaspool
 		NR002Block: big.NewInt(588888),
 		NR003Block: big.NewInt(808888),
+		NR004Block: big.NewInt(2488888), // maybe begin at 2019-6-14
 		Tribe:      &TribeConfig{},
 	}
 
@@ -95,6 +96,7 @@ var (
 		NR001Block: big.NewInt(176222),
 		NR002Block: big.NewInt(525233),
 		NR003Block: big.NewInt(917013),
+		NR004Block: big.NewInt(2166666),
 		Tribe:      &TribeConfig{},
 	}
 
@@ -221,6 +223,9 @@ type ChainConfig struct {
 	NR002Block *big.Int `json:"nr002Block,omitempty"` // NR002 HF block
 	// add by liangc : 18-09-13 : incompatible HomesteadSigner begin at this number
 	NR003Block *big.Int `json:"nr003Block,omitempty"`
+	// add by liangc : 19-03-27 : for smc-0.6.0
+	// https://github.com/SmartMeshFoundation/Spectrum/wiki/%5BChinese%5D-v0.6.0-Standard
+	NR004Block *big.Int `json:"nr004Block,omitempty"`
 
 	MeshboxBlock   *big.Int       `json:"chief006Block,omitempty"`
 	MeshboxAddress common.Address `json:"chief006Address,omitempty"`

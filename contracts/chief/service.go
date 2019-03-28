@@ -3,7 +3,7 @@ package chief
 import (
 	"context"
 	"errors"
-	"github.com/SmartMeshFoundation/Spectrum/contracts/meshbox"
+	"github.com/SmartMeshFoundation/Spectrum/contracts/statute"
 	"math/big"
 	"time"
 
@@ -36,7 +36,10 @@ type Service interface {
 */
 
 // volunteer : peer.td - current.td < 200
-var min_td = big.NewInt(200)
+var (
+	min_td      = big.NewInt(200)
+	min_balance = new(big.Int).Mul(big.NewInt(params.Ether), big.NewInt(100000))
+)
 
 //implements node.Service
 type TribeService struct {
@@ -510,7 +513,7 @@ func (self *TribeService) fetchVolunteer(blockNumber *big.Int, vsn string) commo
 					return add
 				}
 			}
-		case "0.0.6":
+		case "0.0.6", "0.0.7":
 			vlist := make([]common.Address, 0, 0)
 			for _, pub := range vs {
 				add := crypto.PubkeyToAddress(*pub)
@@ -521,31 +524,39 @@ func (self *TribeService) fetchVolunteer(blockNumber *big.Int, vsn string) commo
 					vlist = append(vlist, add)
 				}
 			}
-			log.Debug("=> [0.0.6] TribeService.fetchVolunteer :", "vlist", len(vlist))
+			log.Debug("=> TribeService.fetchVolunteer :", "vsn", vsn, "vlist", len(vlist))
 			if len(vlist) > 0 {
 				ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 				defer cancel()
 				opts := new(bind.CallOptsWithNumber)
 				opts.Context = ctx
 				if rlist, err := self.tribeChief_0_0_6.FilterVolunteer(opts, vlist); err == nil {
-					log.Debug("=> [0.0.6] TribeService.fetchVolunteer :", "len", len(rlist), "rlist", rlist)
-
+					log.Debug("=> TribeService.fetchVolunteer :", "vsn", vsn, "len", len(rlist), "rlist", rlist)
+					sdb, _ := self.ethereum.BlockChain().State()
 					for i, r := range rlist {
 						if r.Int64() > 0 {
 							v := vlist[i]
-							if ms, err := meshbox.GetMeshboxService(); err == nil {
-								log.Info("<< fetchVolunteer.meshbox-rule >>")
+							if ms, err := statute.GetMeshboxService(); err == nil {
+								// first : meshbox.sol
+								log.Info("<< FilterVolunteer.meshbox-rule >>")
 								if w, err := ms.ExistAddress(v); err == nil && w != nil && w.Int64() > 0 {
 									return v
 								}
-								log.Info("<< fetchVolunteer.skip >> not_a_meshbox", "addr", v.Hex())
+								log.Info("<< FilterVolunteer.skip >> not_a_meshbox", "addr", v.Hex())
 							} else {
-								log.Info("<< fetchVolunteer.normal-rule >>", "err", err)
-								return v
+								// second : if vlist not in meshbox contract the balance great than 10w SMT is requirement
+								// TODO : check nodeid&account mapping contract and review balance
+								b := sdb.GetBalance(v)
+								if b.Cmp(min_balance) >= 0 {
+									log.Info("<< balance.normal-rule >>", "err", err)
+									return v
+								}
 							}
 						}
 					}
+
 				}
+
 			}
 		}
 	}

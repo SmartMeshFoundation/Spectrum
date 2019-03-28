@@ -25,8 +25,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/SmartMeshFoundation/Spectrum/common"
 	"crypto/elliptic"
+	"github.com/SmartMeshFoundation/Spectrum/common"
 )
 
 var testAddrHex = "970e8128ab834e8eac17ab8e3812f010678cf791"
@@ -57,15 +57,65 @@ func BenchmarkSha3(b *testing.B) {
 	}
 }
 
+/*
+私钥
+0bcd616498bf7aa08be3aacf5a8e9396dce2977c7e475269c47aa869c1743009
+时间戳
+1553679993（10进制）
+5c9b4679（16进制）
+签名结果
+R :0x51db394e9a47428394c987d9b5dd9fc0ee447a091d4ba36b67522a5f141dc065
+S:
+0x6c1b0b84ca63a348c14c8dbdd9e883dcc00b340f39a73c91f9bd16c839efea0e
+V:27
+
+
+r = signature[0:64]
+s = signature[64:128]
+v = signature[128:130] + 27
+*/
+func TestSign2(t *testing.T) {
+	key, _ := HexToECDSA("0bcd616498bf7aa08be3aacf5a8e9396dce2977c7e475269c47aa869c1743009")
+	addr := common.HexToAddress(testAddrHex)
+
+	msg := Keccak256(big.NewInt(1553679993).Bytes())
+	sig, err := Sign(msg, key)
+	t.Log("Sign =", sig)
+	t.Log("Sign.len =", len(sig))
+	t.Log("Sign.hex =", hex.EncodeToString(sig))
+	if err != nil {
+		t.Errorf("Sign error: %s", err)
+	}
+	recoveredPub, err := Ecrecover(msg, sig)
+	if err != nil {
+		t.Errorf("ECRecover error: %s", err)
+	}
+	pubKey := ToECDSAPub(recoveredPub)
+	recoveredAddr := PubkeyToAddress(*pubKey)
+	if addr != recoveredAddr {
+		t.Errorf("Address mismatch: want: %x have: %x", addr, recoveredAddr)
+	}
+
+	// should be equal to SigToPub
+	recoveredPub2, err := SigToPub(msg, sig)
+	if err != nil {
+		t.Errorf("ECRecover error: %s", err)
+	}
+	recoveredAddr2 := PubkeyToAddress(*recoveredPub2)
+	if addr != recoveredAddr2 {
+		t.Errorf("Address mismatch: want: %x have: %x", addr, recoveredAddr2)
+	}
+}
+
 func TestSign(t *testing.T) {
 	key, _ := HexToECDSA(testPrivHex)
 	addr := common.HexToAddress(testAddrHex)
 
 	msg := Keccak256([]byte("foobar"))
 	sig, err := Sign(msg, key)
-	t.Log("Sign =",sig)
-	t.Log("Sign.len =",len(sig))
-	t.Log("Sign.hex =",hex.EncodeToString(sig))
+	t.Log("Sign =", sig)
+	t.Log("Sign.len =", len(sig))
+	t.Log("Sign.hex =", hex.EncodeToString(sig))
 	if err != nil {
 		t.Errorf("Sign error: %s", err)
 	}
@@ -227,28 +277,28 @@ func TestPythonIntegration(t *testing.T) {
 func TestToECDSA(t *testing.T) {
 	target := "0adec74681c34173416ae564849e53e52034156e238084948b53cd1f7a753d6cc90763b5024f26998ee192d9662232d4c68abd588347626c2e8cd95e5c1ca38b"
 	nodekey := "b07f62f843adf1622811a79945944748fe5e59174d1ceffd14ca90a35c5813a7"
-	k,_ := hex.DecodeString(nodekey)
-	prv,_ := ToECDSA(k)
+	k, _ := hex.DecodeString(nodekey)
+	prv, _ := ToECDSA(k)
 	// TODO 将一个公钥变成一个 nodeid
 	pub := prv.PublicKey
 	// 变成一个 Address
 	address := PubkeyToAddress(pub)
-	t.Log("address =",address.Hex())
+	t.Log("address =", address.Hex())
 
-	pbytes := elliptic.Marshal(pub.Curve,pub.X,pub.Y)
+	pbytes := elliptic.Marshal(pub.Curve, pub.X, pub.Y)
 	nodeid := pbytes[1:]
 	t.Log("---------------")
 	t.Log(target)
 	t.Log(hex.EncodeToString(nodeid))
-	t.Logf("%x\n",nodeid)
-	t.Log(hex.EncodeToString(nodeid)==target)
+	t.Logf("%x\n", nodeid)
+	t.Log(hex.EncodeToString(nodeid) == target)
 }
 
 func TestFromECDSA(t *testing.T) {
-	prv,_ := GenerateKey()
+	prv, _ := GenerateKey()
 	buf := FromECDSA(prv)
 	s := hex.EncodeToString(buf)
-	t.Log("key",s)
+	t.Log("key", s)
 	t.Log(PubkeyToAddress(prv.PublicKey).Hex())
 	//0xd91c07c6be04111aecc721e57e11a8a0b1c73fc1
 }

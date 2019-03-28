@@ -1,11 +1,11 @@
-package meshbox
+package statute
 
 import (
 	"context"
 	"errors"
 	"github.com/SmartMeshFoundation/Spectrum/accounts/abi/bind"
 	"github.com/SmartMeshFoundation/Spectrum/common"
-	"github.com/SmartMeshFoundation/Spectrum/contracts/meshbox/lib"
+	"github.com/SmartMeshFoundation/Spectrum/contracts/statute/meshboxlib"
 	"github.com/SmartMeshFoundation/Spectrum/eth"
 	"github.com/SmartMeshFoundation/Spectrum/ethclient"
 	"github.com/SmartMeshFoundation/Spectrum/log"

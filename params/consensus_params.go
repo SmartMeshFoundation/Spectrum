@@ -127,6 +127,21 @@ func IsNR003Block(num *big.Int) bool {
 	return false
 }
 
+// add by liangc : 19-03-27 : for smc-0.6.0
+// https://github.com/SmartMeshFoundation/Spectrum/wiki/%5BChinese%5D-v0.6.0-Standard
+func IsNR004Block(num *big.Int) bool {
+	if IsTestnet() {
+		if TestnetChainConfig.NR004Block.Cmp(big.NewInt(0)) > 0 && TestnetChainConfig.NR004Block.Cmp(num) <= 0 {
+			return true
+		}
+	} else {
+		if MainnetChainConfig.NR004Block.Cmp(big.NewInt(0)) > 0 && MainnetChainConfig.NR004Block.Cmp(num) <= 0 {
+			return true
+		}
+	}
+	return false
+}
+
 // startNumber and address must from chain's config
 func chiefAddressList() (list ChiefInfoList) {
 	if chiefInfoList != nil {

@@ -20,7 +20,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"github.com/SmartMeshFoundation/Spectrum/contracts/meshbox"
+	"github.com/SmartMeshFoundation/Spectrum/contracts/statute"
 	"io"
 	"os"
 	"reflect"
@@ -165,7 +165,7 @@ func makeFullNode(ctx *cli.Context) *node.Node {
 
 	// add by liangc : add meshbox service
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-		return meshbox.NewMeshboxService(ctx)
+		return statute.NewMeshboxService(ctx)
 	}); err != nil {
 		utils.Fatalf("Meshbox Service Start Fail : %v", err)
 	}
@@ -191,20 +191,20 @@ func makeFullNode(ctx *cli.Context) *node.Node {
 		utils.RegisterEthStatsService(stack, cfg.Ethstats.URL)
 	}
 	/*
-	// Add the release oracle service so it boots along with node.
-	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-		config := release.Config{
-			Oracle: relOracle,
-			Major:  uint32(params.VersionMajor),
-			Minor:  uint32(params.VersionMinor),
-			Patch:  uint32(params.VersionPatch),
+		// Add the release oracle service so it boots along with node.
+		if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
+			config := release.Config{
+				Oracle: relOracle,
+				Major:  uint32(params.VersionMajor),
+				Minor:  uint32(params.VersionMinor),
+				Patch:  uint32(params.VersionPatch),
+			}
+			commit, _ := hex.DecodeString(gitCommit)
+			copy(config.Commit[:], commit)
+			return release.NewReleaseService(ctx, config)
+		}); err != nil {
+			utils.Fatalf("Failed to register the Geth release oracle service: %v", err)
 		}
-		commit, _ := hex.DecodeString(gitCommit)
-		copy(config.Commit[:], commit)
-		return release.NewReleaseService(ctx, config)
-	}); err != nil {
-		utils.Fatalf("Failed to register the Geth release oracle service: %v", err)
-	}
 	*/
 	return stack
 }
