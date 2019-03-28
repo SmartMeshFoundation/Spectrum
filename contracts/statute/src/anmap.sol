@@ -1,24 +1,18 @@
 pragma solidity ^0.5.3;
 
-import "../../owned.sol";
 
 // Address and nodeid mapping
 // used for reward txfee
-contract Anmap is Owned {
+contract Anmap {
 
     mapping(address => address) anmap;
     mapping(address => address) namap;
 
-    //TODO
-    function manager() public onlyOwner() {
-
+    function bindNode(bytes32 hash, uint8 v, bytes32 r, bytes32 s) public pure returns(address) {
+        return ecrecover(hash,v,r,s);
     }
 
-    function bind(uint256 nodeSignature) public onlyOwner() {
-
-    }
-
-    function unbind() public {
+    function unbindNode() public {
 
     }
 

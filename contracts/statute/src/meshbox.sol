@@ -1,6 +1,6 @@
 pragma solidity ^0.5.3;
 
-import "../../owned.sol";
+import "./owned.sol";
 
 contract MeshBox is Owned {
 

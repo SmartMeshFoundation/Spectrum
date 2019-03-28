@@ -20,6 +20,8 @@ import (
 	"bytes"
 	"crypto/ecdsa"
 	"encoding/hex"
+	"fmt"
+	"github.com/SmartMeshFoundation/Spectrum/crypto/sha3"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -73,13 +75,30 @@ V:27
 r = signature[0:64]
 s = signature[64:128]
 v = signature[128:130] + 27
+
+
+0x4a1401536849cac96b2316b635dbb7c52c1fe9aff1eb0e4c87ebbed1d67820bd
+0x4a1401536849cac96b2316b635dbb7c52c1fe9aff1eb0e4c87ebbed1d67820bd
 */
 func TestSign2(t *testing.T) {
+	//0x70aEfe8d97EF5984B91b5169418f3db283F65a29
 	key, _ := HexToECDSA("0bcd616498bf7aa08be3aacf5a8e9396dce2977c7e475269c47aa869c1743009")
 	addr := common.HexToAddress(testAddrHex)
+	//var msg = big.NewInt(1553679993).Bytes()
+	val := big.NewInt(1553679993).Bytes()
+	fmt.Println(hex.EncodeToString(val))
+	msg := Keccak256(val)
 
-	msg := Keccak256(big.NewInt(1553679993).Bytes())
+	h1 := sha3.Sum256(val)
+	h2 := sha3.Sum256(msg)
+
 	sig, err := Sign(msg, key)
+	pubAddr := PubkeyToAddress(key.PublicKey)
+	t.Log("addr =", pubAddr.Hex())
+	t.Log("msg =", hex.EncodeToString(msg))
+	t.Log("h1 =", h1[:], len(h1[:]))
+	t.Log("h2 =", h2[:], len(h2[:]))
+
 	t.Log("Sign =", sig)
 	t.Log("Sign.len =", len(sig))
 	t.Log("Sign.hex =", hex.EncodeToString(sig))
