@@ -20,8 +20,6 @@ import (
 	"bytes"
 	"crypto/ecdsa"
 	"encoding/hex"
-	"fmt"
-	"github.com/SmartMeshFoundation/Spectrum/crypto/sha3"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -60,70 +58,43 @@ func BenchmarkSha3(b *testing.B) {
 }
 
 /*
-私钥
-0bcd616498bf7aa08be3aacf5a8e9396dce2977c7e475269c47aa869c1743009
-时间戳
-1553679993（10进制）
-5c9b4679（16进制）
+私钥 : 0bcd616498bf7aa08be3aacf5a8e9396dce2977c7e475269c47aa869c1743009
+原文 : 0xCA35b7d915458EF540aDe6068dFe2F44E8fa733c
+
 签名结果
-R :0x51db394e9a47428394c987d9b5dd9fc0ee447a091d4ba36b67522a5f141dc065
-S:
-0x6c1b0b84ca63a348c14c8dbdd9e883dcc00b340f39a73c91f9bd16c839efea0e
-V:27
+R : 0xa006360ed68f21443221354903f49dce733afaaeac3b35d420bb2154746c9592
+S : 0x6f31ccfa10b449531fd0fff78db52cc02edaabd2c5e9a6abb8fc1cd6df26f442
+V : 28
 
-
-r = signature[0:64]
-s = signature[64:128]
-v = signature[128:130] + 27
-
-
-0x4a1401536849cac96b2316b635dbb7c52c1fe9aff1eb0e4c87ebbed1d67820bd
-0x4a1401536849cac96b2316b635dbb7c52c1fe9aff1eb0e4c87ebbed1d67820bd
+-------------------------
+r = sigHex[0:64]
+s = sigHex[64:128]
+v = sigHex[128:130] + 27
+-------------------------
 */
 func TestSign2(t *testing.T) {
-	//0x70aEfe8d97EF5984B91b5169418f3db283F65a29
 	key, _ := HexToECDSA("0bcd616498bf7aa08be3aacf5a8e9396dce2977c7e475269c47aa869c1743009")
-	addr := common.HexToAddress(testAddrHex)
-	//var msg = big.NewInt(1553679993).Bytes()
-	val := big.NewInt(1553679993).Bytes()
-	fmt.Println(hex.EncodeToString(val))
-	msg := Keccak256(val)
+	msg := Keccak256(common.HexToAddress("0xCA35b7d915458EF540aDe6068dFe2F44E8fa733c").Bytes())
 
-	h1 := sha3.Sum256(val)
-	h2 := sha3.Sum256(msg)
-
-	sig, err := Sign(msg, key)
+	sig, _ := Sign(msg, key)
+	sigHex := hex.EncodeToString(sig)
 	pubAddr := PubkeyToAddress(key.PublicKey)
 	t.Log("addr =", pubAddr.Hex())
 	t.Log("msg =", hex.EncodeToString(msg))
-	t.Log("h1 =", h1[:], len(h1[:]))
-	t.Log("h2 =", h2[:], len(h2[:]))
+	t.Log("Sign =", sigHex)
 
-	t.Log("Sign =", sig)
-	t.Log("Sign.len =", len(sig))
-	t.Log("Sign.hex =", hex.EncodeToString(sig))
-	if err != nil {
-		t.Errorf("Sign error: %s", err)
+	R := "0x" + sigHex[:64]
+	S := "0x" + sigHex[64:128]
+	V := 27
+	switch sigHex[128:] {
+	case "01":
+		V = 28
 	}
-	recoveredPub, err := Ecrecover(msg, sig)
-	if err != nil {
-		t.Errorf("ECRecover error: %s", err)
-	}
-	pubKey := ToECDSAPub(recoveredPub)
-	recoveredAddr := PubkeyToAddress(*pubKey)
-	if addr != recoveredAddr {
-		t.Errorf("Address mismatch: want: %x have: %x", addr, recoveredAddr)
-	}
+	t.Log("-----------------------------------------")
+	t.Log("R:", R)
+	t.Log("S:", S)
+	t.Log("V:", V)
 
-	// should be equal to SigToPub
-	recoveredPub2, err := SigToPub(msg, sig)
-	if err != nil {
-		t.Errorf("ECRecover error: %s", err)
-	}
-	recoveredAddr2 := PubkeyToAddress(*recoveredPub2)
-	if addr != recoveredAddr2 {
-		t.Errorf("Address mismatch: want: %x have: %x", addr, recoveredAddr2)
-	}
 }
 
 func TestSign(t *testing.T) {
