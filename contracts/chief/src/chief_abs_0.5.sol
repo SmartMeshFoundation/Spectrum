@@ -2,7 +2,7 @@ pragma solidity ^0.5.3;
 
 contract Chief {
 
-    function update(address volunteer) public allow(msg.sender);
+    function update(address volunteer) public;
 
     function version() public view returns (string memory);
 
