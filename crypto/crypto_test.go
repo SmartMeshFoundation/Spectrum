@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"crypto/ecdsa"
 	"encoding/hex"
+	"fmt"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -82,7 +83,16 @@ func TestSign2(t *testing.T) {
 	t.Log("addr =", pubAddr.Hex())
 	t.Log("msg =", hex.EncodeToString(msg))
 	t.Log("Sign =", sigHex)
+	r, _ := hex.DecodeString(sigHex[:64])
+	buff := []byte(r)
+	fmt.Println("llllll=", len(buff), len(sig))
+	fmt.Println(r)
 
+	var r32 [32]byte
+	copy(r32[:], r)
+	fmt.Println(len(r32), "r32=", r32)
+
+	fmt.Println(sig[:32])
 	R := "0x" + sigHex[:64]
 	S := "0x" + sigHex[64:128]
 	V := 27

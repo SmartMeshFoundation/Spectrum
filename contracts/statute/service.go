@@ -2,10 +2,14 @@ package statute
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
+	"github.com/SmartMeshFoundation/Spectrum/accounts"
 	"github.com/SmartMeshFoundation/Spectrum/accounts/abi/bind"
 	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/contracts/statute/anmaplib"
 	"github.com/SmartMeshFoundation/Spectrum/contracts/statute/meshboxlib"
+	"github.com/SmartMeshFoundation/Spectrum/core/types"
 	"github.com/SmartMeshFoundation/Spectrum/eth"
 	"github.com/SmartMeshFoundation/Spectrum/ethclient"
 	"github.com/SmartMeshFoundation/Spectrum/log"
@@ -17,7 +21,19 @@ import (
 	"time"
 )
 
-type MeshboxService struct {
+type AnmapService interface {
+	BindInfo(addr common.Address, blockNumber *big.Int, blockHash *common.Hash) (from, nodeid common.Address, err error)
+	Bind(from, nodeAddr common.Address, sigHex string) (common.Hash, error)
+	Unbind(from, nodeAddr common.Address, sigHex string) (common.Hash, error)
+}
+
+type MeshboxService interface {
+	ExistAddress(addr common.Address) (*big.Int, error)
+}
+
+type StatuteService struct {
+	accman   *accounts.Manager
+	anmap    *anmaplib.Anmap
 	meshbox  *meshboxlib.MeshBox
 	ipcpath  string
 	server   *p2p.Server // peers and nodekey ...
@@ -26,24 +42,25 @@ type MeshboxService struct {
 	ethereum *eth.Ethereum
 }
 
-var meshboxService *MeshboxService
+var statuteService *StatuteService
 
-func NewMeshboxService(ctx *node.ServiceContext) (node.Service, error) {
+func NewStatuteService(ctx *node.ServiceContext) (node.Service, error) {
 	var ethereum *eth.Ethereum
 	ctx.Service(&ethereum)
 	ipcpath := params.GetIPCPath()
-	meshboxService = &MeshboxService{
+	statuteService = &StatuteService{
+		accman:   ctx.AccountManager,
 		quit:     make(chan int),
 		ipcpath:  ipcpath,
 		ethereum: ethereum,
 	}
-	go meshboxService.loop()
-	return meshboxService, nil
+	go statuteService.loop()
+	return statuteService, nil
 }
 
-func (self *MeshboxService) Protocols() []p2p.Protocol { return nil }
-func (self *MeshboxService) APIs() []rpc.API           { return nil }
-func (self *MeshboxService) Start(server *p2p.Server) error {
+func (self *StatuteService) Protocols() []p2p.Protocol { return nil }
+func (self *StatuteService) APIs() []rpc.API           { return nil }
+func (self *StatuteService) Start(server *p2p.Server) error {
 	go func() {
 		for {
 			var (
@@ -56,15 +73,39 @@ func (self *MeshboxService) Start(server *p2p.Server) error {
 				if err != nil {
 					panic(err)
 				}
-				meshboxService.meshbox = contract
-				close(params.InitMeshboxService)
-				log.Info("<<MeshboxService.Start>> success ", "cn", cn.Int64(), "tn", mn.Int64())
+				statuteService.meshbox = contract
+				close(params.InitMeshbox)
+				log.Info("<<Meshbox.Start>> success ", "cn", cn.Int64(), "tn", mn.Int64())
 				return
 			} else if cn.Cmp(mn) >= 0 {
-				log.Info("<<MeshboxService.Start>> cancel ", "cn", cn.Int64(), "tn", mn.Int64())
+				log.Info("<<Meshbox.Start>> cancel ", "cn", cn.Int64(), "tn", mn.Int64())
 				return
 			}
-			log.Info("<<MeshboxService.Start>> waiting... ", "cn", cn.Int64(), "tn", mn.Int64())
+			log.Info("<<Meshbox.Start>> waiting... ", "cn", cn.Int64(), "tn", mn.Int64())
+			<-time.After(14 * time.Second)
+		}
+	}()
+	go func() {
+		for {
+			var (
+				be = eth.NewContractBackend(self.ethereum.ApiBackend)
+				cn = self.ethereum.BlockChain().CurrentBlock().Number()
+			)
+			mn, maddr := params.AnmapInfo(cn)
+			if maddr != common.HexToAddress("") {
+				contract, err := anmaplib.NewAnmap(maddr, be)
+				if err != nil {
+					panic(err)
+				}
+				statuteService.anmap = contract
+				close(params.InitAnmap)
+				log.Info("<<Anmap.Start>> success ", "cn", cn.Int64(), "tn", mn.Int64())
+				return
+			} else if cn.Cmp(mn) >= 0 {
+				log.Info("<<Anmap.Start>> cancel ", "cn", cn.Int64(), "tn", mn.Int64())
+				return
+			}
+			log.Info("<<Anmap.Start>> waiting... ", "cn", cn.Int64(), "tn", mn.Int64())
 			<-time.After(14 * time.Second)
 		}
 	}()
@@ -72,7 +113,7 @@ func (self *MeshboxService) Start(server *p2p.Server) error {
 	return nil
 }
 
-func (self *MeshboxService) Stop() error {
+func (self *StatuteService) Stop() error {
 	close(self.quit)
 	return nil
 }
@@ -81,34 +122,189 @@ func (self *MeshboxService) Stop() error {
 // biz functions
 // ===============================================================================
 
-func GetMeshboxService() (*MeshboxService, error) {
-	log.Debug("<<meshbox.service.GetMeshboxService>>")
+func GetAnmapService() (AnmapService, error) {
+	log.Debug("<<GetAnmapService>>")
 	select {
-	case <-params.InitMeshboxService:
-		return meshboxService, nil
+	case <-params.InitMeshbox:
+		return statuteService, nil
 	default:
-		return nil, errors.New("wait init")
+		return nil, errors.New("anmap wait init")
 	}
 }
 
-func (self *MeshboxService) ExistAddress(addr common.Address) (*big.Int, error) {
-	log.Debug("<<meshbox.service.ExistAddress>>")
+func GetMeshboxService() (MeshboxService, error) {
+	log.Debug("<<GetMeshboxService>>")
 	select {
-	case <-params.InitMeshboxService:
+	case <-params.InitMeshbox:
+		return statuteService, nil
+	default:
+		return nil, errors.New("meshbox wait init")
+	}
+}
+
+func sigSplit(sigHex string) (R, S [32]byte, V uint8) {
+	bR, _ := hex.DecodeString(sigHex[:64])
+	bS, _ := hex.DecodeString(sigHex[64:128])
+	copy(R[:], bR)
+	copy(S[:], bS)
+	V = 27
+	switch sigHex[128:] {
+	case "01":
+		V = 28
+	}
+	return
+}
+
+func (self *StatuteService) BindInfo(addr common.Address, blockNumber *big.Int, blockHash *common.Hash) (from, nodeid common.Address, err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+	defer cancel()
+	opts := new(bind.CallOptsWithNumber)
+	opts.Context = ctx
+	opts.Hash = blockHash
+
+	vo, err := self.anmap.BindInfo(opts, addr)
+	from = vo.From
+	nodeid = vo.Nodeid
+	return
+}
+
+func (self *StatuteService) Bind(from, nodeAddr common.Address, sigHex string) (common.Hash, error) {
+	a := accounts.Account{Address: from}
+	w, _ := self.accman.Find(a)
+	opts := &bind.TransactOpts{
+		From: from,
+		Signer: func(signer types.Signer, address common.Address, tx *types.Transaction) (*types.Transaction, error) {
+			return w.SignTx(a, tx, params.ChainID())
+		},
+	}
+	r, s, v := sigSplit(sigHex)
+	tx, err := self.anmap.Bind(opts, nodeAddr, v, r, s)
+	log.Info("<<StatuteService.Bind>>", "err", err, "tx", tx)
+	if err != nil {
+		return common.HexToHash("0x"), err
+	}
+	return tx.Hash(), nil
+}
+
+func (self *StatuteService) Unbind(from, nodeAddr common.Address, sigHex string) (common.Hash, error) {
+	a := accounts.Account{Address: from}
+	w, _ := self.accman.Find(a)
+	opts := &bind.TransactOpts{
+		From: from,
+		Signer: func(signer types.Signer, address common.Address, tx *types.Transaction) (*types.Transaction, error) {
+			return w.SignTx(a, tx, params.ChainID())
+		},
+	}
+	r, s, v := sigSplit(sigHex)
+	tx, err := self.anmap.UnbindBySig(opts, nodeAddr, v, r, s)
+	log.Info("<<StatuteService.Unbind>>", "err", err, "tx", tx)
+	if err != nil {
+		return common.HexToHash("0x"), err
+	}
+	return tx.Hash(), nil
+}
+
+/*
+args:
+	addr
+	hash : blockHash
+*/
+func (self *StatuteService) bindInfo(mbox params.Mbox) {
+	success := params.MBoxSuccess{Success: true}
+	var (
+		addr        common.Address
+		blockHash   *common.Hash
+		blockNumber *big.Int
+	)
+	addr = mbox.Params["addr"].(common.Address)
+	// hash and number can not nil
+	if h, ok := mbox.Params["hash"]; ok {
+		bh := h.(common.Hash)
+		blockHash = &bh
+	}
+	if n, ok := mbox.Params["number"]; ok {
+		blockNumber = n.(*big.Int)
+	}
+	f, n, err := self.BindInfo(addr, blockNumber, blockHash)
+	if err != nil {
+		success.Success = false
+		success.Entity = err
+	} else {
+		success.Entity = map[string]interface{}{"from": f, "nodeid": n}
+	}
+	mbox.Rtn <- success
+}
+
+/*
+args:
+	from
+	nodeid
+	sigHex
+*/
+func (self *StatuteService) bind(mbox params.Mbox) {
+	success := params.MBoxSuccess{Success: true}
+	var (
+		from, nodeid common.Address
+		sigHex       string
+	)
+	from = mbox.Params["from"].(common.Address)
+	nodeid = mbox.Params["nodeid"].(common.Address)
+	sigHex = mbox.Params["sigHex"].(string)
+	log.Info("mbox.params", "from", from.Hex(), "nodeid", nodeid, "sigHex", sigHex)
+	txHash, err := self.Bind(from, nodeid, sigHex)
+	if err != nil {
+		success.Success = false
+		success.Entity = err
+	} else {
+		success.Entity = txHash.Hex()
+	}
+	mbox.Rtn <- success
+}
+
+/*
+args:
+	from
+	nodeid
+	sigHex
+*/
+func (self *StatuteService) unbind(mbox params.Mbox) {
+	success := params.MBoxSuccess{Success: true}
+	var (
+		from, nodeid common.Address
+		sigHex       string
+	)
+	from = mbox.Params["from"].(common.Address)
+	nodeid = mbox.Params["nodeid"].(common.Address)
+	sigHex = mbox.Params["sigHex"].(string)
+	log.Info("mbox.params", "from", from.Hex(), "nodeid", nodeid, "sigHex", sigHex)
+	txHash, err := self.Unbind(from, nodeid, sigHex)
+	if err != nil {
+		success.Success = false
+		success.Entity = err
+	} else {
+		success.Entity = txHash.Hex()
+	}
+	mbox.Rtn <- success
+}
+
+func (self *StatuteService) ExistAddress(addr common.Address) (*big.Int, error) {
+	log.Debug("<<StatuteService.ExistAddress>>")
+	select {
+	case <-params.InitMeshbox:
 		var ctx = context.Background()
 		ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 		defer cancel()
 		opts := new(bind.CallOptsWithNumber)
 		opts.Context = ctx
 		i, err := self.meshbox.ExistAddress(opts, addr)
-		log.Debug("<<MeshboxService.ExistAddress>>", "r", i, "err", err)
+		log.Debug("<<StatuteService.ExistAddress>>", "r", i, "err", err)
 		return i, err
 	default:
 		return nil, errors.New("wait init")
 	}
 }
 
-func (self *MeshboxService) existAddress(mbox params.Mbox) {
+func (self *StatuteService) existAddress(mbox params.Mbox) {
 	success := params.MBoxSuccess{Success: true}
 	var addr common.Address
 	addr = mbox.Params["addr"].(common.Address)
@@ -123,13 +319,19 @@ func (self *MeshboxService) existAddress(mbox params.Mbox) {
 	mbox.Rtn <- success
 }
 
-func (self *MeshboxService) loop() {
+func (self *StatuteService) loop() {
 	for {
 		select {
 		case <-self.quit:
 			break
-		case mbox := <-params.MeshboxService:
+		case mbox := <-params.StatuteService:
 			switch mbox.Method {
+			case "bindInfo":
+				self.bindInfo(mbox)
+			case "bind":
+				self.bind(mbox)
+			case "unbind":
+				self.unbind(mbox)
 			case "existAddress":
 				self.existAddress(mbox)
 			}

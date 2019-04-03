@@ -21,7 +21,7 @@ var Modules = map[string]string{
 	"admin":      Admin_JS,
 	"chequebook": Chequebook_JS,
 	"clique":     Clique_JS,
-	"tribe":     Tribe_JS,
+	"tribe":      Tribe_JS,
 	"debug":      Debug_JS,
 	"eth":        Eth_JS,
 	"miner":      Miner_JS,
@@ -149,6 +149,24 @@ web3._extend({
 			call: 'tribe_getMiner',
 			params: 1,
 			inputFormatter: [null]
+		}),
+		new web3._extend.Method({
+			name: 'bindInfo',
+			call: 'tribe_bindInfo',
+			params: 1,
+			inputFormatter: [null]
+		}),
+		new web3._extend.Method({
+			name: 'bind',
+			call: 'tribe_bind',
+			params: 2,
+			inputFormatter: [null,null]
+		}),
+		new web3._extend.Method({
+			name: 'unbind',
+			call: 'tribe_unbind',
+			params: 2,
+			inputFormatter: [null,null]
 		}),
 	],
 });

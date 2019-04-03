@@ -184,7 +184,7 @@ func (st *StateTransition) buyGas() error {
 	if isok {
 		return errInsufficientBalanceForGas
 	}
-	if params.IsNR001Block(st.blockNumber) {
+	if params.IsSIP001Block(st.blockNumber) {
 		if err := st.gp.SubGas(mgas); err != nil {
 			return err
 		}
@@ -280,15 +280,15 @@ func (st *StateTransition) TransitionDb() (ret []byte, requiredGas, usedGas *big
 	_m := st.evm.Coinbase
 	_r := new(big.Int).Mul(st.gasUsed(), st.gasPrice)
 	/*
-	fmt.Println()
-	fmt.Println("--before-->",_m.Hex(),st.state.GetBalance(_m))
+		fmt.Println()
+		fmt.Println("--before-->",_m.Hex(),st.state.GetBalance(_m))
 	*/
-	st.state.AddBalance(_m,_r)
+	st.state.AddBalance(_m, _r)
 	/*
-	fmt.Println(msg.From().Hex(),"--RRRRRR--> r=",_r.String()," ; g=",msg.Gas().String()," ; p=",msg.GasPrice().String())
-	fmt.Println(st.gas,"----",st.initialGas.String())
-	fmt.Println("--after-->",_m.Hex(),st.state.GetBalance(_m))
-	fmt.Println()
+		fmt.Println(msg.From().Hex(),"--RRRRRR--> r=",_r.String()," ; g=",msg.Gas().String()," ; p=",msg.GasPrice().String())
+		fmt.Println(st.gas,"----",st.initialGas.String())
+		fmt.Println("--after-->",_m.Hex(),st.state.GetBalance(_m))
+		fmt.Println()
 	*/
 	return ret, requiredGas, st.gasUsed(), vmerr != nil, err
 }
@@ -315,15 +315,15 @@ func (st *StateTransition) refundGas() {
 //TODO add by liangc : call contract gasused error
 func (st *StateTransition) gasUsed() *big.Int {
 	/*
-	if params.IsNR001Block(st.blockNumber) {
-		// add by liangc if chief tx ,skip sub gas
-		g := new(big.Int).SetUint64(st.gas)
-		if st.msg.To() != nil && params.IsChiefAddress(*st.msg.To()) {
-			log.Debug("skip_sub_gas_on_chiefTx", "to", st.msg.To())
-			g = big.NewInt(0)
+		if params.IsSIP001Block(st.blockNumber) {
+			// add by liangc if chief tx ,skip sub gas
+			g := new(big.Int).SetUint64(st.gas)
+			if st.msg.To() != nil && params.IsChiefAddress(*st.msg.To()) {
+				log.Debug("skip_sub_gas_on_chiefTx", "to", st.msg.To())
+				g = big.NewInt(0)
+			}
+			return new(big.Int).Sub(st.initialGas, g)
 		}
-		return new(big.Int).Sub(st.initialGas, g)
-	}
 	*/
 	return new(big.Int).Sub(st.initialGas, new(big.Int).SetUint64(st.gas))
 }

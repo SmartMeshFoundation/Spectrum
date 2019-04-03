@@ -4,28 +4,27 @@
 package anmaplib
 
 import (
-	"math/big"
 	"strings"
 
-	"github.com/cc14514/go-ausd/accounts/abi"
-	"github.com/cc14514/go-ausd/accounts/abi/bind"
-	"github.com/cc14514/go-ausd/common"
-	"github.com/cc14514/go-ausd/core/types"
+	"github.com/SmartMeshFoundation/Spectrum/accounts/abi"
+	"github.com/SmartMeshFoundation/Spectrum/accounts/abi/bind"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/core/types"
 )
 
 // AnmapABI is the input ABI used to generate the binding from.
-const AnmapABI = "[{\"constant\":false,\"inputs\":[{\"name\":\"_minBalance\",\"type\":\"uint256\"}],\"name\":\"resetMinBalance\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"acceptOwnership\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"addr\",\"type\":\"address\"}],\"name\":\"fetchInAnmap\",\"outputs\":[{\"name\":\"n\",\"type\":\"address\"},{\"name\":\"b\",\"type\":\"uint256\"},{\"name\":\"m\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"nodePub\",\"type\":\"address\"},{\"name\":\"v\",\"type\":\"uint8\"},{\"name\":\"r\",\"type\":\"bytes32\"},{\"name\":\"s\",\"type\":\"bytes32\"}],\"name\":\"unbindBySig\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_newOwner\",\"type\":\"address\"}],\"name\":\"changeOwner\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"node\",\"type\":\"address\"}],\"name\":\"fetchInNamap\",\"outputs\":[{\"name\":\"a\",\"type\":\"address\"},{\"name\":\"b\",\"type\":\"uint256\"},{\"name\":\"m\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"unbind\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getMinBalance\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"nodePub\",\"type\":\"address\"},{\"name\":\"v\",\"type\":\"uint8\"},{\"name\":\"r\",\"type\":\"bytes32\"},{\"name\":\"s\",\"type\":\"bytes32\"}],\"name\":\"bind\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"name\":\"_minBalance\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"_prevOwner\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"_newOwner\",\"type\":\"address\"}],\"name\":\"OwnerUpdate\",\"type\":\"event\"}]"
+const AnmapABI = "[{\"constant\":false,\"inputs\":[],\"name\":\"acceptOwnership\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"addr\",\"type\":\"address\"}],\"name\":\"bindInfo\",\"outputs\":[{\"name\":\"from\",\"type\":\"address\"},{\"name\":\"nodeid\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"nodePub\",\"type\":\"address\"},{\"name\":\"v\",\"type\":\"uint8\"},{\"name\":\"r\",\"type\":\"bytes32\"},{\"name\":\"s\",\"type\":\"bytes32\"}],\"name\":\"unbindBySig\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_newOwner\",\"type\":\"address\"}],\"name\":\"changeOwner\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"unbind\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"nodePub\",\"type\":\"address\"},{\"name\":\"v\",\"type\":\"uint8\"},{\"name\":\"r\",\"type\":\"bytes32\"},{\"name\":\"s\",\"type\":\"bytes32\"}],\"name\":\"bind\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"_prevOwner\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"_newOwner\",\"type\":\"address\"}],\"name\":\"OwnerUpdate\",\"type\":\"event\"}]"
 
 // AnmapBin is the compiled bytecode used for deploying new contracts.
-const AnmapBin = `0x608060405260018054600160a060020a0319169055670de0b6b3a764000060025560326003556802b5e3af16b188000060045534801561003e57600080fd5b506040516020806108018339810180604052602081101561005e57600080fd5b505160008054600160a060020a031916331790556100848164010000000061008a810204565b506100b7565b600054600160a060020a031633146100a157600080fd5b6003548111156100b45760025481026004555b50565b61073b806100c66000396000f3fe608060405234801561001057600080fd5b50600436106100bb576000357c010000000000000000000000000000000000000000000000000000000090048063a6f9dae111610083578063a6f9dae114610194578063afc75e5f146101ba578063b6b25742146101e0578063e4fae4e4146101e8578063f65f2eec14610202576100bb565b8063388f5e46146100c057806379ba5097146100df5780637a23e2b6146100e75780638da5cb5b1461013557806399ab9fca14610159575b600080fd5b6100dd600480360360208110156100d657600080fd5b503561023d565b005b6100dd61026a565b61010d600480360360208110156100fd57600080fd5b5035600160a060020a0316610301565b60408051600160a060020a039094168452602084019290925282820152519081900360600190f35b61013d61035b565b60408051600160a060020a039092168252519081900360200190f35b6100dd6004803603608081101561016f57600080fd5b50600160a060020a038135169060ff602082013516906040810135906060013561036a565b6100dd600480360360208110156101aa57600080fd5b5035600160a060020a0316610499565b61010d600480360360208110156101d057600080fd5b5035600160a060020a03166104fa565b6100dd610521565b6101f0610594565b60408051918252519081900360200190f35b6100dd6004803603608081101561021857600080fd5b50600160a060020a038135169060ff60208201351690604081013590606001356105ab565b600054600160a060020a0316331461025457600080fd5b6003548111156102675760025481026004555b50565b600154600160a060020a0316331461028157600080fd5b60005460015460408051600160a060020a03938416815292909116602083015280517f343765429aea5a34b3ff6a3785a98a5abb2597aca87bfbb58632c173d585373a9281900390910190a1600180546000805473ffffffffffffffffffffffffffffffffffffffff19908116600160a060020a03841617909155169055565b600160a060020a038082166000908152600560205260408120549091169080610328610594565b9050600160a060020a038316156103545760025483600160a060020a03163181151561035057fe5b0491505b9193909250565b600054600160a060020a031681565b604080516c01000000000000000000000000330260208083019190915282518083036014018152603483018085528151918301919091206000918290526054840180865281905260ff881660748501526094840187905260b484018690529351909260019260d4808301939192601f198301929081900390910190855afa1580156103f9573d6000803e3d6000fd5b5050604051601f190151915050600160a060020a038681169082161461041e57600080fd5b600160a060020a038087166000908152600660205260409020541680151561044557600080fd5b600160a060020a039081166000908152600560209081526040808320805473ffffffffffffffffffffffffffffffffffffffff19908116909155999093168252600690522080549096169095555050505050565b600054600160a060020a031633146104b057600080fd5b600054600160a060020a03828116911614156104cb57600080fd5b6001805473ffffffffffffffffffffffffffffffffffffffff1916600160a060020a0392909216919091179055565b600160a060020a038082166000908152600660205260408120549091169080610328610594565b33600090815260056020526040902054600160a060020a031680151561054657600080fd5b336000908152600560209081526040808320805473ffffffffffffffffffffffffffffffffffffffff19908116909155600160a060020a039490941683526006909152902080549091169055565b60006002546004548115156105a557fe5b04905090565b604080516c01000000000000000000000000330260208083019190915282518083036014018152603483018085528151918301919091206000918290526054840180865281905260ff881660748501526094840187905260b484018690529351909260019260d4808301939192601f198301929081900390910190855afa15801561063a573d6000803e3d6000fd5b5050604051601f19015160045490925033311015905061065957600080fd5b600160a060020a038681169082161461067157600080fd5b33600090815260056020526040902054600160a060020a03161561069457600080fd5b600160a060020a0386811660009081526006602052604090205416156106b957600080fd5b50503360008181526005602090815260408083208054600160a060020a0390991673ffffffffffffffffffffffffffffffffffffffff19998a16811790915583526006909152902080549095161790935550505056fea165627a7a72305820f5a3ad9b8990a3c1c31310fe2c928c7c75f013b792718ceaf3a8968050354d3d0029`
+const AnmapBin = `0x608060405260018054600160a060020a0319908116909155600080549091163317905561068e806100316000396000f3fe608060405234801561001057600080fd5b506004361061009a576000357c01000000000000000000000000000000000000000000000000000000009004806399ab9fca1161007857806399ab9fca14610119578063a6f9dae114610154578063b6b257421461017a578063f65f2eec146101825761009a565b806379ba50971461009f5780638d04cd30146100a95780638da5cb5b146100f5575b600080fd5b6100a76101bd565b005b6100cf600480360360208110156100bf57600080fd5b5035600160a060020a0316610254565b60408051600160a060020a03938416815291909216602082015281519081900390910190f35b6100fd6102fe565b60408051600160a060020a039092168252519081900360200190f35b6100a76004803603608081101561012f57600080fd5b50600160a060020a038135169060ff602082013516906040810135906060013561030d565b6100a76004803603602081101561016a57600080fd5b5035600160a060020a031661043c565b6100a761049d565b6100a76004803603608081101561019857600080fd5b50600160a060020a038135169060ff6020820135169060408101359060600135610510565b600154600160a060020a031633146101d457600080fd5b60005460015460408051600160a060020a03938416815292909116602083015280517f343765429aea5a34b3ff6a3785a98a5abb2597aca87bfbb58632c173d585373a9281900390910190a1600180546000805473ffffffffffffffffffffffffffffffffffffffff19908116600160a060020a03841617909155169055565b600160a060020a038082166000908152600360209081526040808320546002909252909120549082169116811580156102955750600160a060020a03811615155b156102b857600160a060020a038082166000908152600360205260409020541691505b600160a060020a038216158015906102d75750600160a060020a038116155b156102f95750600160a060020a03808216600090815260026020526040902054165b915091565b600054600160a060020a031681565b604080516c01000000000000000000000000330260208083019190915282518083036014018152603483018085528151918301919091206000918290526054840180865281905260ff881660748501526094840187905260b484018690529351909260019260d4808301939192601f198301929081900390910190855afa15801561039c573d6000803e3d6000fd5b5050604051601f190151915050600160a060020a03868116908216146103c157600080fd5b600160a060020a03808716600090815260036020526040902054168015156103e857600080fd5b600160a060020a039081166000908152600260209081526040808320805473ffffffffffffffffffffffffffffffffffffffff19908116909155999093168252600390522080549096169095555050505050565b600054600160a060020a0316331461045357600080fd5b600054600160a060020a038281169116141561046e57600080fd5b6001805473ffffffffffffffffffffffffffffffffffffffff1916600160a060020a0392909216919091179055565b33600090815260026020526040902054600160a060020a03168015156104c257600080fd5b336000908152600260209081526040808320805473ffffffffffffffffffffffffffffffffffffffff19908116909155600160a060020a039490941683526003909152902080549091169055565b604080516c01000000000000000000000000330260208083019190915282518083036014018152603483018085528151918301919091206000918290526054840180865281905260ff881660748501526094840187905260b484018690529351909260019260d4808301939192601f198301929081900390910190855afa15801561059f573d6000803e3d6000fd5b5050604051601f190151915050600160a060020a03868116908216146105c457600080fd5b33600090815260026020526040902054600160a060020a0316156105e757600080fd5b600160a060020a03868116600090815260036020526040902054161561060c57600080fd5b50503360008181526002602090815260408083208054600160a060020a0390991673ffffffffffffffffffffffffffffffffffffffff19998a16811790915583526003909152902080549095161790935550505056fea165627a7a72305820ca8a001d7c8bddce0a40d1a41a72918b4deda646d7c0f1015be4d56f64fdf9e00029`
 
 // DeployAnmap deploys a new Ethereum contract, binding an instance of Anmap to it.
-func DeployAnmap(auth *bind.TransactOpts, backend bind.ContractBackend, _minBalance *big.Int) (common.Address, *types.Transaction, *Anmap, error) {
+func DeployAnmap(auth *bind.TransactOpts, backend bind.ContractBackend) (common.Address, *types.Transaction, *Anmap, error) {
 	parsed, err := abi.JSON(strings.NewReader(AnmapABI))
 	if err != nil {
 		return common.Address{}, nil, nil, err
 	}
-	address, tx, contract, err := bind.DeployContract(auth, parsed, common.FromHex(AnmapBin), backend, _minBalance)
+	address, tx, contract, err := bind.DeployContract(auth, parsed, common.FromHex(AnmapBin), backend)
 	if err != nil {
 		return common.Address{}, nil, nil, err
 	}
@@ -159,110 +158,40 @@ func (_Anmap *AnmapTransactorRaw) Transact(opts *bind.TransactOpts, method strin
 	return _Anmap.Contract.contract.Transact(opts, method, params...)
 }
 
-// FetchInAnmap is a free data retrieval call binding the contract method 0x7a23e2b6.
+// BindInfo is a free data retrieval call binding the contract method 0x8d04cd30.
 //
-// Solidity: function fetchInAnmap(addr address) constant returns(n address, b uint256, m uint256)
-func (_Anmap *AnmapCaller) FetchInAnmap(opts *bind.CallOptsWithNumber, addr common.Address) (struct {
-	N common.Address
-	B *big.Int
-	M *big.Int
+// Solidity: function bindInfo(addr address) constant returns(from address, nodeid address)
+func (_Anmap *AnmapCaller) BindInfo(opts *bind.CallOptsWithNumber, addr common.Address) (struct {
+	From   common.Address
+	Nodeid common.Address
 }, error) {
 	ret := new(struct {
-		N common.Address
-		B *big.Int
-		M *big.Int
+		From   common.Address
+		Nodeid common.Address
 	})
 	out := ret
-	err := _Anmap.contract.CallWithNumber(opts, out, "fetchInAnmap", addr)
+	err := _Anmap.contract.CallWithNumber(opts, out, "bindInfo", addr)
 	return *ret, err
 }
 
-// FetchInAnmap is a free data retrieval call binding the contract method 0x7a23e2b6.
+// BindInfo is a free data retrieval call binding the contract method 0x8d04cd30.
 //
-// Solidity: function fetchInAnmap(addr address) constant returns(n address, b uint256, m uint256)
-func (_Anmap *AnmapSession) FetchInAnmap(addr common.Address) (struct {
-	N common.Address
-	B *big.Int
-	M *big.Int
+// Solidity: function bindInfo(addr address) constant returns(from address, nodeid address)
+func (_Anmap *AnmapSession) BindInfo(addr common.Address) (struct {
+	From   common.Address
+	Nodeid common.Address
 }, error) {
-	return _Anmap.Contract.FetchInAnmap(&_Anmap.CallOpts, addr)
+	return _Anmap.Contract.BindInfo(&_Anmap.CallOpts, addr)
 }
 
-// FetchInAnmap is a free data retrieval call binding the contract method 0x7a23e2b6.
+// BindInfo is a free data retrieval call binding the contract method 0x8d04cd30.
 //
-// Solidity: function fetchInAnmap(addr address) constant returns(n address, b uint256, m uint256)
-func (_Anmap *AnmapCallerSession) FetchInAnmap(addr common.Address) (struct {
-	N common.Address
-	B *big.Int
-	M *big.Int
+// Solidity: function bindInfo(addr address) constant returns(from address, nodeid address)
+func (_Anmap *AnmapCallerSession) BindInfo(addr common.Address) (struct {
+	From   common.Address
+	Nodeid common.Address
 }, error) {
-	return _Anmap.Contract.FetchInAnmap(&_Anmap.CallOpts, addr)
-}
-
-// FetchInNamap is a free data retrieval call binding the contract method 0xafc75e5f.
-//
-// Solidity: function fetchInNamap(node address) constant returns(a address, b uint256, m uint256)
-func (_Anmap *AnmapCaller) FetchInNamap(opts *bind.CallOptsWithNumber, node common.Address) (struct {
-	A common.Address
-	B *big.Int
-	M *big.Int
-}, error) {
-	ret := new(struct {
-		A common.Address
-		B *big.Int
-		M *big.Int
-	})
-	out := ret
-	err := _Anmap.contract.CallWithNumber(opts, out, "fetchInNamap", node)
-	return *ret, err
-}
-
-// FetchInNamap is a free data retrieval call binding the contract method 0xafc75e5f.
-//
-// Solidity: function fetchInNamap(node address) constant returns(a address, b uint256, m uint256)
-func (_Anmap *AnmapSession) FetchInNamap(node common.Address) (struct {
-	A common.Address
-	B *big.Int
-	M *big.Int
-}, error) {
-	return _Anmap.Contract.FetchInNamap(&_Anmap.CallOpts, node)
-}
-
-// FetchInNamap is a free data retrieval call binding the contract method 0xafc75e5f.
-//
-// Solidity: function fetchInNamap(node address) constant returns(a address, b uint256, m uint256)
-func (_Anmap *AnmapCallerSession) FetchInNamap(node common.Address) (struct {
-	A common.Address
-	B *big.Int
-	M *big.Int
-}, error) {
-	return _Anmap.Contract.FetchInNamap(&_Anmap.CallOpts, node)
-}
-
-// GetMinBalance is a free data retrieval call binding the contract method 0xe4fae4e4.
-//
-// Solidity: function getMinBalance() constant returns(uint256)
-func (_Anmap *AnmapCaller) GetMinBalance(opts *bind.CallOptsWithNumber) (*big.Int, error) {
-	var (
-		ret0 = new(*big.Int)
-	)
-	out := ret0
-	err := _Anmap.contract.CallWithNumber(opts, out, "getMinBalance")
-	return *ret0, err
-}
-
-// GetMinBalance is a free data retrieval call binding the contract method 0xe4fae4e4.
-//
-// Solidity: function getMinBalance() constant returns(uint256)
-func (_Anmap *AnmapSession) GetMinBalance() (*big.Int, error) {
-	return _Anmap.Contract.GetMinBalance(&_Anmap.CallOpts)
-}
-
-// GetMinBalance is a free data retrieval call binding the contract method 0xe4fae4e4.
-//
-// Solidity: function getMinBalance() constant returns(uint256)
-func (_Anmap *AnmapCallerSession) GetMinBalance() (*big.Int, error) {
-	return _Anmap.Contract.GetMinBalance(&_Anmap.CallOpts)
+	return _Anmap.Contract.BindInfo(&_Anmap.CallOpts, addr)
 }
 
 // Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
@@ -352,27 +281,6 @@ func (_Anmap *AnmapSession) ChangeOwner(_newOwner common.Address) (*types.Transa
 // Solidity: function changeOwner(_newOwner address) returns()
 func (_Anmap *AnmapTransactorSession) ChangeOwner(_newOwner common.Address) (*types.Transaction, error) {
 	return _Anmap.Contract.ChangeOwner(&_Anmap.TransactOpts, _newOwner)
-}
-
-// ResetMinBalance is a paid mutator transaction binding the contract method 0x388f5e46.
-//
-// Solidity: function resetMinBalance(_minBalance uint256) returns()
-func (_Anmap *AnmapTransactor) ResetMinBalance(opts *bind.TransactOpts, _minBalance *big.Int) (*types.Transaction, error) {
-	return _Anmap.contract.Transact(opts, "resetMinBalance", _minBalance)
-}
-
-// ResetMinBalance is a paid mutator transaction binding the contract method 0x388f5e46.
-//
-// Solidity: function resetMinBalance(_minBalance uint256) returns()
-func (_Anmap *AnmapSession) ResetMinBalance(_minBalance *big.Int) (*types.Transaction, error) {
-	return _Anmap.Contract.ResetMinBalance(&_Anmap.TransactOpts, _minBalance)
-}
-
-// ResetMinBalance is a paid mutator transaction binding the contract method 0x388f5e46.
-//
-// Solidity: function resetMinBalance(_minBalance uint256) returns()
-func (_Anmap *AnmapTransactorSession) ResetMinBalance(_minBalance *big.Int) (*types.Transaction, error) {
-	return _Anmap.Contract.ResetMinBalance(&_Anmap.TransactOpts, _minBalance)
 }
 
 // Unbind is a paid mutator transaction binding the contract method 0xb6b25742.

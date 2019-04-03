@@ -55,11 +55,12 @@ const (
 var (
 	ChiefBaseBalance = new(big.Int).Mul(big.NewInt(1), big.NewInt(Finney))
 	MboxChan         = make(chan Mbox, 32)
-	MeshboxService   = make(chan Mbox, 384)
+	StatuteService   = make(chan Mbox, 384)
 	//close at tribe.init
 	TribeReadyForAcceptTxs = make(chan struct{})
 	InitTribe              = make(chan struct{})
-	InitMeshboxService     = make(chan struct{})
+	InitMeshbox            = make(chan struct{})
+	InitAnmap              = make(chan struct{})
 	//close at tribeService
 	InitTribeStatus               = make(chan struct{})
 	chiefInfoList   ChiefInfoList = nil
@@ -69,15 +70,39 @@ var (
 	chiefContractCodeCache = new(sync.Map)
 )
 
+func ChainID() (id *big.Int) {
+	if IsTestnet() {
+		id = TestnetChainConfig.ChainId
+	} else {
+		id = MainnetChainConfig.ChainId
+	}
+	return
+}
+
+func AnmapInfo(num *big.Int) (n *big.Int, addr common.Address) {
+	if IsTestnet() {
+		n = TestnetChainConfig.AnmapBlock
+		if n.Cmp(big.NewInt(0)) > 0 && n.Cmp(num) <= 0 {
+			addr = TestnetChainConfig.AnmapAddress
+		}
+	} else {
+		n = MainnetChainConfig.AnmapBlock
+		if n.Cmp(big.NewInt(0)) > 0 && n.Cmp(num) <= 0 {
+			addr = MainnetChainConfig.AnmapAddress
+		}
+	}
+	return
+}
+
 func MeshboxInfo(num *big.Int) (n *big.Int, addr common.Address) {
 	if IsTestnet() {
 		n = TestnetChainConfig.MeshboxBlock
-		if TestnetChainConfig.MeshboxBlock.Cmp(big.NewInt(0)) > 0 && TestnetChainConfig.MeshboxBlock.Cmp(num) <= 0 {
+		if n.Cmp(big.NewInt(0)) > 0 && n.Cmp(num) <= 0 {
 			addr = TestnetChainConfig.MeshboxAddress
 		}
 	} else {
 		n = MainnetChainConfig.MeshboxBlock
-		if MainnetChainConfig.MeshboxBlock.Cmp(big.NewInt(0)) > 0 && MainnetChainConfig.MeshboxBlock.Cmp(num) <= 0 {
+		if n.Cmp(big.NewInt(0)) > 0 && n.Cmp(num) <= 0 {
 			addr = MainnetChainConfig.MeshboxAddress
 		}
 	}
@@ -85,13 +110,13 @@ func MeshboxInfo(num *big.Int) (n *big.Int, addr common.Address) {
 }
 
 // if input num less then nr001block ,enable new role for chief.tx's gaspool
-func IsNR001Block(num *big.Int) bool {
+func IsSIP001Block(num *big.Int) bool {
 	if IsTestnet() {
-		if TestnetChainConfig.NR001Block.Cmp(num) <= 0 {
+		if TestnetChainConfig.SIP001Block.Cmp(num) <= 0 {
 			return true
 		}
 	} else {
-		if MainnetChainConfig.NR001Block.Cmp(num) <= 0 {
+		if MainnetChainConfig.SIP001Block.Cmp(num) <= 0 {
 			return true
 		}
 	}
@@ -99,14 +124,14 @@ func IsNR001Block(num *big.Int) bool {
 }
 
 // new_rule_002 to change block period
-// NR002Block must big then zero
-func IsNR002Block(num *big.Int) bool {
+// SIP002Block must big then zero
+func IsSIP002Block(num *big.Int) bool {
 	if IsTestnet() {
-		if TestnetChainConfig.NR002Block.Cmp(big.NewInt(0)) > 0 && TestnetChainConfig.NR002Block.Cmp(num) <= 0 {
+		if TestnetChainConfig.SIP002Block.Cmp(big.NewInt(0)) > 0 && TestnetChainConfig.SIP002Block.Cmp(num) <= 0 {
 			return true
 		}
 	} else {
-		if MainnetChainConfig.NR002Block.Cmp(big.NewInt(0)) > 0 && MainnetChainConfig.NR002Block.Cmp(num) <= 0 {
+		if MainnetChainConfig.SIP002Block.Cmp(big.NewInt(0)) > 0 && MainnetChainConfig.SIP002Block.Cmp(num) <= 0 {
 			return true
 		}
 	}
@@ -114,13 +139,13 @@ func IsNR002Block(num *big.Int) bool {
 }
 
 // add by liangc : 18-09-13 : incompatible HomesteadSigner begin at this number
-func IsNR003Block(num *big.Int) bool {
+func IsSIP003Block(num *big.Int) bool {
 	if IsTestnet() {
-		if TestnetChainConfig.NR003Block.Cmp(big.NewInt(0)) > 0 && TestnetChainConfig.NR003Block.Cmp(num) <= 0 {
+		if TestnetChainConfig.SIP003Block.Cmp(big.NewInt(0)) > 0 && TestnetChainConfig.SIP003Block.Cmp(num) <= 0 {
 			return true
 		}
 	} else {
-		if MainnetChainConfig.NR003Block.Cmp(big.NewInt(0)) > 0 && MainnetChainConfig.NR003Block.Cmp(num) <= 0 {
+		if MainnetChainConfig.SIP003Block.Cmp(big.NewInt(0)) > 0 && MainnetChainConfig.SIP003Block.Cmp(num) <= 0 {
 			return true
 		}
 	}
@@ -129,13 +154,13 @@ func IsNR003Block(num *big.Int) bool {
 
 // add by liangc : 19-03-27 : for smc-0.6.0
 // https://github.com/SmartMeshFoundation/Spectrum/wiki/%5BChinese%5D-v0.6.0-Standard
-func IsNR004Block(num *big.Int) bool {
+func IsSIP004Block(num *big.Int) bool {
 	if IsTestnet() {
-		if TestnetChainConfig.NR004Block.Cmp(big.NewInt(0)) > 0 && TestnetChainConfig.NR004Block.Cmp(num) <= 0 {
+		if TestnetChainConfig.SIP004Block.Cmp(big.NewInt(0)) > 0 && TestnetChainConfig.SIP004Block.Cmp(num) <= 0 {
 			return true
 		}
 	} else {
-		if MainnetChainConfig.NR004Block.Cmp(big.NewInt(0)) > 0 && MainnetChainConfig.NR004Block.Cmp(num) <= 0 {
+		if MainnetChainConfig.SIP004Block.Cmp(big.NewInt(0)) > 0 && MainnetChainConfig.SIP004Block.Cmp(num) <= 0 {
 			return true
 		}
 	}
@@ -239,16 +264,82 @@ func IsChiefUpdate(data []byte) bool {
 	return false
 }
 
+func AnmapBindInfo(addr common.Address, blockHash common.Hash) (from, nodeid common.Address, err error) {
+	select {
+	case <-InitAnmap:
+		rtn := make(chan MBoxSuccess)
+		m := Mbox{
+			Method: "bindInfo",
+			Rtn:    rtn,
+		}
+		m.Params = map[string]interface{}{"addr": addr, "hash": blockHash}
+		StatuteService <- m
+		success := <-rtn
+		if success.Success {
+			m := success.Entity.(map[string]interface{})
+			from = m["from"].(common.Address)
+			nodeid = m["nodeid"].(common.Address)
+		} else {
+			err = success.Entity.(error)
+		}
+	default:
+		err = errors.New("anmap_not_ready")
+	}
+	return
+}
+
+func AnmapBind(from, nodeid common.Address, sigHex string) (string, error) {
+	select {
+	case <-InitAnmap:
+		rtn := make(chan MBoxSuccess)
+		m := Mbox{
+			Method: "bind",
+			Rtn:    rtn,
+		}
+		m.Params = map[string]interface{}{"from": from, "nodeid": nodeid, "sigHex": sigHex}
+		StatuteService <- m
+		success := <-rtn
+		if success.Success {
+			return success.Entity.(string), nil
+		} else {
+			return "", success.Entity.(error)
+		}
+	default:
+		return "", errors.New("anmap_not_ready")
+	}
+}
+
+func AnmapUnbind(from, nodeid common.Address, sigHex string) (string, error) {
+	select {
+	case <-InitAnmap:
+		rtn := make(chan MBoxSuccess)
+		m := Mbox{
+			Method: "unbind",
+			Rtn:    rtn,
+		}
+		m.Params = map[string]interface{}{"from": from, "nodeid": nodeid, "sigHex": sigHex}
+		StatuteService <- m
+		success := <-rtn
+		if success.Success {
+			return success.Entity.(string), nil
+		} else {
+			return "", success.Entity.(error)
+		}
+	default:
+		return "", errors.New("anmap_not_ready")
+	}
+}
+
 func meshboxExitAddress(addr common.Address) (int64, error) {
 	select {
-	case <-InitMeshboxService:
+	case <-InitMeshbox:
 		rtn := make(chan MBoxSuccess)
 		m := Mbox{
 			Method: "existAddress",
 			Rtn:    rtn,
 		}
 		m.Params = map[string]interface{}{"addr": addr}
-		MeshboxService <- m
+		StatuteService <- m
 		success := <-rtn
 		if success.Success {
 			return success.Entity.(int64), nil
@@ -258,7 +349,6 @@ func meshboxExitAddress(addr common.Address) (int64, error) {
 	default:
 		return 0, errors.New("skip")
 	}
-
 }
 
 func SetChiefContractCode(addr common.Address, code []byte) {

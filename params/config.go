@@ -52,11 +52,14 @@ var (
 		MeshboxBlock:   big.NewInt(1870333),
 		MeshboxAddress: common.HexToAddress("0xf0ced0b1ce8738eeac06fdca51e0ff398328634b"),
 
-		NR001Block: big.NewInt(0), // new rules for chief.tx of gaspool
-		NR002Block: big.NewInt(588888),
-		NR003Block: big.NewInt(808888),
-		NR004Block: big.NewInt(2488888), // maybe begin at 2019-6-14
-		Tribe:      &TribeConfig{},
+		AnmapBlock:   big.NewInt(0),
+		AnmapAddress: common.HexToAddress("0x"),
+
+		SIP001Block: big.NewInt(0), // new rules for chief.tx of gaspool
+		SIP002Block: big.NewInt(588888),
+		SIP003Block: big.NewInt(808888),
+		SIP004Block: big.NewInt(2488888), // maybe begin at 2019-6-14
+		Tribe:       &TribeConfig{},
 	}
 
 	// TestnetChainConfig contains the chain parameters to run a node on the Ropsten test network.
@@ -92,12 +95,15 @@ var (
 		MeshboxBlock:   big.NewInt(1976666),
 		MeshboxAddress: common.HexToAddress("0x0f15e1e44322b2946215705d2ed60cba899f0b38"),
 
+		AnmapBlock:   big.NewInt(2161939),
+		AnmapAddress: common.HexToAddress("0x94ba202430aa0ef0c856bab08daba046dea09486"),
+
 		// new rules for chief.tx of gaspool
-		NR001Block: big.NewInt(176222),
-		NR002Block: big.NewInt(525233),
-		NR003Block: big.NewInt(917013),
-		NR004Block: big.NewInt(2166666),
-		Tribe:      &TribeConfig{},
+		SIP001Block: big.NewInt(176222),
+		SIP002Block: big.NewInt(525233),
+		SIP003Block: big.NewInt(917013),
+		SIP004Block: big.NewInt(2166666),
+		Tribe:       &TribeConfig{},
 	}
 
 	// RinkebyChainConfig contains the chain parameters to run a node on the Rinkeby test network.
@@ -218,17 +224,20 @@ type ChainConfig struct {
 	Chief006Address common.Address `json:"chief006Address,omitempty"`
 	// <<< add by liangc : set chief start number <<<
 	// add by liangc : new rules for chief.tx of gaspool
-	NR001Block *big.Int `json:"nr001Block,omitempty"` // NR001 HF block
+	SIP001Block *big.Int `json:"sip001Block,omitempty"` // SIP001 HF block
 	// add by liangc : new rules for block period
-	NR002Block *big.Int `json:"nr002Block,omitempty"` // NR002 HF block
+	SIP002Block *big.Int `json:"sip002Block,omitempty"` // SIP002 HF block
 	// add by liangc : 18-09-13 : incompatible HomesteadSigner begin at this number
-	NR003Block *big.Int `json:"nr003Block,omitempty"`
+	SIP003Block *big.Int `json:"sip003Block,omitempty"`
 	// add by liangc : 19-03-27 : for smc-0.6.0
 	// https://github.com/SmartMeshFoundation/Spectrum/wiki/%5BChinese%5D-v0.6.0-Standard
-	NR004Block *big.Int `json:"nr004Block,omitempty"`
+	SIP004Block *big.Int `json:"sip004Block,omitempty"`
 
-	MeshboxBlock   *big.Int       `json:"chief006Block,omitempty"`
-	MeshboxAddress common.Address `json:"chief006Address,omitempty"`
+	MeshboxBlock   *big.Int       `json:"meshboxBlock,omitempty"`
+	MeshboxAddress common.Address `json:"meshboxAddress,omitempty"`
+
+	AnmapBlock   *big.Int       `json:"anmapBlock,omitempty"`
+	AnmapAddress common.Address `json:"anmapAddress,omitempty"`
 }
 
 // EthashConfig is the consensus engine configs for proof-of-work based sealing.

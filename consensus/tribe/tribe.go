@@ -94,7 +94,7 @@ func ecrecover(header *types.Header, t *Tribe) (common.Address, error) {
 }
 
 // signers set to the ones provided by the user.
-func New(config *params.TribeConfig, db ethdb.Database) *Tribe {
+func New(accman *accounts.Manager, config *params.TribeConfig, db ethdb.Database) *Tribe {
 	status := NewTribeStatus()
 	sigcache, _ := lru.NewARC(historyLimit)
 	conf := *config
@@ -102,6 +102,7 @@ func New(config *params.TribeConfig, db ethdb.Database) *Tribe {
 		conf.Period = blockPeriod
 	}
 	tribe := &Tribe{
+		accman:      accman,
 		config:      &conf,
 		db:          db,
 		Status:      status,
@@ -269,12 +270,12 @@ func (t *Tribe) verifyCascadingFields(chain consensus.ChainReader, header *types
 	var parent *types.Header
 
 	verifyTime := func() error {
-		if params.IsNR002Block(header.Number) {
+		if params.IsSIP002Block(header.Number) {
 			// first verification
 			// second verification block time in ValidateSigner function
 			// the min limit period is config.Period - 1
 			if parent.Time.Uint64()+(t.config.Period-1) > header.Time.Uint64() {
-				return ErrInvalidTimestampNR002
+				return ErrInvalidTimestampSIP002
 			}
 		} else {
 			if parent.Time.Uint64()+t.config.Period > header.Time.Uint64() {
@@ -416,7 +417,7 @@ func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error
 	} else {
 		header.Difficulty = diffInTurn
 	}
-	if params.IsNR002Block(header.Number) {
+	if params.IsSIP002Block(header.Number) {
 		//modify by liangc : change period rule
 		header.Time = new(big.Int).Add(parent.Time, new(big.Int).SetUint64(t.GetPeriod(header, nil)))
 	} else {
@@ -519,7 +520,7 @@ func (t *Tribe) APIs(chain consensus.ChainReader) []rpc.API {
 	return []rpc.API{{
 		Namespace: "tribe",
 		Version:   "0.0.1",
-		Service:   &API{chain: chain, tribe: t},
+		Service:   &API{accman: t.accman, chain: chain, tribe: t},
 		Public:    false,
 	}}
 }

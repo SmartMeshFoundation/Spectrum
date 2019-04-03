@@ -2,8 +2,12 @@ package tribe
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"github.com/SmartMeshFoundation/Spectrum/accounts"
+	"github.com/SmartMeshFoundation/Spectrum/accounts/keystore"
 	"math/big"
 	"sync/atomic"
 	"time"
@@ -17,6 +21,72 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/params"
 	"github.com/SmartMeshFoundation/Spectrum/rpc"
 )
+
+// fetchKeystore retrives the encrypted keystore from the account manager.
+func fetchKeystore(am *accounts.Manager) *keystore.KeyStore {
+	return am.Backends(keystore.KeyStoreType)[0].(*keystore.KeyStore)
+}
+
+func (api *API) BindInfo(addr *common.Address) (map[string]interface{}, error) {
+	if addr == nil {
+		nodekey := api.tribe.Status.getNodekey()
+		_addr := crypto.PubkeyToAddress(nodekey.PublicKey)
+		addr = &_addr
+	}
+	hash := api.chain.CurrentHeader().Hash()
+	from, nodeid, err := params.AnmapBindInfo(*addr, hash)
+	if err != nil {
+		return nil, err
+	}
+	m := make(map[string]interface{})
+	m["from"] = from
+	m["nodeid"] = nodeid
+	return m, nil
+}
+
+func (api *API) Bind(from *common.Address, passphrase string) (string, error) {
+	if from == nil {
+		return "", errors.New("args_can_not_empty")
+	}
+	a := accounts.Account{Address: *from}
+	e := fetchKeystore(api.accman).TimedUnlock(a, passphrase, 60*time.Second)
+	if e != nil {
+		return "", e
+	}
+	nodekey := api.tribe.Status.getNodekey()
+	nodeid := crypto.PubkeyToAddress(nodekey.PublicKey)
+	msg := crypto.Keccak256(from.Bytes())
+	sig, _ := crypto.Sign(msg, nodekey)
+	sigHex := hex.EncodeToString(sig)
+	tx, e := params.AnmapBind(*from, nodeid, sigHex)
+	if e != nil {
+		return "", e
+	}
+	log.Info("tribe.bind", "tx", tx, "from", from.Hex(), "nodeid", nodeid.Hex())
+	return tx, nil
+}
+
+func (api *API) Unbind(from *common.Address, passphrase string) (string, error) {
+	if from == nil {
+		return "", errors.New("args_can_not_empty")
+	}
+	a := accounts.Account{Address: *from}
+	e := fetchKeystore(api.accman).TimedUnlock(a, passphrase, 60*time.Second)
+	if e != nil {
+		return "", e
+	}
+	nodekey := api.tribe.Status.getNodekey()
+	nodeid := crypto.PubkeyToAddress(nodekey.PublicKey)
+	msg := crypto.Keccak256(from.Bytes())
+	sig, _ := crypto.Sign(msg, nodekey)
+	sigHex := hex.EncodeToString(sig)
+	tx, e := params.AnmapUnbind(*from, nodeid, sigHex)
+	if e != nil {
+		return "", e
+	}
+	log.Info("tribe.unbind", "tx", tx, "from", from.Hex(), "nodeid", nodeid.Hex())
+	return tx, nil
+}
 
 func (api *API) GetMiner(number *rpc.BlockNumber) (*TribeMiner, error) {
 	add := api.tribe.Status.GetMinerAddress()
@@ -140,9 +210,16 @@ func (self *TribeStatus) setTribe(tribe *Tribe) {
 	self.tribe = tribe
 }
 
+func (self *TribeStatus) getNodekey() *ecdsa.PrivateKey {
+	if self.nodeKey == nil {
+		panic(errors.New("GetNodekey but nodekey not ready"))
+	}
+	return self.nodeKey
+}
+
 func (self *TribeStatus) GetMinerAddress() common.Address {
 	if self.nodeKey == nil {
-		panic(errors.New("nodekey not ready"))
+		panic(errors.New("GetMinerAddress but nodekey not ready"))
 	}
 	pub := self.nodeKey.PublicKey
 	add := crypto.PubkeyToAddress(pub)
@@ -256,7 +333,7 @@ func (self *TribeStatus) InTurnForCalc(signer common.Address, parent *types.Head
 	signers := self.GetSigners()
 	if idx, _, err := self.fetchOnSigners(signer, signers); err == nil {
 		sl := len(signers)
-		if params.IsNR002Block(big.NewInt(number)) {
+		if params.IsSIP002Block(big.NewInt(number)) {
 			if sl > 0 && number%int64(sl) == idx.Int64() {
 				return diffInTurnMain
 			} else if sl > 0 && (number+1)%int64(sl) == idx.Int64() {
@@ -284,7 +361,7 @@ func (self *TribeStatus) InTurnForVerify(number int64, parentHash common.Hash, s
 	}
 	if idx, _, err := self.fetchOnSigners(signer, signers); err == nil {
 		sl := len(signers)
-		if params.IsNR002Block(big.NewInt(number)) {
+		if params.IsSIP002Block(big.NewInt(number)) {
 			if sl > 0 && number%int64(sl) == idx.Int64() {
 				return diffInTurnMain
 			} else if sl > 0 && (number+1)%int64(sl) == idx.Int64() {
@@ -341,17 +418,17 @@ func (self *TribeStatus) ValidateSigner(parentHeader, header *types.Header, sign
 	if number <= 3 {
 		return true
 	}
-	if params.IsNR001Block(header.Number) && header.Coinbase != signer {
+	if params.IsSIP001Block(header.Number) && header.Coinbase != signer {
 		log.Error("error_signer", "num", header.Number.String(), "miner", header.Coinbase.Hex(), "signer", signer.Hex())
 		return false
 	}
 	var err error
 	signers, err = self.GetSignersFromChiefByHash(parentHash, big.NewInt(number))
 
-	if params.IsNR002Block(header.Number) {
+	if params.IsSIP002Block(header.Number) {
 		// second time of verification block time
 		if parentHeader.Time.Uint64()+self.tribe.GetPeriod(header, signers) > header.Time.Uint64() {
-			log.Error("[ValidateSigner] second time verification block time error", ErrInvalidTimestampNR002)
+			log.Error("[ValidateSigner] second time verification block time error", ErrInvalidTimestampSIP002)
 			return false
 		}
 	}
@@ -378,7 +455,7 @@ func (self *TribeStatus) ValidateBlock(parent, block *types.Block, validateSigne
 
 	//number := block.Number().Int64()
 	// add by liangc : seal call this func must skip validate signer
-	if (validateSigner) {
+	if validateSigner {
 		signer, err := ecrecover(header, self.tribe)
 		// verify difficulty
 		if number > 3 && !params.IsChiefBlock(header.Number) {

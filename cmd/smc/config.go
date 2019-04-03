@@ -165,7 +165,7 @@ func makeFullNode(ctx *cli.Context) *node.Node {
 
 	// add by liangc : add meshbox service
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-		return statute.NewMeshboxService(ctx)
+		return statute.NewStatuteService(ctx)
 	}); err != nil {
 		utils.Fatalf("Meshbox Service Start Fail : %v", err)
 	}

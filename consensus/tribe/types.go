@@ -83,8 +83,8 @@ var (
 
 	// ErrInvalidTimestamp is returned if the timestamp of a block is lower than
 	// the previous block's timestamp + the minimum block period.
-	ErrInvalidTimestamp      = errors.New("invalid timestamp")
-	ErrInvalidTimestampNR002 = errors.New("invalid timestamp (NR002)")
+	ErrInvalidTimestamp       = errors.New("invalid timestamp")
+	ErrInvalidTimestampSIP002 = errors.New("invalid timestamp (SIP002)")
 
 	// errUnauthorized is returned if a header is signed by a non-authorized entity.
 	errUnauthorized = errors.New("unauthorized")
@@ -100,21 +100,23 @@ var (
 )
 
 type Tribe struct {
+	accman   *accounts.Manager
 	config   *params.TribeConfig // Consensus engine configuration parameters
 	db       ethdb.Database      // Database to store and retrieve snapshot checkpoints
 	sigcache *lru.ARCCache       // mapping block.hash -> signer
 	//signer      common.Address      // Ethereum address of the signing key
-	signFn           SignerFn     // Signer function to authorize hashes with
-	lock             sync.RWMutex // Protects the signer fields
-	Status           *TribeStatus
-	SealErrorCh      map[int64]error // when error from seal fun, may be need commit a new work
+	signFn      SignerFn     // Signer function to authorize hashes with
+	lock        sync.RWMutex // Protects the signer fields
+	Status      *TribeStatus
+	SealErrorCh map[int64]error // when error from seal fun, may be need commit a new work
 	//SealErrorCounter uint32     // less then 3 , retry commit new work
-	isInit           bool
+	isInit bool
 }
 
 type API struct {
-	chain consensus.ChainReader
-	tribe *Tribe
+	accman *accounts.Manager
+	chain  consensus.ChainReader
+	tribe  *Tribe
 }
 
 // SignerFn is a signer callback function to request a hash to be signed by a
@@ -155,7 +157,7 @@ type TribeStatus struct {
 	Epoch          *big.Int `json:"epoch"`
 	SignerLimit    *big.Int `json:"signerLimit"`
 	VolunteerLimit *big.Int `json:"volunteerLimit"`
-	Vsn            string           `json:"version"` // chief version
+	Vsn            string   `json:"version"` // chief version
 
 	blackList []common.Address
 	mining    int32 // 1 mining start , 0 mining stop

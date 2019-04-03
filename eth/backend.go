@@ -217,7 +217,7 @@ func CreateDB(ctx *node.ServiceContext, config *Config, name string) (ethdb.Data
 func CreateConsensusEngine(ctx *node.ServiceContext, config *ethash.Config, chainConfig *params.ChainConfig, db ethdb.Database) consensus.Engine {
 	// add by liangc : start tribe engine : DPOA ??
 	if chainConfig.Tribe != nil {
-		return tribe.New(chainConfig.Tribe, db)
+		return tribe.New(ctx.AccountManager, chainConfig.Tribe, db)
 	}
 	// If proof-of-authority is requested, set it up
 	if chainConfig.Clique != nil {

@@ -75,10 +75,10 @@ func (v *BlockValidator) ValidateBody(parent, block *types.Block) error {
 		return fmt.Errorf("uncle root hash mismatch: have %x, want %x", hash, header.UncleHash)
 	}
 	// add by liangc : 18-09-13 : error block : incompatible HomesteadSigner
-	if params.IsNR003Block(header.Number) {
+	if params.IsSIP003Block(header.Number) {
 		for _, tx := range block.Transactions() {
 			if !tx.Protected() {
-				return fmt.Errorf("Incompatible HomesteadSigner now num=%d tx=%s",header.Number.Int64(), tx.Hash().Hex())
+				return fmt.Errorf("Incompatible HomesteadSigner now num=%d tx=%s", header.Number.Int64(), tx.Hash().Hex())
 			}
 		}
 	}
