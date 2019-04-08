@@ -537,11 +537,11 @@ func (self *TribeService) fetchVolunteer(blockNumber *big.Int, vsn string) commo
 							v := vlist[i]
 							if ms, err := statute.GetMeshboxService(); err == nil {
 								// first : meshbox.sol
-								log.Info("<< FilterVolunteer.meshbox-rule >>")
+								log.Debug("<< FilterVolunteer.meshbox-rule >>")
 								if w, err := ms.ExistAddress(v); err == nil && w != nil && w.Int64() > 0 {
 									return v
 								}
-								log.Info("<< FilterVolunteer.skip >> not_a_meshbox", "addr", v.Hex())
+								log.Debug("<< FilterVolunteer.skip >> not_a_meshbox", "addr", v.Hex())
 							}
 							// second : if vlist not in meshbox contract the balance great than 10w SMT is requirement
 							// check nodeid&account mapping contract and review balance
@@ -551,18 +551,13 @@ func (self *TribeService) fetchVolunteer(blockNumber *big.Int, vsn string) commo
 								if f, _, err := as.BindInfo(v, nil, &cbh); err == nil {
 									log.Info("1.<<statute.GetAnmapService>>", "f", f.Hex(), "n", v.Hex())
 									_m = f
-								} else {
-									log.Error("2.<<statute.GetAnmapService>>", "err", err, "n", v.Hex())
 								}
-							} else {
-								log.Error("3.<<statute.GetAnmapService>>", "err", err, "n", v.Hex())
 							}
 							b := sdb.GetBalance(_m)
 							if b.Cmp(params.GetMinMinerBalance()) >= 0 {
-								log.Error("4.<<statute.GetAnmapService>>", "_m", _m.Hex(), "balance", b.String())
+								log.Error("2.<<statute.GetAnmapService>>", "v", v.Hex(), "_m", _m.Hex(), "balance", b.String())
 								return v
 							}
-							log.Error("5.<<statute.GetAnmapService>>", "_m", _m.Hex(), "balance", b.Int64())
 						}
 					}
 
