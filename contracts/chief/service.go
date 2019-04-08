@@ -344,7 +344,7 @@ func (self *TribeService) update(mbox params.Mbox) {
 		success.Entity = t.Hash().Hex()
 	}
 	mbox.Rtn <- success
-	log.Debug("chief.mbox.rtn: update <-", "success", success)
+	log.Info("chief.mbox.rtn: update <-", "success", success)
 }
 
 // --------------------------------------------------------------------------------------------------
