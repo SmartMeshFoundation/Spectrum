@@ -37,8 +37,7 @@ type Service interface {
 
 // volunteer : peer.td - current.td < 200
 var (
-	min_td      = big.NewInt(200)
-	min_balance = new(big.Int).Mul(big.NewInt(params.Ether), big.NewInt(100000))
+	min_td = big.NewInt(200)
 )
 
 //implements node.Service
@@ -550,20 +549,20 @@ func (self *TribeService) fetchVolunteer(blockNumber *big.Int, vsn string) commo
 							if as, err := statute.GetAnmapService(); err == nil {
 								cbh := ch.Hash()
 								if f, _, err := as.BindInfo(v, nil, &cbh); err == nil {
-									log.Info("1.<<statute.GetAnmapService>>", "_m:f", f.Hex())
+									log.Info("1.<<statute.GetAnmapService>>", "f", f.Hex(), "n", v.Hex())
 									_m = f
 								} else {
-									log.Error("2.<<statute.GetAnmapService>>", "err", err)
+									log.Error("2.<<statute.GetAnmapService>>", "err", err, "n", v.Hex())
 								}
 							} else {
-								log.Error("3.<<statute.GetAnmapService>>", "err", err)
+								log.Error("3.<<statute.GetAnmapService>>", "err", err, "n", v.Hex())
 							}
 							b := sdb.GetBalance(_m)
-							if b.Cmp(min_balance) >= 0 {
-								log.Info("<< balance.normal-rule >>", "err", err)
+							if b.Cmp(params.GetMinMinerBalance()) >= 0 {
+								log.Error("4.<<statute.GetAnmapService>>", "_m", _m.Hex(), "balance", b.Int64())
 								return v
 							}
-
+							log.Error("5.<<statute.GetAnmapService>>", "_m", _m.Hex(), "balance", b.Int64())
 						}
 					}
 
