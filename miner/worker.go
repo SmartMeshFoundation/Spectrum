@@ -351,6 +351,7 @@ func (self *worker) wait() {
 						delete(tribe.SealErrorCh, h.Number.Int64())
 					}
 				}
+				<-time.After(time.Second * 2)
 				continue
 			}
 			block := result.Block

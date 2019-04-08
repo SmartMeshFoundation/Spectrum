@@ -559,7 +559,7 @@ func (self *TribeService) fetchVolunteer(blockNumber *big.Int, vsn string) commo
 							}
 							b := sdb.GetBalance(_m)
 							if b.Cmp(params.GetMinMinerBalance()) >= 0 {
-								log.Error("4.<<statute.GetAnmapService>>", "_m", _m.Hex(), "balance", b.Int64())
+								log.Error("4.<<statute.GetAnmapService>>", "_m", _m.Hex(), "balance", b.String())
 								return v
 							}
 							log.Error("5.<<statute.GetAnmapService>>", "_m", _m.Hex(), "balance", b.Int64())
