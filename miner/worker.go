@@ -351,7 +351,6 @@ func (self *worker) wait() {
 						delete(tribe.SealErrorCh, h.Number.Int64())
 					}
 				}
-				<-time.After(time.Second * 2)
 				continue
 			}
 			block := result.Block
@@ -561,8 +560,9 @@ func (self *worker) commitNewWork() {
 		log.Info("Commit new mining work", "number", work.Block.Number(), "txs", work.tcount, "uncles", len(uncles), "elapsed", common.PrettyDuration(time.Since(tstart)))
 		self.unconfirmed.Shift(work.Block.NumberU64() - 1)
 	}
-	//fmt.Println("---- commitNewWork.Transactions ---->",work.Block.Transactions())
+	//fmt.Println("---- commitNewWork.Transactions.start ---->", len(work.Block.Transactions()))
 	self.push(work)
+	//fmt.Println("---- commitNewWork.Transactions.end---->", len(work.Block.Transactions()))
 }
 
 func (self *worker) commitUncle(work *Work, uncle *types.Header) error {
