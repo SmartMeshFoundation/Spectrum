@@ -543,15 +543,27 @@ func (self *TribeService) fetchVolunteer(blockNumber *big.Int, vsn string) commo
 									return v
 								}
 								log.Info("<< FilterVolunteer.skip >> not_a_meshbox", "addr", v.Hex())
-							} else {
-								// second : if vlist not in meshbox contract the balance great than 10w SMT is requirement
-								// TODO : check nodeid&account mapping contract and review balance
-								b := sdb.GetBalance(v)
-								if b.Cmp(min_balance) >= 0 {
-									log.Info("<< balance.normal-rule >>", "err", err)
-									return v
-								}
 							}
+							// second : if vlist not in meshbox contract the balance great than 10w SMT is requirement
+							// check nodeid&account mapping contract and review balance
+							var _m = v
+							if as, err := statute.GetAnmapService(); err == nil {
+								cbh := ch.Hash()
+								if f, _, err := as.BindInfo(v, nil, &cbh); err == nil {
+									log.Info("1.<<statute.GetAnmapService>>", "_m:f", f.Hex())
+									_m = f
+								} else {
+									log.Error("2.<<statute.GetAnmapService>>", "err", err)
+								}
+							} else {
+								log.Error("3.<<statute.GetAnmapService>>", "err", err)
+							}
+							b := sdb.GetBalance(_m)
+							if b.Cmp(min_balance) >= 0 {
+								log.Info("<< balance.normal-rule >>", "err", err)
+								return v
+							}
+
 						}
 					}
 

@@ -67,16 +67,21 @@ func (api *API) Bind(from *common.Address, passphrase string) (string, error) {
 }
 
 func (api *API) Unbind(from *common.Address, passphrase string) (string, error) {
+	nodekey := api.tribe.Status.getNodekey()
+	nodeid := crypto.PubkeyToAddress(nodekey.PublicKey)
 	if from == nil {
-		return "", errors.New("args_can_not_empty")
+		if m, err := api.BindInfo(&nodeid); err != nil {
+			return "", err
+		} else {
+			_from := m["from"].(common.Address)
+			from = &_from
+		}
 	}
 	a := accounts.Account{Address: *from}
 	e := fetchKeystore(api.accman).TimedUnlock(a, passphrase, 60*time.Second)
 	if e != nil {
 		return "", e
 	}
-	nodekey := api.tribe.Status.getNodekey()
-	nodeid := crypto.PubkeyToAddress(nodekey.PublicKey)
 	msg := crypto.Keccak256(from.Bytes())
 	sig, _ := crypto.Sign(msg, nodekey)
 	sigHex := hex.EncodeToString(sig)

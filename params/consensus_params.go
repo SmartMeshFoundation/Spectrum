@@ -70,6 +70,15 @@ var (
 	chiefContractCodeCache = new(sync.Map)
 )
 
+func GetMinMinerBalance() (mb *big.Int) {
+	if IsTestnet() {
+		mb = TestnetChainConfig.MinMinerBalance
+	} else {
+		mb = MainnetChainConfig.MinMinerBalance
+	}
+	return
+}
+
 func ChainID() (id *big.Int) {
 	if IsTestnet() {
 		id = TestnetChainConfig.ChainId
