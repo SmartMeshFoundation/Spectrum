@@ -246,27 +246,7 @@ func IsChiefUpdate(data []byte) bool {
 		return false
 	} else {
 		if bytes.Equal(data[:4], []byte{28, 27, 135, 114}) {
-			volunteer := common.Bytes2Hex(data[4:])
-			if common.HexToAddress(volunteer) == common.HexToAddress("") {
-				log.Debug("meshbox.ExistAddress.EmptyInput", "addr", common.HexToAddress(volunteer).Hex())
-				return true
-			} else {
-				// TODO verify volunteer : in meshbox.sol or balance greate than 10w smt
-				i, err := validateVolunteer(common.HexToAddress(volunteer))
-				log.Debug("meshbox.ExistAddress", "addr", common.HexToAddress(volunteer).Hex(), "i", i, "err", err)
-				if err != nil {
-					switch err.Error() {
-					case "skip":
-						return true
-					default:
-						log.Error("IsChiefUpdate.meshbox.ExistAddress", "addr", common.HexToAddress(volunteer).Hex(), "err", err)
-						return false
-					}
-				}
-				if i > 0 {
-					return true
-				}
-			}
+			return true
 		}
 	}
 	return false
@@ -343,32 +323,9 @@ func AnmapUnbind(from, nodeid common.Address, sigHex string) (string, error) {
 	}
 }
 
-// TODO master append cache ,one data need check 3 timesz
-func validateVolunteer(addr common.Address) (int64, error) {
-	validateBalance := func(addr common.Address) bool {
-		return false
-		select {
-		case <-InitAnmap:
-			rtn := make(chan MBoxSuccess)
-			m := Mbox{
-				Method: "getBalance",
-				Rtn:    rtn,
-			}
-			m.Params = map[string]interface{}{"addr": addr}
-			StatuteService <- m
-			success := <-rtn
-			if success.Success {
-				m := success.Entity.(map[string]interface{})
-				log.Info("<<validateBalance>>", "addr", addr.Hex(), "m", m)
-				if balance := m["balance"].(*big.Int); balance != nil && balance.Cmp(GetMinMinerBalance()) >= 0 {
-					return true
-				}
-			}
-		}
-		return false
-	}
-	// XXXX : meshbox.sol is earlier than anmap.sol
-	validateMeshbox := func() (int64, error) {
+func MeshboxExistAddress(addr common.Address) bool {
+	select {
+	case <-InitMeshbox:
 		rtn := make(chan MBoxSuccess)
 		m := Mbox{
 			Method: "existAddress",
@@ -377,47 +334,11 @@ func validateVolunteer(addr common.Address) (int64, error) {
 		m.Params = map[string]interface{}{"addr": addr}
 		StatuteService <- m
 		success := <-rtn
-		if success.Success {
-			return success.Entity.(int64), nil
-		} else {
-			return 0, success.Entity.(error)
+		if success.Success && success.Entity.(int64) > 0 {
+			return true
 		}
 	}
-
-	validateAnmap := func() (int64, error) {
-		f, _, err := AnmapBindInfo(addr, common.Hash{})
-		if err != nil {
-			return 0, err
-		} else if !validateBalance(f) {
-			return 0, errors.New("low_balance")
-		} else {
-			return 1, err
-		}
-	}
-
-	validateFn := func() (int64, error) {
-		select {
-		case <-InitAnmap:
-			n, err := validateAnmap()
-			if err != nil {
-				return validateMeshbox()
-			}
-			return n, nil
-		default:
-			return validateMeshbox()
-		}
-	}
-
-	if validateBalance(addr) {
-		return 1, nil
-	}
-	select {
-	case <-InitMeshbox:
-		return validateFn()
-	default:
-		return 0, errors.New("skip")
-	}
-
+	return false
 }
 
 func SetChiefContractCode(addr common.Address, code []byte) {

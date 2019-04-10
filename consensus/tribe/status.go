@@ -8,6 +8,7 @@ import (
 	"errors"
 	"github.com/SmartMeshFoundation/Spectrum/accounts"
 	"github.com/SmartMeshFoundation/Spectrum/accounts/keystore"
+	"github.com/SmartMeshFoundation/Spectrum/core/state"
 	"math/big"
 	"sync/atomic"
 	"time"
@@ -450,7 +451,7 @@ func (self *TribeStatus) ValidateSigner(parentHeader, header *types.Header, sign
 // every block
 // sync download or mine
 // check chief tx
-func (self *TribeStatus) ValidateBlock(parent, block *types.Block, validateSigner bool) error {
+func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *types.Block, validateSigner bool) error {
 	if block.Number().Int64() < 3 {
 		return nil
 	}
@@ -485,6 +486,30 @@ func (self *TribeStatus) ValidateBlock(parent, block *types.Block, validateSigne
 	var total = 0
 	for _, tx := range block.Transactions() {
 		if tx.To() != nil && params.IsChiefAddress(*tx.To()) && params.IsChiefUpdate(tx.Data()) {
+			//verify volunteer
+			if state != nil {
+				volunteerHex := common.Bytes2Hex(tx.Data()[4:])
+				if volunteer := common.HexToAddress(volunteerHex); volunteer != common.HexToAddress("") {
+					// skip when v in meshbox.sol
+					if !params.MeshboxExistAddress(volunteer) {
+						f, n, err := params.AnmapBindInfo(volunteer, parent.Hash())
+						if err == nil {
+							fb := state.GetBalance(f)
+							nb := state.GetBalance(n)
+							if fb.Cmp(params.GetMinMinerBalance()) < 0 && nb.Cmp(params.GetMinMinerBalance()) < 0 {
+								return ErrTribeChiefVolunteerLowBalance
+							}
+						} else if params.IsSIP004Block(parent.Number()) {
+							b := state.GetBalance(volunteer)
+							if b.Cmp(params.GetMinMinerBalance()) < 0 {
+								return ErrTribeChiefVolunteerLowBalance
+							}
+						} else {
+							return ErrTribeChiefVolunteerFail
+						}
+					}
+				}
+			}
 			total++
 		}
 	}

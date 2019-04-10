@@ -455,7 +455,7 @@ func (t *Tribe) Authorize(a common.Address, b SignerFn) {
 // Seal implements consensus.Engine, attempting to create a sealed block using
 // the local signing credentials.
 func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-chan struct{}) (*types.Block, error) {
-	if err := t.Status.ValidateBlock(chain.GetBlock(block.ParentHash(), block.NumberU64()-1), block, false); err != nil {
+	if err := t.Status.ValidateBlock(nil, chain.GetBlock(block.ParentHash(), block.NumberU64()-1), block, false); err != nil {
 		log.Error("Tribe_Seal", "number", block.Number().Int64(), "err", err)
 		//log.Error("Tribe_Seal", "retry", atomic.LoadUint32(&t.SealErrorCounter), "number", block.Number().Int64(), "err", err)
 		//t.SealErrorCh[chain.CurrentHeader().Number.Int64()] = err

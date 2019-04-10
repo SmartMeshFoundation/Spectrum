@@ -94,9 +94,11 @@ var (
 	// block reward is zero, so an empty block just bloats the chain... fast.
 	errWaitTransactions = errors.New("waiting for transactions")
 	// for tribe consensus block validator
-	ErrTribeNotAllowEmptyTxList = errors.New("tribe not allow empty tx list")
-	ErrTribeMustContainChiefTx  = errors.New("tribe must contain chief tx")
-	ErrTribeChiefCannotRepeat   = errors.New("tribe chief tx cannot repeat")
+	ErrTribeNotAllowEmptyTxList      = errors.New("tribe not allow empty tx list")
+	ErrTribeMustContainChiefTx       = errors.New("tribe must contain chief tx")
+	ErrTribeChiefCannotRepeat        = errors.New("tribe chief tx cannot repeat")
+	ErrTribeChiefVolunteerLowBalance = errors.New("tribe chief volunteer low balance")
+	ErrTribeChiefVolunteerFail       = errors.New("tribe chief volunteer check fail")
 )
 
 type Tribe struct {
