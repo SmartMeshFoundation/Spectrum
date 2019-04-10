@@ -105,10 +105,11 @@ type Tribe struct {
 	db       ethdb.Database      // Database to store and retrieve snapshot checkpoints
 	sigcache *lru.ARCCache       // mapping block.hash -> signer
 	//signer      common.Address      // Ethereum address of the signing key
-	signFn      SignerFn     // Signer function to authorize hashes with
-	lock        sync.RWMutex // Protects the signer fields
-	Status      *TribeStatus
-	SealErrorCh map[int64]error // when error from seal fun, may be need commit a new work
+	signFn SignerFn     // Signer function to authorize hashes with
+	lock   sync.RWMutex // Protects the signer fields
+	Status *TribeStatus
+	//SealErrorCh map[int64]error // when error from seal fun, may be need commit a new work
+	SealErrorCh *sync.Map // map[int64]error
 	//SealErrorCounter uint32     // less then 3 , retry commit new work
 	isInit bool
 }

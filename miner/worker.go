@@ -342,14 +342,22 @@ func (self *worker) wait() {
 				// add by liangc
 				if tribe, ok := self.engine.(*tribe.Tribe); ok {
 					h := self.chain.CurrentHeader()
-					if sealErr, ok := tribe.SealErrorCh[h.Number.Int64()]; ok {
+					if sealErr, ok := tribe.SealErrorCh.Load(h.Number.Int64()); ok {
 						log.Error("SealErrorCh", "currentNumber", h.Number.Int64(), "err", sealErr)
 						log.Warn("wait_new_work_will_retry_tribe.update", "current_num", h.Number.Int64(), "current_hash", h.Hash().Hex())
 						tribe.Status.Update(h.Number, h.Hash())
 						self.commitNewWork()
 						log.Warn("wait_new_work_will_retry_commitNewWork", "current_num", h.Number.Int64(), "current_hash", h.Hash().Hex())
-						delete(tribe.SealErrorCh, h.Number.Int64())
+						tribe.SealErrorCh.Delete(h.Number.Int64())
 					}
+					/*		if sealErr, ok := tribe.SealErrorCh[h.Number.Int64()]; ok {
+							log.Error("SealErrorCh", "currentNumber", h.Number.Int64(), "err", sealErr)
+							log.Warn("wait_new_work_will_retry_tribe.update", "current_num", h.Number.Int64(), "current_hash", h.Hash().Hex())
+							tribe.Status.Update(h.Number, h.Hash())
+							self.commitNewWork()
+							log.Warn("wait_new_work_will_retry_commitNewWork", "current_num", h.Number.Int64(), "current_hash", h.Hash().Hex())
+							delete(tribe.SealErrorCh, h.Number.Int64())
+						}*/
 				}
 				continue
 			}
