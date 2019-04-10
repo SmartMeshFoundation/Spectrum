@@ -346,6 +346,7 @@ func AnmapUnbind(from, nodeid common.Address, sigHex string) (string, error) {
 // TODO master append cache ,one data need check 3 timesz
 func validateVolunteer(addr common.Address) (int64, error) {
 	validateBalance := func(addr common.Address) bool {
+		return false
 		select {
 		case <-InitAnmap:
 			rtn := make(chan MBoxSuccess)
