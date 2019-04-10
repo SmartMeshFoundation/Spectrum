@@ -8,7 +8,7 @@
 
 [![](https://travis-ci.org/wangbaojin/Spectrum.svg?branch=master)](https://travis-ci.org/wangbaojin/Spectrum)
 
-Spectrum is an [Ethereum-compatible](https://github.com/SmartMeshFoundation/Spectrum) project. It uses a new consensus and new block reward for SmartMesh ecosystem devices and IOT. And you can view the transactions on the [
+Spectrum is an [Ethereum-compatible](https://github.com/ethereum/go-ethereum) project. It uses a new consensus and new block reward for SmartMesh ecosystem devices and IOT. And you can view the transactions on the [
 BlockChain Browser Address](https://spectrum.pub).
 
 
@@ -149,19 +149,27 @@ that tell you there are two miners in the testnet.
 
 ## View the block mining history in console
 
-* tribe.getHistory(11,false)
+* tribe.getHistory(3)
     
 * then you will see the following message (console format):
 <pre><code>[{
-    🔨: "39708 -> 0x7B06dd132c089034157f1E1AAcda75787DF1e0c5"
+    difficulty: 3,
+    hash: "0x9d3416ffed42e753cd9ce9e48251f8baa5203e0abdcecbc8cda0238890359a60",
+    number: 2205589,
+    signer: "0xad9581fe7f9b640cc34915cd988965216e44a972",
+    timestamp: 1554892642
 }, {
-    🔨: "39707 -> 0xc22D53456ABd14Da347517a4B47ea24866B8E3Ae"
+    difficulty: 3,
+    hash: "0xd789d9029deae40143f2e222d68922f6a599ea3b3f35c8dbe33063a414d2c7aa",
+    number: 2205588,
+    signer: "0x4110bd1ff0b73fa12c259acf39c950277f266787",
+    timestamp: 1554892628
 }, {
-    🔨: "39706 -> 0xAd4c80164065a3c33dD2014908c7563eFf88Ab49"
-}, {
-    🔨: "39705 -> 0x3a5fBaC6CA913599C5fde8c1638dB58d01De8A48"
-}, {
-    🔨: "39704 -> 0x00aB501f3Fe4b2f71651764699EC5752598E679f"
+    difficulty: 3,
+    hash: "0xc44e434a23db5179a45dda9fcb4082a92cf93fe88f47a617266db5992c346700",
+    number: 2205587,
+    signer: "0xf848f385fd21c6972264c777684940814a7d4792",
+    timestamp: 1554892614
 }]</code></pre>
 
 that tell the block number and miner's account that generate that block.
