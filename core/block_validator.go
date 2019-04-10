@@ -116,6 +116,12 @@ func (v *BlockValidator) ValidateState(block, parent *types.Block, statedb *stat
 	if root := statedb.IntermediateRoot(v.config.IsEIP158(header.Number)); header.Root != root {
 		return fmt.Errorf("invalid merkle root (remote: %x local: %x)", header.Root, root)
 	}
+	if _, ok := v.engine.(*tribe.Tribe); ok {
+		log.Info("<<ValidateState>> verify_signer =>", "num", header.Number, "s", header.Coinbase.Hex())
+		if err := tribe.VerifySigner(statedb, header.Coinbase, header); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
