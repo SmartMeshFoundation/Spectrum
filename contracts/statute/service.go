@@ -160,7 +160,13 @@ func (self *StatuteService) BindInfo(addr common.Address, blockNumber *big.Int, 
 	defer cancel()
 	opts := new(bind.CallOptsWithNumber)
 	opts.Context = ctx
-	opts.Hash = blockHash
+	if blockHash != nil {
+		opts.Hash = blockHash
+	}
+
+	if blockNumber != nil {
+		opts.Number = blockNumber
+	}
 
 	vo, err := self.anmap.BindInfo(opts, addr)
 	from = vo.From
@@ -202,6 +208,14 @@ func (self *StatuteService) Unbind(from, nodeAddr common.Address, sigHex string)
 		return common.HexToHash("0x"), err
 	}
 	return tx.Hash(), nil
+}
+
+func (self *StatuteService) getBalance(mbox params.Mbox) {
+	success := params.MBoxSuccess{Success: true}
+	addr := mbox.Params["addr"].(common.Address)
+	sdb, _ := self.ethereum.BlockChain().State()
+	success.Entity = map[string]interface{}{"addr": addr, "balance": sdb.GetBalance(addr)}
+	mbox.Rtn <- success
 }
 
 /*
@@ -326,6 +340,8 @@ func (self *StatuteService) loop() {
 			break
 		case mbox := <-params.StatuteService:
 			switch mbox.Method {
+			case "getBalance":
+				self.getBalance(mbox)
 			case "bindInfo":
 				self.bindInfo(mbox)
 			case "bind":

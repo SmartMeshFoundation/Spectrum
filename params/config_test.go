@@ -17,6 +17,7 @@
 package params
 
 import (
+	"github.com/SmartMeshFoundation/Spectrum/common"
 	"math/big"
 	"reflect"
 	"testing"
@@ -78,4 +79,10 @@ func TestCheckCompatible(t *testing.T) {
 			t.Errorf("error mismatch:\nstored: %v\nnew: %v\nhead: %v\nerr: %v\nwant: %v", test.stored, test.new, test.head, err, test.wantErr)
 		}
 	}
+}
+
+func TestHash(t *testing.T) {
+	h := common.Hash{}
+	t.Log(h == common.Hash{})
+
 }
