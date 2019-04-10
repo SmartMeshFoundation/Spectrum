@@ -448,6 +448,42 @@ func (self *TribeStatus) ValidateSigner(parentHeader, header *types.Header, sign
 	return false
 }
 
+func VerifySigner(state *state.StateDB, addr common.Address, header *types.Header) error {
+	if addr == common.HexToAddress("") {
+		return errors.New("signer addr can not be null")
+	}
+	var (
+		num       *big.Int
+		hash      = common.Hash{}
+		volunteer = addr
+	)
+	if header != nil {
+		hash = header.Hash()
+		num = header.Number
+	} else {
+		return errors.New("params of header can not be null")
+	}
+	// skip when v in meshbox.sol
+	if !params.MeshboxExistAddress(volunteer) {
+		f, n, err := params.AnmapBindInfo(volunteer, hash)
+		if err == nil {
+			fb := state.GetBalance(f)
+			nb := state.GetBalance(n)
+			if fb.Cmp(params.GetMinMinerBalance()) < 0 && nb.Cmp(params.GetMinMinerBalance()) < 0 {
+				return ErrTribeChiefVolunteerLowBalance
+			}
+		} else if params.IsSIP004Block(num) {
+			b := state.GetBalance(volunteer)
+			if b.Cmp(params.GetMinMinerBalance()) < 0 {
+				return ErrTribeChiefVolunteerLowBalance
+			}
+		} else {
+			return ErrTribeChiefVolunteerFail
+		}
+	}
+	return nil
+}
+
 // every block
 // sync download or mine
 // check chief tx
@@ -489,24 +525,11 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 			//verify volunteer
 			if state != nil {
 				volunteerHex := common.Bytes2Hex(tx.Data()[4:])
-				if volunteer := common.HexToAddress(volunteerHex); volunteer != common.HexToAddress("") {
-					// skip when v in meshbox.sol
-					if !params.MeshboxExistAddress(volunteer) {
-						f, n, err := params.AnmapBindInfo(volunteer, parent.Hash())
-						if err == nil {
-							fb := state.GetBalance(f)
-							nb := state.GetBalance(n)
-							if fb.Cmp(params.GetMinMinerBalance()) < 0 && nb.Cmp(params.GetMinMinerBalance()) < 0 {
-								return ErrTribeChiefVolunteerLowBalance
-							}
-						} else if params.IsSIP004Block(parent.Number()) {
-							b := state.GetBalance(volunteer)
-							if b.Cmp(params.GetMinMinerBalance()) < 0 {
-								return ErrTribeChiefVolunteerLowBalance
-							}
-						} else {
-							return ErrTribeChiefVolunteerFail
-						}
+				volunteer := common.HexToAddress(volunteerHex)
+				if volunteer != common.HexToAddress("") {
+					log.Info("<<TribeStatus.ValidateBlock>> verify_volunteer =>", "num", number, "v", volunteer.Hex())
+					if err := VerifySigner(state, volunteer, parent.Header()); err != nil {
+						return err
 					}
 				}
 			}
