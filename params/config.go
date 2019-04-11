@@ -104,7 +104,7 @@ var (
 		SIP001Block: big.NewInt(176222),
 		SIP002Block: big.NewInt(525233),
 		SIP003Block: big.NewInt(917013),
-		SIP004Block: big.NewInt(2166666),
+		SIP004Block: big.NewInt(2204723), //2166666
 		Tribe:       &TribeConfig{},
 	}
 

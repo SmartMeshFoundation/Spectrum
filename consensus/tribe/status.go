@@ -424,10 +424,11 @@ func (self *TribeStatus) ValidateSigner(parentHeader, header *types.Header, sign
 	if number <= 3 {
 		return true
 	}
-	if params.IsSIP001Block(header.Number) && header.Coinbase != signer {
+	//TODO check anmap's mapping ???
+	/*if params.IsSIP001Block(header.Number) && header.Coinbase != signer {
 		log.Error("error_signer", "num", header.Number.String(), "miner", header.Coinbase.Hex(), "signer", signer.Hex())
 		return false
-	}
+	}*/
 	var err error
 	signers, err = self.GetSignersFromChiefByHash(parentHash, big.NewInt(number))
 
@@ -448,7 +449,7 @@ func (self *TribeStatus) ValidateSigner(parentHeader, header *types.Header, sign
 	return false
 }
 
-func VerifySigner(state *state.StateDB, addr common.Address, header *types.Header) error {
+func VerifySignerBalance(state *state.StateDB, addr common.Address, header *types.Header) error {
 	if addr == common.HexToAddress("") {
 		return errors.New("signer addr can not be null")
 	}
@@ -528,7 +529,7 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 				volunteer := common.HexToAddress(volunteerHex)
 				if volunteer != common.HexToAddress("") {
 					log.Info("<<TribeStatus.ValidateBlock>> verify_volunteer =>", "num", number, "v", volunteer.Hex())
-					if err := VerifySigner(state, volunteer, parent.Header()); err != nil {
+					if err := VerifySignerBalance(state, volunteer, parent.Header()); err != nil {
 						return err
 					}
 				}

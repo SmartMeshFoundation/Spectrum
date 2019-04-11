@@ -81,7 +81,7 @@ func (self *StatuteService) Start(server *p2p.Server) error {
 				log.Info("<<Meshbox.Start>> cancel ", "cn", cn.Int64(), "tn", mn.Int64())
 				return
 			}
-			log.Info("<<Meshbox.Start>> waiting... ", "cn", cn.Int64(), "tn", mn.Int64())
+			//log.Info("<<Meshbox.Start>> waiting... ", "cn", cn.Int64(), "tn", mn.Int64())
 			<-time.After(14 * time.Second)
 		}
 	}()
@@ -105,7 +105,7 @@ func (self *StatuteService) Start(server *p2p.Server) error {
 				log.Info("<<Anmap.Start>> cancel ", "cn", cn.Int64(), "tn", mn.Int64())
 				return
 			}
-			log.Info("<<Anmap.Start>> waiting... ", "cn", cn.Int64(), "tn", mn.Int64())
+			//log.Info("<<Anmap.Start>> waiting... ", "cn", cn.Int64(), "tn", mn.Int64())
 			<-time.After(14 * time.Second)
 		}
 	}()
@@ -156,6 +156,7 @@ func sigSplit(sigHex string) (R, S [32]byte, V uint8) {
 }
 
 func (self *StatuteService) BindInfo(addr common.Address, blockNumber *big.Int, blockHash *common.Hash) (from, nodeid common.Address, err error) {
+	chash := self.ethereum.BlockChain().CurrentBlock().Hash()
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 	defer cancel()
 	opts := new(bind.CallOptsWithNumber)
@@ -167,7 +168,9 @@ func (self *StatuteService) BindInfo(addr common.Address, blockNumber *big.Int, 
 	if blockNumber != nil {
 		opts.Number = blockNumber
 	}
-
+	if blockNumber == nil && blockHash == nil {
+		opts.Hash = &chash
+	}
 	vo, err := self.anmap.BindInfo(opts, addr)
 	from = vo.From
 	nodeid = vo.Nodeid

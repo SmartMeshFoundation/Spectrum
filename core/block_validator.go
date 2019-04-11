@@ -117,8 +117,8 @@ func (v *BlockValidator) ValidateState(block, parent *types.Block, statedb *stat
 		return fmt.Errorf("invalid merkle root (remote: %x local: %x)", header.Root, root)
 	}
 	if _, ok := v.engine.(*tribe.Tribe); ok {
-		log.Info("<<ValidateState>> verify_signer =>", "num", header.Number, "s", header.Coinbase.Hex())
-		if err := tribe.VerifySigner(statedb, header.Coinbase, header); err != nil {
+		log.Debug("<<ValidateState>> verify_signer =>", "num", header.Number, "s", header.Coinbase.Hex())
+		if err := tribe.VerifySignerBalance(statedb, header.Coinbase, header); err != nil {
 			return err
 		}
 	}
