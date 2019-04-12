@@ -474,13 +474,13 @@ func VerifySignerBalance(state *state.StateDB, addr common.Address, header *type
 			fb := state.GetBalance(f)
 			nb := state.GetBalance(n)
 			if fb.Cmp(params.GetMinMinerBalance()) < 0 && nb.Cmp(params.GetMinMinerBalance()) < 0 {
-				log.Warn("<<VerifySignerBalance>> 1 :", "fb", fb, "nb", nb, "mb", params.GetMinMinerBalance())
+				log.Warn("<<VerifySignerBalance>> 1 :", "f", f.Hex(), "fb", fb, "n", n.Hex(), "nb", nb, "mb", params.GetMinMinerBalance())
 				return ErrTribeChiefVolunteerLowBalance
 			}
 		} else if params.IsSIP004Block(num) {
 			b := state.GetBalance(volunteer)
 			if b.Cmp(params.GetMinMinerBalance()) < 0 {
-				log.Warn("<<VerifySignerBalance>> 2 :", "nb", b, "mb", params.GetMinMinerBalance())
+				log.Warn("<<VerifySignerBalance>> 2 :", "n", n.Hex(), "nb", b, "mb", params.GetMinMinerBalance())
 				return ErrTribeChiefVolunteerLowBalance
 			}
 		}
