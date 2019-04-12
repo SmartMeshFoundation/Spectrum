@@ -28,13 +28,16 @@ func fetchKeystore(am *accounts.Manager) *keystore.KeyStore {
 	return am.Backends(keystore.KeyStoreType)[0].(*keystore.KeyStore)
 }
 
-func (api *API) BindInfo(addr *common.Address) (map[string]interface{}, error) {
+func (api *API) BindInfo(addr *common.Address, num *big.Int) (map[string]interface{}, error) {
 	if addr == nil {
 		nodekey := api.tribe.Status.getNodekey()
 		_addr := crypto.PubkeyToAddress(nodekey.PublicKey)
 		addr = &_addr
 	}
 	hash := api.chain.CurrentHeader().Hash()
+	if num != nil {
+		hash = api.chain.GetHeaderByNumber(num.Uint64()).Hash()
+	}
 	from, nodeid, err := params.AnmapBindInfo(*addr, hash)
 	if err != nil {
 		return nil, err
@@ -71,7 +74,7 @@ func (api *API) Unbind(from *common.Address, passphrase string) (string, error) 
 	nodekey := api.tribe.Status.getNodekey()
 	nodeid := crypto.PubkeyToAddress(nodekey.PublicKey)
 	if from == nil {
-		if m, err := api.BindInfo(&nodeid); err != nil {
+		if m, err := api.BindInfo(&nodeid, nil); err != nil {
 			return "", err
 		} else {
 			_from := m["from"].(common.Address)
