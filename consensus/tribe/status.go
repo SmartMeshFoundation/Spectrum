@@ -478,8 +478,6 @@ func VerifySignerBalance(state *state.StateDB, addr common.Address, header *type
 			if b.Cmp(params.GetMinMinerBalance()) < 0 {
 				return ErrTribeChiefVolunteerLowBalance
 			}
-		} else {
-			return ErrTribeChiefVolunteerFail
 		}
 	}
 	return nil
