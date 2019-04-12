@@ -113,7 +113,7 @@ var (
 type TxStatus uint
 
 const (
-	TxStatusUnknown  TxStatus = iota
+	TxStatusUnknown TxStatus = iota
 	TxStatusQueued
 	TxStatusPending
 	TxStatusIncluded
@@ -627,9 +627,23 @@ func (pool *TxPool) Pending() (map[common.Address]types.Transactions, error) {
 	pending := make(map[common.Address]types.Transactions)
 	var mid common.Address
 
+	// add by liangc 190412 : if the sender in signerList now refuse and skip this tx
+	signerMap := make(map[common.Address]struct{})
+	cb := pool.chain.CurrentBlock()
+	if cs, err := params.TribeGetStatus(cb.Number(), cb.Hash()); err == nil {
+		for _, signer := range cs.SignerList {
+			signerMap[signer] = struct{}{}
+		}
+	}
+
 	for _, kv := range pool.pending.asList() {
 		addr, list := kv.key, kv.val
-		pending[addr] = list.Flatten()
+		// add by liangc : if the sender in signerList now refuse and skip this tx
+		if _, ok := signerMap[addr]; !ok {
+			pending[addr] = list.Flatten()
+		} else {
+			log.Warn("sender_in_signerlist_skip_txs", "num", cb.Number(), "addr", addr.Hex())
+		}
 	}
 
 	//add by liangc : append chiefTx and delete
@@ -637,18 +651,13 @@ func (pool *TxPool) Pending() (map[common.Address]types.Transactions, error) {
 		chiefTx := pool.chiefTx
 		pool.chiefTx = nil
 		mid, _ = types.Sender(pool.signer, chiefTx)
-		//TODO will enable execute chief's tx method
-		//TODO will enable execute chief's tx method
-		//TODO will enable execute chief's tx method
 		if _txs, ok := pending[mid]; ok {
 			pending[mid] = append(_txs[:], chiefTx)
-			for _i, _tx := range pending[mid] {
-				fmt.Println(_i, "👮 --onPending-->", _tx.Hash().Hex(), _tx.Nonce())
-			}
 		} else {
 			pending[mid] = types.Transactions{chiefTx}
 		}
 	}
+
 	return pending, nil
 }
 
@@ -720,9 +729,7 @@ func (pool *TxPool) addChief(tx *types.Transaction) bool {
 		if params.IsChiefUpdate(tx.Data()) {
 			if *from == crypto.PubkeyToAddress(pool.nodeKey.PublicKey) {
 				pool.chiefTx = tx
-				//params.FixChiefTxNonce(tx.To(), tx.Nonce())
-				log.Info("TxPool.addChief", "txNonce", tx.Nonce())
-				//fmt.Println(pool.chain.CurrentBlock().Number().Int64(), "--XXXX-- TxPool.addChief:FixChiefTxNonce ---->",pool.chiefTx.Nonce(), pool.chiefTx.Hash().Hex())
+				log.Debug("TxPool.addChief", "txNonce", tx.Nonce())
 				return true
 			} else {
 				debug.PrintStack()
@@ -731,46 +738,12 @@ func (pool *TxPool) addChief(tx *types.Transaction) bool {
 				return true
 			}
 		} else {
-			//TODO will enable execute chief's tx method
-			//TODO will enable execute chief's tx method
-			//TODO will enable execute chief's tx method
-			log.Warn("👮 --onAddChief--> lost_now ", "txid", tx.Hash().Hex(), "input", tx.Data())
+			log.Warn("👮 --onAddChief--> skip", "txid", tx.Hash().Hex(), "input", tx.Data())
 			return true
 		}
 	}
 	return false
 }
-
-// log the fail tx on dict, when counter > 32 remove this tx
-func (pool *TxPool) IncFailTx(txHash common.Hash) {
-	/*
-		pool.failMu.Lock()
-		defer pool.failMu.Unlock()
-		counter, ok := pool.fail[txHash]
-		if ok {
-			pool.fail[txHash] = atomic.AddInt32(&counter, 1)
-		} else {
-			pool.fail[txHash] = 1
-		}
-		log.Debug("IncFailTx", "tx", txHash.Hex(), "counter", counter)
-	*/
-}
-
-/*
-func (pool *TxPool) fixChief(tx *types.Transaction) error {
-	if tx.To() != nil && *tx.To() == common.HexToAddress(params.ChiefAddress) {
-		fmt.Println(pool.chain.CurrentBlock().Number().Int64(), "--> TxPool.add : fixChief :", tx.Nonce(), tx.Hash().Hex())
-		from, _ := types.Sender(pool.signer, tx) // already validated
-		//pool.promoteExecutables([]common.Address{from})
-		if pool.pending[from] == nil {
-			pool.pending[from] = newTxList(true)
-		}
-		list := pool.pending[from]
-		list.Add(tx, pool.config.PriceBump)
-	}
-	return nil
-}
-*/
 
 // add validates a transaction and inserts it into the non-executable queue for
 // later pending promotion and execution. If the transaction is a replacement for

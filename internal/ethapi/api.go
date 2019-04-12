@@ -32,6 +32,7 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/common/math"
 	"github.com/SmartMeshFoundation/Spectrum/consensus/ethash"
 	"github.com/SmartMeshFoundation/Spectrum/core"
+	"github.com/SmartMeshFoundation/Spectrum/core/state"
 	"github.com/SmartMeshFoundation/Spectrum/core/types"
 	"github.com/SmartMeshFoundation/Spectrum/core/vm"
 	"github.com/SmartMeshFoundation/Spectrum/crypto"
@@ -42,7 +43,6 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/rpc"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/util"
-	"github.com/SmartMeshFoundation/Spectrum/core/state"
 )
 
 const (
@@ -590,7 +590,7 @@ func (s *PublicBlockChainAPI) doCallWithHash(ctx context.Context, args CallArgs,
 		return nil, common.Big0, false, err
 	}
 	//fmt.Println("PublicBlockChainAPI.doCallWithHash #>",header.Number.Int64(),hash.Hex())
-	return s._doCall(ctx,args,vmCfg,state,header)
+	return s._doCall(ctx, args, vmCfg, state, header)
 }
 
 // add by liangc
@@ -601,9 +601,9 @@ func (s *PublicBlockChainAPI) doCallWithNumber(ctx context.Context, args CallArg
 	if state == nil || err != nil {
 		return nil, common.Big0, false, err
 	}
-	return s._doCall(ctx,args,vmCfg,state,header)
+	return s._doCall(ctx, args, vmCfg, state, header)
 }
-func (s *PublicBlockChainAPI) _doCall(ctx context.Context,args CallArgs,vmCfg vm.Config,state *state.StateDB,header *types.Header) ([]byte, *big.Int, bool, error) {
+func (s *PublicBlockChainAPI) _doCall(ctx context.Context, args CallArgs, vmCfg vm.Config, state *state.StateDB, header *types.Header) ([]byte, *big.Int, bool, error) {
 
 	// Set sender address or use a default if none specified
 	addr := args.From
@@ -663,10 +663,10 @@ func (s *PublicBlockChainAPI) _doCall(ctx context.Context,args CallArgs,vmCfg vm
 // Call executes the given transaction on the state for the given block number.
 // It doesn't make and changes in the state/blockchain and is useful to execute and retrieve values.
 // modify by liangc : append *hash params
-func (s *PublicBlockChainAPI) Call(ctx context.Context, args CallArgs, blockNr rpc.BlockNumber,hash *common.Hash) (hexutil.Bytes, error) {
+func (s *PublicBlockChainAPI) Call(ctx context.Context, args CallArgs, blockNr rpc.BlockNumber, hash *common.Hash) (hexutil.Bytes, error) {
 	var (
 		result []byte
-		err error
+		err    error
 	)
 	//fmt.Println(1,"PublicBlockChainAPI.Call",hash)
 	//fmt.Println(2,"PublicBlockChainAPI.Call",hash.Hex())
@@ -674,7 +674,7 @@ func (s *PublicBlockChainAPI) Call(ctx context.Context, args CallArgs, blockNr r
 	if hash != nil {
 		result, _, _, err = s.doCallWithHash(ctx, args, hash, vm.Config{DisableGasMetering: true})
 		//fmt.Println("doCallWithHash :::> ",hash.Hex(),"err:",err)
-	}else{
+	} else {
 		result, _, _, err = s.doCallWithNumber(ctx, args, blockNr, vm.Config{DisableGasMetering: true})
 	}
 	return (hexutil.Bytes)(result), err
@@ -826,25 +826,25 @@ func (s *PublicBlockChainAPI) rpcOutputBlock(b *types.Block, inclTx bool, fullTx
 			}
 		}
 		/*
-		txs := b.Transactions()
-		transactions := make([]interface{}, len(txs))
-		var err error
-		for i, tx := range b.Transactions() {
+			txs := b.Transactions()
+			transactions := make([]interface{}, len(txs))
+			var err error
+			for i, tx := range b.Transactions() {
 
-			if transactions[i], err = formatTx(tx); err != nil {
-				return nil, err
+				if transactions[i], err = formatTx(tx); err != nil {
+					return nil, err
+				}
 			}
-		}
 		*/
 		// modify by liangc
 		transactions := make([]interface{}, 0)
 		for i, tx := range b.Transactions() {
-			if !log.IsDebug() && tx.To()!=nil && params.IsChiefAddress(*tx.To()) && params.IsChiefUpdate(tx.Data()) {
-				log.Debug("hidden chief","idx",i,"txid",tx.Hash().Hex())
-			}else if _tx, err := formatTx(tx); err != nil {
+			if !log.IsDebug() && tx.To() != nil && params.IsChiefAddress(*tx.To()) && params.IsChiefUpdate(tx.Data()) {
+				log.Debug("hidden chief", "idx", i, "txid", tx.Hash().Hex())
+			} else if _tx, err := formatTx(tx); err != nil {
 				return nil, err
-			}else{
-				transactions = append(transactions,_tx)
+			} else {
+				transactions = append(transactions, _tx)
 			}
 		}
 		fields["transactions"] = transactions
@@ -1048,7 +1048,7 @@ func (s *PublicTransactionPoolAPI) GetTransactionReceipt(hash common.Hash) (map[
 	tx, blockHash, blockNumber, index := core.GetTransaction(s.b.ChainDb(), hash)
 	if tx == nil {
 		//return nil, errors.New("unknown transaction")
-		return nil,nil
+		return nil, nil
 	}
 	receipt, _, _, _ := core.GetReceipt(s.b.ChainDb(), hash) // Old receipts don't have the lookup data available
 	if receipt == nil {
@@ -1176,8 +1176,8 @@ func submitTransaction(ctx context.Context, b Backend, tx *types.Transaction) (c
 		}
 		addr := crypto.CreateAddress(from, tx.Nonce())
 		log.Info("Submitted contract creation", "fullhash", tx.Hash().Hex(), "contract", addr.Hex())
-	} else {
-		log.Info("Submitted transaction", "fullhash", tx.Hash().Hex(), "recipient", tx.To())
+		//} else {
+		//log.Info("Submitted transaction", "fullhash", tx.Hash().Hex(), "recipient", tx.To())
 	}
 	return tx.Hash(), nil
 }

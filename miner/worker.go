@@ -50,12 +50,7 @@ const (
 	chainHeadChanSize = 10
 	// chainSideChanSize is the size of channel listening to ChainSideEvent.
 	chainSideChanSize = 10
-	// add by liangc : fail tx will tag at txPool.fail ,when
-	failTxChanSize = 4096
 )
-
-// add by liangc
-var failTxCh = make(chan common.Hash, failTxChanSize)
 
 func appendToFailTx(txHash common.Hash) {
 	//failTxCh <- txHash
@@ -171,12 +166,6 @@ func newWorker(config *params.ChainConfig, engine consensus.Engine, coinbase com
 	} else {
 		worker.commitNewWork()
 	}
-	// add by liangc
-	go func() {
-		for txHash := range failTxCh {
-			eth.TxPool().IncFailTx(txHash)
-		}
-	}()
 	return worker
 }
 
@@ -522,15 +511,6 @@ func (self *worker) commitNewWork() {
 		log.Error("Failed to fetch pending transactions", "err", err)
 		return
 	}
-	/* debug --->
-	for _,_v := range pending {
-		for _,_tx := range _v {
-			if _tx.To()!=nil && params.IsChiefAddress(*_tx.To()) {
-				log.Info("-chiefTx->","cheifTx",_tx.Hash().Hex(),"input",_tx.Data())
-			}
-		}
-	}
-	debug <--- */
 
 	log.Debug("pending_len", "cn", parent.Number().Int64(), "len", len(pending))
 	txs := types.NewTransactionsByPriceAndNonce(self.current.signer, pending)
@@ -568,9 +548,7 @@ func (self *worker) commitNewWork() {
 		log.Info("Commit new mining work", "number", work.Block.Number(), "txs", work.tcount, "uncles", len(uncles), "elapsed", common.PrettyDuration(time.Since(tstart)))
 		self.unconfirmed.Shift(work.Block.NumberU64() - 1)
 	}
-	//fmt.Println("---- commitNewWork.Transactions.start ---->", len(work.Block.Transactions()))
 	self.push(work)
-	//fmt.Println("---- commitNewWork.Transactions.end---->", len(work.Block.Transactions()))
 }
 
 func (self *worker) commitUncle(work *Work, uncle *types.Header) error {

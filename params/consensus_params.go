@@ -381,6 +381,16 @@ type MBoxSuccess struct {
 	Entity  interface{}
 }
 
+func TribeGetStatus(num *big.Int, hash common.Hash) (ChiefStatus, error) {
+	rtn := SendToMsgBoxWithHash("GetStatus", hash, num)
+	r := <-rtn
+	if !r.Success {
+		return ChiefStatus{}, r.Entity.(error)
+	}
+	cs := r.Entity.(ChiefStatus)
+	return cs, nil
+}
+
 // called by chief.GetStatus
 func SendToMsgBoxWithHash(method string, hash common.Hash, number *big.Int) chan MBoxSuccess {
 	rtn := make(chan MBoxSuccess)

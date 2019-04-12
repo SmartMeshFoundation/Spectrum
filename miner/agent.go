@@ -21,9 +21,9 @@ import (
 
 	"sync/atomic"
 
+	"fmt"
 	"github.com/SmartMeshFoundation/Spectrum/consensus"
 	"github.com/SmartMeshFoundation/Spectrum/log"
-	"fmt"
 )
 
 type CpuAgent struct {
@@ -59,7 +59,7 @@ func (self *CpuAgent) Stop() {
 	}
 	self.stop <- struct{}{}
 done:
-// Empty work channel
+	// Empty work channel
 	for {
 		select {
 		case <-self.workCh:
@@ -112,7 +112,7 @@ func (self *CpuAgent) mine(work *Work, stop <-chan struct{}) {
 		}
 	} else {
 		if err != nil {
-			log.Warn("Block sealing failed", "err", err)
+			log.Debug("Block sealing failed", "err", err)
 		}
 		self.returnCh <- nil
 	}

@@ -143,7 +143,7 @@ func (self *TribeService) loop() {
 }
 
 func (self *TribeService) Stop() error {
-	self.quit <- 1
+	close(self.quit)
 	return nil
 }
 
@@ -344,7 +344,7 @@ func (self *TribeService) update(mbox params.Mbox) {
 		success.Entity = t.Hash().Hex()
 	}
 	mbox.Rtn <- success
-	log.Info("chief.mbox.rtn: update <-", "success", success)
+	log.Debug("chief.mbox.rtn: update <-", "success", success)
 }
 
 // --------------------------------------------------------------------------------------------------

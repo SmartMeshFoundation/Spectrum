@@ -267,12 +267,10 @@ func (self *TribeStatus) GetSignersFromChiefByHash(hash common.Hash, number *big
 
 // 在 加载完所有 node.service 后，需要主动调用一次
 func (self *TribeStatus) LoadSignersFromChief(hash common.Hash, number *big.Int) error {
-	rtn := params.SendToMsgBoxWithHash("GetStatus", hash, number)
-	r := <-rtn
-	if !r.Success {
-		return r.Entity.(error)
+	cs, err := params.TribeGetStatus(number, hash)
+	if err != nil {
+		panic(err)
 	}
-	cs := r.Entity.(params.ChiefStatus)
 	signers := cs.SignerList
 	scores := cs.ScoreList
 	sl := make([]*Signer, 0, len(signers))
@@ -523,8 +521,21 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 	if block != nil && block.Transactions().Len() == 0 {
 		return ErrTribeNotAllowEmptyTxList
 	}
+
+	// add by liangc 190412 : if the sender in signerList now refuse and skip this tx
+	signerMap := make(map[common.Address]struct{})
+	for _, signer := range self.Signers {
+		signerMap[signer.Address] = struct{}{}
+	}
+
 	var total = 0
-	for _, tx := range block.Transactions() {
+	for i, tx := range block.Transactions() {
+
+		from := types.GetFromByTx(tx)
+		if _, ok := signerMap[*from]; i > 0 && ok {
+			return ErrTribeValdateTxSenderCannotInSignerList
+		}
+
 		if tx.To() != nil && params.IsChiefAddress(*tx.To()) && params.IsChiefUpdate(tx.Data()) {
 			//verify volunteer
 			if state != nil {
