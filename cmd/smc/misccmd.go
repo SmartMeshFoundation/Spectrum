@@ -20,43 +20,41 @@ import (
 	"fmt"
 	"os"
 	"runtime"
-	"strconv"
 	"strings"
 
 	"github.com/SmartMeshFoundation/Spectrum/cmd/utils"
-	"github.com/SmartMeshFoundation/Spectrum/consensus/ethash"
 	"github.com/SmartMeshFoundation/Spectrum/eth"
 	"github.com/SmartMeshFoundation/Spectrum/params"
 	"gopkg.in/urfave/cli.v1"
 )
 
 var (
-	makecacheCommand = cli.Command{
-		Action:    utils.MigrateFlags(makecache),
-		Name:      "makecache",
-		Usage:     "Generate ethash verification cache (for testing)",
-		ArgsUsage: "<blockNum> <outputDir>",
-		Category:  "MISCELLANEOUS COMMANDS",
-		Description: `
-The makecache command generates an ethash cache in <outputDir>.
+	/*	makecacheCommand = cli.Command{
+			Action:    utils.MigrateFlags(makecache),
+			Name:      "makecache",
+			Usage:     "Generate ethash verification cache (for testing)",
+			ArgsUsage: "<blockNum> <outputDir>",
+			Category:  "MISCELLANEOUS COMMANDS",
+			Description: `
+	The makecache command generates an ethash cache in <outputDir>.
 
-This command exists to support the system testing project.
-Regular users do not need to execute it.
-`,
-	}
-	makedagCommand = cli.Command{
-		Action:    utils.MigrateFlags(makedag),
-		Name:      "makedag",
-		Usage:     "Generate ethash mining DAG (for testing)",
-		ArgsUsage: "<blockNum> <outputDir>",
-		Category:  "MISCELLANEOUS COMMANDS",
-		Description: `
-The makedag command generates an ethash DAG in <outputDir>.
+	This command exists to support the system testing project.
+	Regular users do not need to execute it.
+	`,
+		}*/
+	/*	makedagCommand = cli.Command{
+			Action:    utils.MigrateFlags(makedag),
+			Name:      "makedag",
+			Usage:     "Generate ethash mining DAG (for testing)",
+			ArgsUsage: "<blockNum> <outputDir>",
+			Category:  "MISCELLANEOUS COMMANDS",
+			Description: `
+	The makedag command generates an ethash DAG in <outputDir>.
 
-This command exists to support the system testing project.
-Regular users do not need to execute it.
-`,
-	}
+	This command exists to support the system testing project.
+	Regular users do not need to execute it.
+	`,
+		}*/
 	versionCommand = cli.Command{
 		Action:    utils.MigrateFlags(version),
 		Name:      "version",
@@ -77,7 +75,7 @@ The output of this command is supposed to be machine-readable.
 )
 
 // makecache generates an ethash verification cache into the provided folder.
-func makecache(ctx *cli.Context) error {
+/*func makecache(ctx *cli.Context) error {
 	args := ctx.Args()
 	if len(args) != 2 {
 		utils.Fatalf(`Usage: geth makecache <block number> <outputdir>`)
@@ -89,10 +87,10 @@ func makecache(ctx *cli.Context) error {
 	ethash.MakeCache(block, args[1])
 
 	return nil
-}
+}*/
 
 // makedag generates an ethash mining DAG into the provided folder.
-func makedag(ctx *cli.Context) error {
+/*func makedag(ctx *cli.Context) error {
 	args := ctx.Args()
 	if len(args) != 2 {
 		utils.Fatalf(`Usage: geth makedag <block number> <outputdir>`)
@@ -104,14 +102,16 @@ func makedag(ctx *cli.Context) error {
 	ethash.MakeDataset(block, args[1])
 
 	return nil
-}
+}*/
 
 func version(ctx *cli.Context) error {
+	fmt.Println("======================================================")
 	fmt.Println(strings.Title(clientIdentifier))
 	fmt.Println("Version:", params.Version)
 	if gitCommit != "" {
 		fmt.Println("Git Commit:", gitCommit)
 	}
+	fmt.Println("======================================================")
 	fmt.Println("Architecture:", runtime.GOARCH)
 	fmt.Println("Protocol Versions:", eth.ProtocolVersions)
 	fmt.Println("Network Id:", eth.DefaultConfig.NetworkId)
@@ -119,24 +119,24 @@ func version(ctx *cli.Context) error {
 	fmt.Println("Operating System:", runtime.GOOS)
 	fmt.Printf("GOPATH=%s\n", os.Getenv("GOPATH"))
 	fmt.Printf("GOROOT=%s\n", runtime.GOROOT())
-	fmt.Println("Based On:", "go-ethereum/1.8.0-unstable")
+	fmt.Println("Based On:", "go-ethereum")
 	fmt.Println("Email:", "cc14514@icloud.com")
 	return nil
 }
 
 func license(_ *cli.Context) error {
-	fmt.Println(`SmartmeshChain (Ethereum-based) is free software: you can redistribute it and/or modify
+	fmt.Println(`Spectrum (Ethereum-based) is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-SmartmeshChain is distributed in the hope that it will be useful,
+Spectrum is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with SmartmeshChain. If not, see <http://www.gnu.org/licenses/>.
+along with Spectrum. If not, see <http://www.gnu.org/licenses/>.
 `)
 	return nil
 }

@@ -39,18 +39,18 @@ var (
 	solcFlag = flag.String("solc", "solc", "Solidity compiler to use if source builds are requested")
 	excFlag  = flag.String("exc", "", "Comma separated types to exclude from binding")
 
-	pkgFlag  = flag.String("pkg", "", "Package name to generate the binding into")
-	outFlag  = flag.String("out", "", "Output file for the generated binding (default = stdout)")
-	langFlag = flag.String("lang", "go", "Destination language for the bindings (go, java, objc)")
-	versionFlag  = flag.Bool("version", false, "show version")
+	pkgFlag     = flag.String("pkg", "", "Package name to generate the binding into")
+	outFlag     = flag.String("out", "", "Output file for the generated binding (default = stdout)")
+	langFlag    = flag.String("lang", "go", "Destination language for the bindings (go, java, objc)")
+	versionFlag = flag.Bool("version", false, "show version")
 )
 
 func main() {
 	// Parse and ensure all needed inputs are specified
 	flag.Parse()
 	if *versionFlag {
-		fmt.Println("Version :",VSN)
-		fmt.Println("Copyright 2017-2018 The SmartmeshChain Author (Ethereum-based)")
+		fmt.Println("Version :", VSN)
+		fmt.Println("Copyright 2017-2018 The Spectrum Author (Ethereum-based)")
 		os.Exit(-1)
 	}
 	if *abiFlag == "" && *solFlag == "" {

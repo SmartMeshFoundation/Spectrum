@@ -54,17 +54,18 @@ var (
 		utils.UnlockedAccountFlag,
 		utils.PasswordFileFlag,
 		utils.BootnodesFlag,
-		utils.BootnodesV4Flag,
-		utils.BootnodesV5Flag,
+		//utils.BootnodesV4Flag,
+		//utils.BootnodesV5Flag,
 		utils.DataDirFlag,
 		utils.KeyStoreDirFlag,
-
-		utils.EthashCacheDirFlag,
-		utils.EthashCachesInMemoryFlag,
-		utils.EthashCachesOnDiskFlag,
-		utils.EthashDatasetDirFlag,
-		utils.EthashDatasetsInMemoryFlag,
-		utils.EthashDatasetsOnDiskFlag,
+		/*
+			utils.EthashCacheDirFlag,
+			utils.EthashCachesInMemoryFlag,
+			utils.EthashCachesOnDiskFlag,
+			utils.EthashDatasetDirFlag,
+			utils.EthashDatasetsInMemoryFlag,
+			utils.EthashDatasetsOnDiskFlag,
+		*/
 		utils.TxPoolNoLocalsFlag,
 		utils.TxPoolJournalFlag,
 		utils.TxPoolRejournalFlag,
@@ -94,6 +95,13 @@ var (
 
 		utils.NodeKeyFileFlag,
 		utils.NodeKeyHexFlag,
+
+		utils.MinerThreadsFlag,
+		utils.MiningEnabledFlag,
+
+		utils.DiscoveryV5Flag,
+
+		utils.FakePoWFlag,
 		*/
 		utils.CacheFlag,
 		utils.TrieCacheGenFlag,
@@ -102,23 +110,18 @@ var (
 		utils.MaxPendingPeersFlag,
 		utils.EtherbaseFlag,
 		utils.GasPriceFlag,
-		utils.MinerThreadsFlag,
-		utils.MiningEnabledFlag,
 		utils.TargetGasLimitFlag,
 		utils.NATFlag,
 		utils.NoDiscoverFlag,
-		utils.DiscoveryV5Flag,
 		utils.NetrestrictFlag,
 		utils.DeveloperFlag,
 		utils.DeveloperPeriodFlag,
 		utils.TestnetFlag,
-		utils.RinkebyFlag,
 		utils.VMEnableDebugFlag,
 		utils.NetworkIdFlag,
 		utils.RPCCORSDomainFlag,
 		utils.EthStatsURLFlag,
 		utils.MetricsEnabledFlag,
-		utils.FakePoWFlag,
 		utils.NoCompactionFlag,
 		utils.GpoBlocksFlag,
 		utils.GpoPercentileFlag,
@@ -151,7 +154,7 @@ func init() {
 	// Initialize the CLI app and start Geth
 	app.Action = smc
 	app.HideVersion = true // we have a command to print the version
-	app.Copyright = "Copyright 2017-2018 The Spectrum Author (Ethereum-based:1.8.0)"
+	app.Copyright = "Copyright 2017-2018 The Spectrum Author"
 	app.Commands = []cli.Command{
 		// See chaincmd.go:
 		initCommand,
@@ -170,8 +173,8 @@ func init() {
 		attachCommand,
 		javascriptCommand,
 		// See misccmd.go:
-		makecacheCommand,
-		makedagCommand,
+		//makecacheCommand,
+		//makedagCommand,
 		versionCommand,
 		bugCommand,
 		licenseCommand,
@@ -186,7 +189,7 @@ func init() {
 	app.Flags = append(app.Flags, rpcFlags...)
 	app.Flags = append(app.Flags, consoleFlags...)
 	app.Flags = append(app.Flags, debug.Flags...)
-	app.Flags = append(app.Flags, whisperFlags...)
+	//app.Flags = append(app.Flags, whisperFlags...)
 
 	app.Before = func(ctx *cli.Context) error {
 		// add by liangc : append testnet flag

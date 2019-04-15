@@ -69,35 +69,37 @@ var AppHelpFlagGroups = []flagGroup{
 			configFileFlag,
 			utils.DataDirFlag,
 			utils.KeyStoreDirFlag,
-			utils.NoUSBFlag,
 			utils.NetworkIdFlag,
 			utils.TestnetFlag,
-			utils.RinkebyFlag,
-			utils.SyncModeFlag,
 			utils.EthStatsURLFlag,
 			utils.IdentityFlag,
-			utils.LightServFlag,
-			utils.LightPeersFlag,
-			utils.LightKDFFlag,
+			/*
+				utils.NoUSBFlag,
+				utils.SyncModeFlag,
+				utils.LightServFlag,
+				utils.LightPeersFlag,
+				utils.LightKDFFlag,
+			*/
 		},
 	},
+	/* add by liangc : disable
 	{Name: "DEVELOPER CHAIN",
 		Flags: []cli.Flag{
 			utils.DeveloperFlag,
 			utils.DeveloperPeriodFlag,
 		},
 	},
-	{
-		Name: "ETHASH",
-		Flags: []cli.Flag{
-			utils.EthashCacheDirFlag,
-			utils.EthashCachesInMemoryFlag,
-			utils.EthashCachesOnDiskFlag,
-			utils.EthashDatasetDirFlag,
-			utils.EthashDatasetsInMemoryFlag,
-			utils.EthashDatasetsOnDiskFlag,
-		},
-	},
+		{
+			Name: "ETHASH",
+			Flags: []cli.Flag{
+				utils.EthashCacheDirFlag,
+				utils.EthashCachesInMemoryFlag,
+				utils.EthashCachesOnDiskFlag,
+				utils.EthashDatasetDirFlag,
+				utils.EthashDatasetsInMemoryFlag,
+				utils.EthashDatasetsOnDiskFlag,
+			},
+		},*/
 	//{
 	//	Name: "DASHBOARD",
 	//	Flags: []cli.Flag{
@@ -161,21 +163,22 @@ var AppHelpFlagGroups = []flagGroup{
 		Name: "NETWORKING",
 		Flags: []cli.Flag{
 			utils.BootnodesFlag,
-			utils.BootnodesV4Flag,
-			utils.BootnodesV5Flag,
 			utils.ListenPortFlag,
 			utils.MaxPeersFlag,
 			utils.MaxPendingPeersFlag,
 			utils.NATFlag,
 			utils.NoDiscoverFlag,
-			utils.DiscoveryV5Flag,
 			utils.NetrestrictFlag,
 			/* add by liangc : disable
+			utils.DiscoveryV5Flag,
+			utils.BootnodesV4Flag,
+			utils.BootnodesV5Flag,
 			utils.NodeKeyFileFlag,
 			utils.NodeKeyHexFlag,
 			*/
 		},
 	},
+	/* add by liangc : disable
 	{
 		Name: "MINER",
 		Flags: []cli.Flag{
@@ -187,6 +190,7 @@ var AppHelpFlagGroups = []flagGroup{
 			utils.ExtraDataFlag,
 		},
 	},
+	*/
 	{
 		Name: "GAS PRICE ORACLE",
 		Flags: []cli.Flag{
@@ -208,6 +212,7 @@ var AppHelpFlagGroups = []flagGroup{
 			utils.NoCompactionFlag,
 		}, debug.Flags...),
 	},
+	/* add by liangc : disable
 	{
 		Name:  "WHISPER (EXPERIMENTAL)",
 		Flags: whisperFlags,
@@ -218,7 +223,7 @@ var AppHelpFlagGroups = []flagGroup{
 			utils.FastSyncFlag,
 			utils.LightModeFlag,
 		},
-	},
+	},*/
 	{
 		Name: "MISC",
 	},

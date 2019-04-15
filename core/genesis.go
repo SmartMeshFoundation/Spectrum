@@ -315,9 +315,9 @@ func GenesisBlockForTesting(db ethdb.Database, addr common.Address, balance *big
 func DefaultGenesisBlock() *Genesis {
 	genesisSigner := "0x00000000000000000000000000000000000000000000000000000000000000003a5fBaC6CA913599C5fde8c1638dB58d01De8A480000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 	return &Genesis{
-		Config:    params.MainnetChainConfig,
-		Nonce:     0,
-		ExtraData: hexutil.MustDecode(genesisSigner),
+		Config:     params.MainnetChainConfig,
+		Nonce:      0,
+		ExtraData:  hexutil.MustDecode(genesisSigner),
 		GasLimit:   5000000,
 		Difficulty: big.NewInt(2),
 		Alloc:      decodePrealloc(mainnetAllocData),
@@ -328,24 +328,12 @@ func DefaultGenesisBlock() *Genesis {
 func DefaultTestnetGenesisBlock() *Genesis {
 	genesisSigner := "0x00000000000000000000000000000000000000000000000000000000000000004110bd1ff0b73fa12c259acf39c950277f2667870000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 	return &Genesis{
-		Config:    params.TestnetChainConfig,
-		Nonce:     0,
-		ExtraData: hexutil.MustDecode(genesisSigner),
+		Config:     params.TestnetChainConfig,
+		Nonce:      0,
+		ExtraData:  hexutil.MustDecode(genesisSigner),
 		GasLimit:   16777216,
 		Difficulty: big.NewInt(1),
 		Alloc:      decodePrealloc(testnetAllocData),
-	}
-}
-
-// DefaultRinkebyGenesisBlock returns the Rinkeby network genesis block.
-func DefaultRinkebyGenesisBlock() *Genesis {
-	return &Genesis{
-		Config:     params.RinkebyChainConfig,
-		Timestamp:  1492009146,
-		ExtraData:  hexutil.MustDecode("0x52657370656374206d7920617574686f7269746168207e452e436172746d616e42eb768f2244c8811c63729a21a3569731535f067ffc57839b00206d1ad20c69a1981b489f772031b279182d99e65703f0076e4812653aab85fca0f00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"),
-		GasLimit:   4700000,
-		Difficulty: big.NewInt(1),
-		Alloc:      decodePrealloc(rinkebyAllocData),
 	}
 }
 
@@ -371,7 +359,7 @@ func DeveloperGenesisBlock(period uint64, faucet common.Address) *Genesis {
 			common.BytesToAddress([]byte{6}): {Balance: big.NewInt(1)}, // ECAdd
 			common.BytesToAddress([]byte{7}): {Balance: big.NewInt(1)}, // ECScalarMul
 			common.BytesToAddress([]byte{8}): {Balance: big.NewInt(1)}, // ECPairing
-			faucet: {Balance: new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 256), big.NewInt(9))},
+			faucet:                           {Balance: new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 256), big.NewInt(9))},
 		},
 	}
 }
