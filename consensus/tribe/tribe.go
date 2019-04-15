@@ -392,7 +392,7 @@ func (t *Tribe) verifySeal(chain consensus.ChainReader, header *types.Header, pa
 // header for running the transactions on top.
 func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error {
 	number := header.Number.Uint64()
-	if f, _, err := params.AnmapBindInfo(t.Status.GetMinerAddress(), chain.CurrentHeader().Hash()); err == nil {
+	if f, _, err := params.AnmapBindInfo(t.Status.GetMinerAddress(), chain.CurrentHeader().Hash()); err == nil && f != common.HexToAddress("0x") {
 		fmt.Println("---------->f1:", f.Hex())
 		header.Coinbase = f
 	} else {
