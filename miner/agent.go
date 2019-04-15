@@ -112,7 +112,7 @@ func (self *CpuAgent) mine(work *Work, stop <-chan struct{}) {
 		}
 	} else {
 		if err != nil {
-			log.Info("❌ Block sealing failed", "err", err)
+			log.Debug("❌ Block sealing failed", "err", err)
 		}
 		self.returnCh <- nil
 	}
