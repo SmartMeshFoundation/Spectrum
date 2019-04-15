@@ -22,7 +22,7 @@ import (
 )
 
 type AnmapService interface {
-	BindInfo(addr common.Address, blockNumber *big.Int, blockHash *common.Hash) (from, nodeid common.Address, err error)
+	BindInfo(addr common.Address, blockNumber *big.Int, blockHash *common.Hash) (from common.Address, nodeids []common.Address, err error)
 	Bind(from, nodeAddr common.Address, sigHex string) (common.Hash, error)
 	Unbind(from, nodeAddr common.Address, sigHex string) (common.Hash, error)
 }
@@ -155,7 +155,7 @@ func sigSplit(sigHex string) (R, S [32]byte, V uint8) {
 	return
 }
 
-func (self *StatuteService) BindInfo(addr common.Address, blockNumber *big.Int, blockHash *common.Hash) (from, nodeid common.Address, err error) {
+func (self *StatuteService) BindInfo(addr common.Address, blockNumber *big.Int, blockHash *common.Hash) (from common.Address, nodeids []common.Address, err error) {
 	chash := self.ethereum.BlockChain().CurrentBlock().Hash()
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 	defer cancel()
@@ -173,7 +173,7 @@ func (self *StatuteService) BindInfo(addr common.Address, blockNumber *big.Int, 
 	}
 	vo, err := self.anmap.BindInfo(opts, addr)
 	from = vo.From
-	nodeid = vo.Nodeid
+	nodeids = vo.Nids
 	return
 }
 
@@ -247,7 +247,7 @@ func (self *StatuteService) bindInfo(mbox params.Mbox) {
 		success.Success = false
 		success.Entity = err
 	} else {
-		success.Entity = map[string]interface{}{"from": f, "nodeid": n}
+		success.Entity = map[string]interface{}{"from": f, "nodeids": n}
 	}
 	mbox.Rtn <- success
 }

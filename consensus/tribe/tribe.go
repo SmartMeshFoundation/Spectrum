@@ -535,17 +535,15 @@ func (t *Tribe) APIs(chain consensus.ChainReader) []rpc.API {
 }
 
 func (t *Tribe) GetPeriod(header *types.Header, signers []*Signer) (p uint64) {
-	var err error
 	// 14 , 18 , 22(random add 0~4.5s)
-	Main, Subs, Other := t.config.Period-1, t.config.Period+3, t.config.Period+7
-	p, number, parentHash, miner := Other, header.Number, header.ParentHash, header.Coinbase
+	var (
+		err                error
+		Main, Subs, Other  = t.config.Period-1, t.config.Period+3, t.config.Period+7
+		number, parentHash = header.Number, header.ParentHash
+	)
+	p = Other
+	miner, _ := ecrecover(header, t)
 
-	if params.IsSIP004Block(header.Number) {
-		_, n, err := params.AnmapBindInfo(miner, parentHash)
-		if err == nil && n != common.HexToAddress("0x") {
-			miner = n
-		}
-	}
 	//fmt.Println("🤝  ->", "num=", header.Number, "n=", miner.Hex(), "f=", header.Coinbase.Hex())
 	if number.Int64() <= 3 {
 		p = Subs

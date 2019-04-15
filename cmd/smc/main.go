@@ -80,6 +80,7 @@ var (
 		utils.FastSyncFlag,
 		utils.LightModeFlag,
 		utils.SyncModeFlag,
+
 		utils.LightServFlag,
 		utils.LightPeersFlag,
 		utils.LightKDFFlag,

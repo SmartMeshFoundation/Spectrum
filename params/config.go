@@ -96,8 +96,8 @@ var (
 		MeshboxBlock:   big.NewInt(1976666),
 		MeshboxAddress: common.HexToAddress("0x0f15e1e44322b2946215705d2ed60cba899f0b38"),
 
-		AnmapBlock:      big.NewInt(2213022),
-		AnmapAddress:    common.HexToAddress("0x94ba202430aa0ef0c856bab08daba046dea09486"),
+		AnmapBlock:      big.NewInt(0), //2213022
+		AnmapAddress:    common.HexToAddress("0x"),
 		MinMinerBalance: new(big.Int).Mul(big.NewInt(10), big.NewInt(Ether)),
 
 		// new rules for chief.tx of gaspool

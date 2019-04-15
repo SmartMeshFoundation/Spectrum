@@ -38,13 +38,13 @@ func (api *API) BindInfo(addr *common.Address, num *big.Int) (map[string]interfa
 	if num != nil {
 		hash = api.chain.GetHeaderByNumber(num.Uint64()).Hash()
 	}
-	from, nodeid, err := params.AnmapBindInfo(*addr, hash)
+	from, nodeids, err := params.AnmapBindInfo(*addr, hash)
 	if err != nil {
 		return nil, err
 	}
 	m := make(map[string]interface{})
 	m["from"] = from
-	m["nodeid"] = nodeid
+	m["nodeids"] = nodeids
 	return m, nil
 }
 
@@ -419,28 +419,30 @@ func (self *TribeStatus) Update(currentNumber *big.Int, hash common.Hash) {
 }
 
 func (self *TribeStatus) ValidateSigner(parentHeader, header *types.Header, signer common.Address) bool {
-	number := header.Number.Int64()
-	parentHash := header.ParentHash
-	var signers []*Signer
+	var (
+		err        error
+		signers    []*Signer
+		number     = header.Number.Int64()
+		parentHash = header.ParentHash
+	)
 	//if number > 1 && self.Number != parentNumber {
 	if number <= 3 {
 		return true
 	}
-	//TODO check anmap's mapping ???
-	/*if params.IsSIP001Block(header.Number) && header.Coinbase != signer {
-		log.Error("error_signer", "num", header.Number.String(), "miner", header.Coinbase.Hex(), "signer", signer.Hex())
-		return false
-	}*/
-	var err error
+
 	signers, err = self.GetSignersFromChiefByHash(parentHash, big.NewInt(number))
 
 	if params.IsSIP002Block(header.Number) {
 		// second time of verification block time
 		if parentHeader.Time.Uint64()+self.tribe.GetPeriod(header, signers) > header.Time.Uint64() {
-			//fmt.Println("❌❌", "diff=", header.Difficulty, "miner=", header.Coinbase.Hex(), "ptime=", parentHeader.Time.Uint64(), "period=", self.tribe.GetPeriod(header, signers), "htime=", header.Time.Uint64())
 			log.Error("[ValidateSigner] second time verification block time error", "err", ErrInvalidTimestampSIP002)
 			return false
 		}
+	}
+
+	if params.IsSIP004Block(header.Number) && header.Coinbase == common.HexToAddress("0x") {
+		log.Error("error_signer", "num", header.Number.String(), "miner", header.Coinbase.Hex(), "signer", signer.Hex())
+		return false
 	}
 
 	if err != nil {
@@ -450,7 +452,7 @@ func (self *TribeStatus) ValidateSigner(parentHeader, header *types.Header, sign
 	if err == nil {
 		return true
 	}
-	fmt.Println("xxxxxxxxxxxxxxxxxxxxxx", err, signer.Hex())
+
 	return false
 }
 
@@ -471,12 +473,12 @@ func VerifySignerBalance(state *state.StateDB, addr common.Address, header *type
 	}
 	// skip when v in meshbox.sol
 	if !params.MeshboxExistAddress(volunteer) {
-		f, n, err := params.AnmapBindInfo(volunteer, hash)
-		if err == nil {
+		f, _, err := params.AnmapBindInfo(volunteer, hash)
+		if err == nil && f != common.HexToAddress("0x") {
 			fb := state.GetBalance(f)
-			nb := state.GetBalance(n)
-			if fb.Cmp(params.GetMinMinerBalance()) < 0 && nb.Cmp(params.GetMinMinerBalance()) < 0 {
-				log.Warn("<<VerifySignerBalance>> 1 :", "f", f.Hex(), "fb", fb, "n", n.Hex(), "nb", nb, "mb", params.GetMinMinerBalance())
+			//nb := state.GetBalance(n)
+			if fb.Cmp(params.GetMinMinerBalance()) < 0 {
+				log.Warn("<<VerifySignerBalance>> 1 :", "f", f.Hex(), "fb", fb, "mb", params.GetMinMinerBalance())
 				return ErrTribeChiefVolunteerLowBalance
 			}
 		} else if params.IsSIP004Block(num) {

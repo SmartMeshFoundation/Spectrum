@@ -252,7 +252,7 @@ func IsChiefUpdate(data []byte) bool {
 	return false
 }
 
-func AnmapBindInfo(addr common.Address, blockHash common.Hash) (from, nodeid common.Address, err error) {
+func AnmapBindInfo(addr common.Address, blockHash common.Hash) (from common.Address, nodeids []common.Address, err error) {
 	select {
 	case <-InitAnmap:
 		rtn := make(chan MBoxSuccess)
@@ -271,7 +271,7 @@ func AnmapBindInfo(addr common.Address, blockHash common.Hash) (from, nodeid com
 		if success.Success {
 			m := success.Entity.(map[string]interface{})
 			from = m["from"].(common.Address)
-			nodeid = m["nodeid"].(common.Address)
+			nodeids = m["nodeids"].([]common.Address)
 		} else {
 			err = success.Entity.(error)
 		}
