@@ -269,7 +269,8 @@ func (self *TribeStatus) GetSignersFromChiefByHash(hash common.Hash, number *big
 func (self *TribeStatus) LoadSignersFromChief(hash common.Hash, number *big.Int) error {
 	cs, err := params.TribeGetStatus(number, hash)
 	if err != nil {
-		panic(err)
+		log.Warn("TribeGetStatusError", "err", err, "num", number, "hash", hash.Hex())
+		return err
 	}
 	signers := cs.SignerList
 	scores := cs.ScoreList
