@@ -1,18 +1,18 @@
-// Copyright 2015 The go-ethereum Authors
-// This file is part of the go-ethereum library.
+// Copyright 2015 The Spectrum Authors
+// This file is part of the Spectrum library.
 //
-// The go-ethereum library is free software: you can redistribute it and/or modify
+// The Spectrum library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The go-ethereum library is distributed in the hope that it will be useful,
+// The Spectrum library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the Spectrum library. If not, see <http://www.gnu.org/licenses/>.
 
 package rpc
 
@@ -285,7 +285,7 @@ func parsePositionalArguments(rawArgs json.RawMessage, types []reflect.Type) ([]
 			return nil, &invalidParamsError{fmt.Sprintf("invalid argument %d: %v", i, err)}
 		}
 		if argval.IsNil() && types[i].Kind() != reflect.Ptr {
-			log.Error("TODO rpc_parse_1", "argval",argval.String(), "type",types[i].String())
+			log.Error("TODO rpc_parse_1", "argval", argval.String(), "type", types[i].String())
 			return nil, &invalidParamsError{fmt.Sprintf("missing value for required argument %d", i)}
 		}
 		args = append(args, argval.Elem())
@@ -297,7 +297,7 @@ func parsePositionalArguments(rawArgs json.RawMessage, types []reflect.Type) ([]
 	// Set any missing args to nil.
 	for i := len(args); i < len(types); i++ {
 		if types[i].Kind() != reflect.Ptr {
-			log.Error("TODO rpc_parse_2","type",types[i].String())
+			log.Error("TODO rpc_parse_2", "type", types[i].String())
 			return nil, &invalidParamsError{fmt.Sprintf("missing value for required argument %d", i)}
 		}
 		args = append(args, reflect.Zero(types[i]))

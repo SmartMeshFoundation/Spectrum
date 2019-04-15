@@ -1,18 +1,18 @@
-// Copyright 2016 The go-ethereum Authors
-// This file is part of go-ethereum.
+// Copyright 2016 The Spectrum Authors
+// This file is part of Spectrum.
 //
-// go-ethereum is free software: you can redistribute it and/or modify
+// Spectrum is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// go-ethereum is distributed in the hope that it will be useful,
+// Spectrum is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with go-ethereum. If not, see <http://www.gnu.org/licenses/>.
+// along with Spectrum. If not, see <http://www.gnu.org/licenses/>.
 
 package main
 
@@ -30,31 +30,31 @@ import (
 
 var (
 	/*	makecacheCommand = cli.Command{
-			Action:    utils.MigrateFlags(makecache),
-			Name:      "makecache",
-			Usage:     "Generate ethash verification cache (for testing)",
-			ArgsUsage: "<blockNum> <outputDir>",
-			Category:  "MISCELLANEOUS COMMANDS",
-			Description: `
-	The makecache command generates an ethash cache in <outputDir>.
+				Action:    utils.MigrateFlags(makecache),
+				Name:      "makecache",
+				Usage:     "Generate ethash verification cache (for testing)",
+				ArgsUsage: "<blockNum> <outputDir>",
+				Category:  "MISCELLANEOUS COMMANDS",
+				Description: `
+		The makecache command generates an ethash cache in <outputDir>.
 
-	This command exists to support the system testing project.
-	Regular users do not need to execute it.
-	`,
-		}*/
+		This command exists to support the system testing project.
+		Regular users do not need to execute it.
+		`,
+			}*/
 	/*	makedagCommand = cli.Command{
-			Action:    utils.MigrateFlags(makedag),
-			Name:      "makedag",
-			Usage:     "Generate ethash mining DAG (for testing)",
-			ArgsUsage: "<blockNum> <outputDir>",
-			Category:  "MISCELLANEOUS COMMANDS",
-			Description: `
-	The makedag command generates an ethash DAG in <outputDir>.
+				Action:    utils.MigrateFlags(makedag),
+				Name:      "makedag",
+				Usage:     "Generate ethash mining DAG (for testing)",
+				ArgsUsage: "<blockNum> <outputDir>",
+				Category:  "MISCELLANEOUS COMMANDS",
+				Description: `
+		The makedag command generates an ethash DAG in <outputDir>.
 
-	This command exists to support the system testing project.
-	Regular users do not need to execute it.
-	`,
-		}*/
+		This command exists to support the system testing project.
+		Regular users do not need to execute it.
+		`,
+			}*/
 	versionCommand = cli.Command{
 		Action:    utils.MigrateFlags(version),
 		Name:      "version",
@@ -119,7 +119,7 @@ func version(ctx *cli.Context) error {
 	fmt.Println("Operating System:", runtime.GOOS)
 	fmt.Printf("GOPATH=%s\n", os.Getenv("GOPATH"))
 	fmt.Printf("GOROOT=%s\n", runtime.GOROOT())
-	fmt.Println("Based On:", "go-ethereum")
+	fmt.Println("Based On:", "Spectrum")
 	fmt.Println("Email:", "cc14514@icloud.com")
 	return nil
 }

@@ -8,7 +8,7 @@
 
 [![](https://travis-ci.org/wangbaojin/Spectrum.svg?branch=master)](https://travis-ci.org/wangbaojin/Spectrum)
 
-Spectrum is an [Ethereum-compatible](https://github.com/ethereum/go-ethereum) project. It uses a new consensus and new block reward for SmartMesh ecosystem devices and IOT. And you can view the transactions on the [
+Spectrum is an [Ethereum-compatible](https://github.com/ethereum/Spectrum) project. It uses a new consensus and new block reward for SmartMesh ecosystem devices and IOT. And you can view the transactions on the [
 BlockChain Browser Address](https://spectrum.pub).
 
 

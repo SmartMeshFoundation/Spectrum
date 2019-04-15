@@ -1,18 +1,18 @@
-// Copyright 2015 The go-ethereum Authors
-// This file is part of the go-ethereum library.
+// Copyright 2015 The Spectrum Authors
+// This file is part of the Spectrum library.
 //
-// The go-ethereum library is free software: you can redistribute it and/or modify
+// The Spectrum library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The go-ethereum library is distributed in the hope that it will be useful,
+// The Spectrum library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the Spectrum library. If not, see <http://www.gnu.org/licenses/>.
 
 package miner
 
@@ -223,9 +223,9 @@ func (self *worker) start(s chan int) {
 		go func() {
 			defer wg.Done()
 			if self.chain.CurrentHeader().Number.Int64() > 1 { // free for genesis signer
-				log.Info("⚠️ Everything is ready, Waiting for nomination, pending until miner level upgrade")
 				// pending until miner level upgrade
 				tribe.WaitingNomination()
+				log.Info("✒️️  Everything is ready , signer started.")
 			}
 			tribe.SetMining(1, self.chain.CurrentBlock().Number(), self.chain.CurrentHeader().Hash())
 		}()

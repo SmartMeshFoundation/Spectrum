@@ -140,7 +140,6 @@ func (t *Tribe) WaitingNomination() {
 		if t.Status.SignerLevel != LevelNone {
 			return
 		}
-		//fmt.Println(":: WaitingNomination ::> ", t.Status.GetMinerAddress().Hex(), t.Status.SignerLevel)
 		<-time.After(time.Second * 7)
 	}
 	return
@@ -491,14 +490,17 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 		return nil, errUnauthorized
 	}
 
-	delay := time.Unix(header.Time.Int64(), 0).Sub(time.Now())
+	now := time.Now()
+	delay := time.Unix(header.Time.Int64(), 0).Sub(now)
+	fmt.Println("❓  ---->", "diff", header.Difficulty, "header.time=", header.Time.Int64(), "now=", now.Unix(), "delay=", delay)
+
 	if header.Difficulty.Cmp(diffNoTurn) == 0 {
 		wiggle := time.Duration(len(t.Status.Signers)/2+1) * wiggleTime
 		delay += time.Duration(rand.Int63n(int64(wiggle)))
 	}
 	select {
 	case <-stop:
-		log.Warn(fmt.Sprintf("🐦 cancel -> num=%d, diff=%d, miner=%s", number, header.Difficulty, header.Coinbase.Hex()))
+		log.Warn(fmt.Sprintf("🐦 cancel -> num=%d, diff=%d, miner=%s, delay=%d", number, header.Difficulty, header.Coinbase.Hex(), delay))
 		return nil, nil
 	case <-time.After(delay):
 	}
@@ -533,15 +535,23 @@ func (t *Tribe) APIs(chain consensus.ChainReader) []rpc.API {
 }
 
 func (t *Tribe) GetPeriod(header *types.Header, signers []*Signer) (p uint64) {
+	var err error
 	// 14 , 18 , 22(random add 0~4.5s)
 	Main, Subs, Other := t.config.Period-1, t.config.Period+3, t.config.Period+7
 	p, number, parentHash, miner := Other, header.Number, header.ParentHash, header.Coinbase
 
+	if params.IsSIP004Block(header.Number) {
+		_, n, err := params.AnmapBindInfo(miner, parentHash)
+		if err == nil && n != common.HexToAddress("0x") {
+			miner = n
+		}
+	}
+	//fmt.Println("🤝  ->", "num=", header.Number, "n=", miner.Hex(), "f=", header.Coinbase.Hex())
 	if number.Int64() <= 3 {
 		p = Subs
 		return
 	}
-	var err error
+
 	if signers == nil {
 		signers, err = t.Status.GetSignersFromChiefByHash(parentHash, number)
 	}

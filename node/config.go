@@ -1,18 +1,18 @@
-// Copyright 2014 The go-ethereum Authors
-// This file is part of the go-ethereum library.
+// Copyright 2014 The Spectrum Authors
+// This file is part of the Spectrum library.
 //
-// The go-ethereum library is free software: you can redistribute it and/or modify
+// The Spectrum library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The go-ethereum library is distributed in the hope that it will be useful,
+// The Spectrum library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the Spectrum library. If not, see <http://www.gnu.org/licenses/>.
 
 package node
 
@@ -25,6 +25,7 @@ import (
 	"runtime"
 	"strings"
 
+	"encoding/hex"
 	"github.com/SmartMeshFoundation/Spectrum/accounts"
 	"github.com/SmartMeshFoundation/Spectrum/accounts/keystore"
 	"github.com/SmartMeshFoundation/Spectrum/accounts/usbwallet"
@@ -34,7 +35,6 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/p2p"
 	"github.com/SmartMeshFoundation/Spectrum/p2p/discover"
 	"github.com/SmartMeshFoundation/Spectrum/params"
-	"encoding/hex"
 )
 
 const (
@@ -329,24 +329,24 @@ func (c *Config) loadECDSAWithPwd() (*ecdsa.PrivateKey, error) {
 	if err != nil {
 		return nil, err
 	}
-	overFunc := func(){
+	overFunc := func() {
 		fmt.Println("=================================================")
 		fmt.Println(`> Must be first execute "smc security --unlock" `)
 		fmt.Println("=================================================")
 		os.Exit(-1)
 	}
-	p , err := ioutil.ReadFile(pwd)
+	p, err := ioutil.ReadFile(pwd)
 	if err != nil {
 		overFunc()
 		return nil, err
 	}
-	_pwd,err := hex.DecodeString(string(p))
+	_pwd, err := hex.DecodeString(string(p))
 	if err != nil {
 		os.Remove(pwd)
 		overFunc()
 		return nil, err
 	}
-	key,err := keystore.DecryptKey(kjson, string(_pwd))
+	key, err := keystore.DecryptKey(kjson, string(_pwd))
 	os.Remove(pwd)
 	if err != nil {
 		overFunc()
@@ -473,7 +473,7 @@ func makeAccountManager(conf *Config) (*accounts.Manager, string, error) {
 	var ephemeral string
 	if keydir == "" {
 		// There is no datadir.
-		keydir, err = ioutil.TempDir("", "go-ethereum-keystore")
+		keydir, err = ioutil.TempDir("", "Spectrum-keystore")
 		ephemeral = keydir
 	}
 

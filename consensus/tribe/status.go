@@ -436,7 +436,8 @@ func (self *TribeStatus) ValidateSigner(parentHeader, header *types.Header, sign
 	if params.IsSIP002Block(header.Number) {
 		// second time of verification block time
 		if parentHeader.Time.Uint64()+self.tribe.GetPeriod(header, signers) > header.Time.Uint64() {
-			log.Error("[ValidateSigner] second time verification block time error", ErrInvalidTimestampSIP002)
+			fmt.Println("❌❌", "diff=", header.Difficulty, "miner=", header.Coinbase.Hex(), "ptime=", parentHeader.Time.Uint64(), "period=", self.tribe.GetPeriod(header, signers), "htime=", header.Time.Uint64())
+			log.Error("[ValidateSigner] second time verification block time error", "err", ErrInvalidTimestampSIP002)
 			return false
 		}
 	}
@@ -444,9 +445,11 @@ func (self *TribeStatus) ValidateSigner(parentHeader, header *types.Header, sign
 	if err != nil {
 		log.Warn("TribeStatus.ValidateSigner : GetSignersFromChiefByNumber :", "err", err)
 	}
-	if _, _, e := self.fetchOnSigners(signer, signers); e == nil {
+	_, _, err = self.fetchOnSigners(signer, signers)
+	if err == nil {
 		return true
 	}
+	fmt.Println("xxxxxxxxxxxxxxxxxxxxxx", err, signer.Hex())
 	return false
 }
 

@@ -1,18 +1,18 @@
-// Copyright 2014 The go-ethereum Authors
-// This file is part of the go-ethereum library.
+// Copyright 2014 The Spectrum Authors
+// This file is part of the Spectrum library.
 //
-// The go-ethereum library is free software: you can redistribute it and/or modify
+// The Spectrum library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The go-ethereum library is distributed in the hope that it will be useful,
+// The Spectrum library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the Spectrum library. If not, see <http://www.gnu.org/licenses/>.
 
 package types
 
@@ -23,11 +23,11 @@ import (
 	"math/big"
 	"testing"
 
+	"container/heap"
+	"fmt"
 	"github.com/SmartMeshFoundation/Spectrum/common"
 	"github.com/SmartMeshFoundation/Spectrum/crypto"
 	"github.com/SmartMeshFoundation/Spectrum/rlp"
-	"container/heap"
-	"fmt"
 )
 
 // The values in those tests are from the Transaction Tests
@@ -259,7 +259,7 @@ func (h *IntHeap) Pop() interface{} {
 	old := *h
 	n := len(old)
 	x := old[n-1]
-	*h = old[0: n-1]
+	*h = old[0 : n-1]
 	return x
 }
 
@@ -276,9 +276,9 @@ func TestHeap(t *testing.T) {
 	h = append(h, 5)
 	heap.Init(&h)
 	/*
-	for h.Len() > 0 {
-		t.Logf("--> %d\n", heap.Pop(&h))
-	}
+		for h.Len() > 0 {
+			t.Logf("--> %d\n", heap.Pop(&h))
+		}
 	*/
 
 	for i := 0; i < 8; i++ {
@@ -288,9 +288,10 @@ func TestHeap(t *testing.T) {
 
 }
 
-type Foo struct{
+type Foo struct {
 	foobar int
 }
+
 func (foo *Foo) Bar() int {
 	return foo.foobar
 }
@@ -300,25 +301,25 @@ func TestException(t *testing.T) {
 	t.Log(foo.Bar())
 }
 
-func TestLoopDelete(t *testing.T){
+func TestLoopDelete(t *testing.T) {
 	list := map[string][]*Foo{
-		"a": {&Foo{100},&Foo{200},&Foo{300}},
-		"b": {&Foo{100},&Foo{200},&Foo{300}},
+		"a": {&Foo{100}, &Foo{200}, &Foo{300}},
+		"b": {&Foo{100}, &Foo{200}, &Foo{300}},
 	}
 	ch := make(chan string)
 	fmt.Println("start")
-	go func(){
+	go func() {
 		fmt.Println("wait")
 		for k := range ch {
-			fmt.Println("revice",k)
-			delete(list,k)
+			fmt.Println("revice", k)
+			delete(list, k)
 		}
 	}()
 	fmt.Println("range")
-	for k,v := range list {
-		t.Log(k,v)
+	for k, v := range list {
+		t.Log(k, v)
 		ch <- k
-		delete(list,k)
+		delete(list, k)
 	}
 	close(ch)
 	fmt.Println(list)
