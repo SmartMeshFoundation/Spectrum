@@ -536,15 +536,22 @@ func (t *Tribe) APIs(chain consensus.ChainReader) []rpc.API {
 
 func (t *Tribe) GetPeriod(header *types.Header, signers []*Signer) (p uint64) {
 	// 14 , 18 , 22(random add 0~4.5s)
+	signature := header.Extra[len(header.Extra)-extraSeal:]
 	var (
 		err                error
-		Main, Subs, Other  = t.config.Period-1, t.config.Period+3, t.config.Period+7
+		miner              common.Address
+		empty              = make([]byte, len(signature))
+		Main, Subs, Other  = t.config.Period - 1, t.config.Period + 3, t.config.Period + 7
 		number, parentHash = header.Number, header.ParentHash
 	)
-	p = Other
-	miner, _ := ecrecover(header, t)
 
-	//fmt.Println("🤝  ->", "num=", header.Number, "n=", miner.Hex(), "f=", header.Coinbase.Hex())
+	p = Other
+	if bytes.Equal(signature, empty) {
+		miner = t.Status.GetMinerAddress()
+	} else {
+		miner, _ = ecrecover(header, t)
+	}
+
 	if number.Int64() <= 3 {
 		p = Subs
 		return
