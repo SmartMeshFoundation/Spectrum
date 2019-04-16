@@ -17,6 +17,7 @@
 package eth
 
 import (
+	"github.com/SmartMeshFoundation/Spectrum/crypto"
 	"math/rand"
 	"sync/atomic"
 	"time"
@@ -171,12 +172,14 @@ func (pm *ProtocolManager) synchronise(peer *peer) {
 	td := pm.blockchain.GetTd(currentBlock.Hash(), currentBlock.NumberU64())
 
 	pHead, pTd := peer.Head()
-	log.Info("go_synchronise ->",
+	ppk, _ := peer.ID().Pubkey()
+	paddr := crypto.PubkeyToAddress(*ppk)
+	log.Debug("go_synchronise ->",
 		"currentNum", currentBlock.Number(),
 		"currentTD", td,
 		"peerTD", pTd,
 		"return", pTd.Cmp(td) <= 0,
-		"peerid", peer.ID().String(),
+		"peerAddr", paddr.Hex(),
 	)
 	if pTd.Cmp(td) <= 0 {
 		return

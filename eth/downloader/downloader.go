@@ -430,15 +430,15 @@ func (d *Downloader) syncWithPeer(p *peerConnection, hash common.Hash, td *big.I
 		return err
 	}
 	fmt.Println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-	fmt.Println("::: ORIGIN ::: origin=", origin, "height=", height, "peerid=", p.id)
+	fmt.Println("@ORIGIN: origin=", origin, "height=", height, "peerid=", p.id)
 	d.syncStatsLock.Lock()
 	if d.syncStatsChainHeight <= origin || d.syncStatsChainOrigin > origin {
 		d.syncStatsChainOrigin = origin
 	}
 	d.syncStatsChainHeight = height
 	d.syncStatsLock.Unlock()
-	fmt.Println("::: ORIGIN ::: d.syncStatsChainHeight=", d.syncStatsChainHeight, "current=", d.blockchain.CurrentHeader().Number.Int64())
-	fmt.Println("::: ORIGIN ::: Latest.Root =", latest.Root.Hex())
+	fmt.Println("@ORIGIN: d.syncStatsChainHeight=", d.syncStatsChainHeight, "current=", d.blockchain.CurrentHeader().Number.Int64())
+	fmt.Println("@ORIGIN: Latest.Root =", latest.Root.Hex())
 	fmt.Println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 	// Initiate the sync using a concurrent header and content retrieval algorithm
 	pivot := uint64(0)

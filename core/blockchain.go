@@ -1063,9 +1063,9 @@ func (st *insertStats) report(chain []*types.Block, index int) {
 			"blocks", st.processed,
 			"txs", txs,
 			/*
-			"mgas", float64(st.usedGas) / 1000000,
-			"elapsed", common.PrettyDuration(elapsed),
-			"mgasps", float64(st.usedGas) * 1000 / float64(elapsed),
+				"mgas", float64(st.usedGas) / 1000000,
+				"elapsed", common.PrettyDuration(elapsed),
+				"mgasps", float64(st.usedGas) * 1000 / float64(elapsed),
 			*/
 			"number", end.Number(),
 			"miner", end.Coinbase().Hex(),
@@ -1078,7 +1078,7 @@ func (st *insertStats) report(chain []*types.Block, index int) {
 			context = append(context, []interface{}{"ignored", st.ignored}...)
 		}
 		//log.Info(fmt.Sprintf("[report] new_block : num=%d , diff=%d , hash=%s , miner=%s", end.Number(), end.Difficulty(), end.Hash().Hex(), end.Coinbase().Hex()))
-		log.Info(fmt.Sprintf("[report] new_block : num=%d , diff=%d , miner=%s", end.Number(), end.Difficulty(), end.Coinbase().Hex()))
+		log.Info(fmt.Sprintf("[report] new_block : num=%d , diff=%d , coinbase=%s", end.Number(), end.Difficulty(), end.Coinbase().Hex()))
 
 		*st = insertStats{startTime: now, lastIndex: index + 1}
 	}

@@ -456,14 +456,17 @@ func (self *TribeStatus) ValidateSigner(parentHeader, header *types.Header, sign
 	return false
 }
 
-func VerifySignerBalance(state *state.StateDB, addr common.Address, header *types.Header) error {
-	if addr == common.HexToAddress("") {
-		return errors.New("signer addr can not be null")
+func (self *TribeStatus) VerifySignerBalance(state *state.StateDB, addr common.Address, header *types.Header) error {
+	if addr == common.HexToAddress("0x") {
+		if _addr, err := ecrecover(header, self.tribe); err == nil {
+			addr = _addr
+		} else {
+			return err
+		}
 	}
 	var (
-		num       *big.Int
-		hash      = common.Hash{}
-		volunteer = addr
+		num  *big.Int
+		hash = common.Hash{}
 	)
 	if header != nil {
 		hash = header.Hash()
@@ -472,19 +475,31 @@ func VerifySignerBalance(state *state.StateDB, addr common.Address, header *type
 		return errors.New("params of header can not be null")
 	}
 	// skip when v in meshbox.sol
-	if !params.MeshboxExistAddress(volunteer) {
-		f, _, err := params.AnmapBindInfo(volunteer, hash)
-		if err == nil && f != common.HexToAddress("0x") {
+	if !params.MeshboxExistAddress(addr) {
+		f, nl, err := params.AnmapBindInfo(addr, hash)
+		if err == nil && f != common.HexToAddress("0x") && len(nl) > 0 {
+			// exclude meshbox n in nl
+			noBox := int64(0)
+			for _, n := range nl {
+				if !params.MeshboxExistAddress(n) {
+					noBox++
+				}
+			}
+			if noBox == 0 {
+				return nil
+			}
 			fb := state.GetBalance(f)
+			mb := new(big.Int).Mul(params.GetMinMinerBalance(), big.NewInt(noBox))
+			log.Info("<<VerifySignerBalance>> 0 :", "nl.len", len(nl), "nobox", noBox, "fb", fb, "mb", mb)
 			//nb := state.GetBalance(n)
-			if fb.Cmp(params.GetMinMinerBalance()) < 0 {
-				log.Warn("<<VerifySignerBalance>> 1 :", "f", f.Hex(), "fb", fb, "mb", params.GetMinMinerBalance())
+			if fb.Cmp(mb) < 0 {
+				log.Warn("<<VerifySignerBalance>> 1 :", "f", f.Hex(), "fb", fb, "mb", mb)
 				return ErrTribeChiefVolunteerLowBalance
 			}
 		} else if params.IsSIP004Block(num) {
-			b := state.GetBalance(volunteer)
+			b := state.GetBalance(addr)
 			if b.Cmp(params.GetMinMinerBalance()) < 0 {
-				log.Warn("<<VerifySignerBalance>> 2 :", "n", volunteer.Hex(), "nb", b, "mb", params.GetMinMinerBalance())
+				log.Warn("<<VerifySignerBalance>> 2 :", "n", addr.Hex(), "nb", b, "mb", params.GetMinMinerBalance())
 				return ErrTribeChiefVolunteerLowBalance
 			}
 		}
@@ -547,9 +562,9 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 			if state != nil {
 				volunteerHex := common.Bytes2Hex(tx.Data()[4:])
 				volunteer := common.HexToAddress(volunteerHex)
-				if volunteer != common.HexToAddress("") {
+				if volunteer != common.HexToAddress("0x") {
 					log.Info("<<TribeStatus.ValidateBlock>> verify_volunteer =>", "num", number, "v", volunteer.Hex())
-					if err := VerifySignerBalance(state, volunteer, parent.Header()); err != nil {
+					if err := self.VerifySignerBalance(state, volunteer, parent.Header()); err != nil {
 						return err
 					}
 				}
