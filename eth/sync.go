@@ -171,11 +171,12 @@ func (pm *ProtocolManager) synchronise(peer *peer) {
 	td := pm.blockchain.GetTd(currentBlock.Hash(), currentBlock.NumberU64())
 
 	pHead, pTd := peer.Head()
-	log.Debug("go_synchronise ->",
+	log.Info("go_synchronise ->",
 		"currentNum", currentBlock.Number(),
 		"currentTD", td,
 		"peerTD", pTd,
 		"return", pTd.Cmp(td) <= 0,
+		"peerid", peer.ID().String(),
 	)
 	if pTd.Cmp(td) <= 0 {
 		return
@@ -205,6 +206,7 @@ func (pm *ProtocolManager) synchronise(peer *peer) {
 		}
 	}
 	if err != nil {
+		log.Error("❌ <<synchronise>>", "err", err, "mode", mode, "peerid", peer.ID().String())
 		return
 	}
 	atomic.StoreUint32(&pm.acceptTxs, 1) // Mark initial sync done

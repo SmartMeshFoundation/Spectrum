@@ -646,13 +646,14 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 		)
 		_, tttt := p.Head()
 
-		log.Debug("<<NewBlockMsg>>",
+		log.Info("<<NewBlockMsg>>",
 			"currentBlock", currentBlock.Number(),
 			"recvBlock", request.Block.Number(),
 			"currentTD", pm.blockchain.GetTd(currentBlock.Hash(), currentBlock.NumberU64()),
 			"trueTD", trueTD,
 			"p.td", tttt,
-			"p.id", peeraddr.Hex(),
+			"p.addr", peeraddr.Hex(),
+			"p.id", p.ID().String(),
 			"synchronise", trueTD.Cmp(pm.blockchain.GetTd(currentBlock.Hash(), currentBlock.NumberU64())),
 		)
 		// Update the peers total difficulty if better than the previous
