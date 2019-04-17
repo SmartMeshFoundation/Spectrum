@@ -621,41 +621,54 @@ func (pool *TxPool) Content() (map[common.Address]types.Transactions, map[common
 // Pending retrieves all currently processable transactions, groupped by origin
 // account and sorted by nonce. The returned transaction set is a copy and can be
 // freely modified by calling code.
-func (pool *TxPool) Pending() (map[common.Address]types.Transactions, error) {
+func (pool *TxPool) Pending(excludeSigner bool) (map[common.Address]types.Transactions, error) {
+	log.Debug("TODO<<TxPool.Pending>> take_lock_begin", "excludeSigner", excludeSigner)
 	pool.mu.Lock()
 	defer pool.mu.Unlock()
-	pending := make(map[common.Address]types.Transactions)
-	var mid common.Address
+	log.Debug("TODO<<TxPool.Pending>> take_lock_end", "excludeSigner", excludeSigner)
+
+	var (
+		mid     common.Address
+		pending = make(map[common.Address]types.Transactions)
+	)
 
 	// add by liangc 190412 : if the sender in signerList now refuse and skip this tx
-	signerMap := make(map[common.Address]struct{})
-	cb := pool.chain.CurrentBlock()
-	if cs, err := params.TribeGetStatus(cb.Number(), cb.Hash()); err == nil {
-		for _, signer := range cs.SignerList {
-			signerMap[signer] = struct{}{}
+	if excludeSigner {
+		signerMap := make(map[common.Address]struct{})
+		cb := pool.chain.CurrentBlock()
+		log.Debug("TODO<<TxPool.Pending>> TribeGetStatus_begin", "num", cb.Number())
+		cs, err := params.TribeGetStatus(cb.Number(), cb.Hash())
+		if err == nil {
+			for _, signer := range cs.SignerList {
+				signerMap[signer] = struct{}{}
+			}
 		}
-	}
+		log.Debug("TODO<<TxPool.Pending>> TribeGetStatus_end", "num", cb.Number(), "err", err)
 
-	for _, kv := range pool.pending.asList() {
-		addr, list := kv.key, kv.val
-		_, nl, err := params.AnmapBindInfo(addr, cb.Hash())
-		// add by liangc : if the sender in signerList now refuse and skip this tx
-		if err == nil && len(nl) > 0 {
-			ok := false
-			for _, n := range nl {
-				if _, ok = signerMap[n]; ok {
-					break
+		for _, kv := range pool.pending.asList() {
+			addr, list := kv.key, kv.val
+			log.Debug("TODO<<TxPool.Pending>> AnmapBindInfo_begin", "num", cb.Number(), "addr", addr.Hex())
+			_, nl, err := params.AnmapBindInfo(addr, cb.Hash())
+			log.Debug("TODO<<TxPool.Pending>> AnmapBindInfo_end", "num", cb.Number(), "addr", addr.Hex(), "nl.len", len(nl), "err", err)
+			// add by liangc : if the sender in signerList now refuse and skip this tx
+			if err == nil && len(nl) > 0 {
+				ok := false
+				for _, n := range nl {
+					if _, ok = signerMap[n]; ok {
+						break
+					}
 				}
-			}
-			if !ok {
+				if !ok {
+					pending[addr] = list.Flatten()
+				}
+			} else if _, ok := signerMap[addr]; !ok {
 				pending[addr] = list.Flatten()
-			} else {
-				log.Warn("sender_in_signerlist_skip_txs 1:", "num", cb.Number(), "addr", addr.Hex())
 			}
-		} else if _, ok := signerMap[addr]; !ok {
+		}
+	} else {
+		for _, kv := range pool.pending.asList() {
+			addr, list := kv.key, kv.val
 			pending[addr] = list.Flatten()
-		} else {
-			log.Warn("sender_in_signerlist_skip_txs 2:", "num", cb.Number(), "addr", addr.Hex())
 		}
 	}
 

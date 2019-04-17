@@ -505,7 +505,7 @@ func (self *worker) commitNewWork() {
 	if self.config.DAOForkSupport && self.config.DAOForkBlock != nil && self.config.DAOForkBlock.Cmp(header.Number) == 0 {
 		misc.ApplyDAOHardFork(work.state)
 	}
-	pending, err := self.eth.TxPool().Pending()
+	pending, err := self.eth.TxPool().Pending(true)
 	//fmt.Println(header.Number.Int64(),err, "====== commitNewWork =======> pending.len:", len(pending))
 	if err != nil {
 		log.Error("Failed to fetch pending transactions", "err", err)
