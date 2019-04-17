@@ -553,8 +553,24 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 	for i, tx := range block.Transactions() {
 
 		from := types.GetFromByTx(tx)
-		if _, ok := signerMap[*from]; i > 0 && ok {
-			return ErrTribeValdateTxSenderCannotInSignerList
+		//verify by anmap bindinfo
+		_, nl, err := params.AnmapBindInfo(*from, parent.Hash())
+		verifyBySignerMap := func(addr common.Address) error {
+			if _, ok := signerMap[addr]; i > 0 && ok {
+				return ErrTribeValdateTxSenderCannotInSignerList
+			}
+			return nil
+		}
+		if err == nil && len(nl) > 0 {
+			for _, n := range nl {
+				if err := verifyBySignerMap(n); err != nil {
+					return err
+				}
+			}
+		} else {
+			if err := verifyBySignerMap(*from); err != nil {
+				return err
+			}
 		}
 
 		if tx.To() != nil && params.IsChiefAddress(*tx.To()) && params.IsChiefUpdate(tx.Data()) {

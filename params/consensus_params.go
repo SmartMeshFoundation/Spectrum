@@ -430,7 +430,13 @@ func SendToMsgBoxWithNumber(method string, number *big.Int) chan MBoxSuccess {
 	if number != nil {
 		m.Params = map[string]interface{}{"number": number}
 	}
+	if method == "Update" {
+		log.Debug("TODO <<SendToMsgBoxWithNumber>> begin", "num", number)
+	}
 	MboxChan <- m
+	if method == "Update" {
+		log.Debug("TODO <<SendToMsgBoxWithNumber>> end", "num", number)
+	}
 	return rtn
 }
 

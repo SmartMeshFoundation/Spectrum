@@ -638,11 +638,24 @@ func (pool *TxPool) Pending() (map[common.Address]types.Transactions, error) {
 
 	for _, kv := range pool.pending.asList() {
 		addr, list := kv.key, kv.val
+		_, nl, err := params.AnmapBindInfo(addr, cb.Hash())
 		// add by liangc : if the sender in signerList now refuse and skip this tx
-		if _, ok := signerMap[addr]; !ok {
+		if err == nil && len(nl) > 0 {
+			ok := false
+			for _, n := range nl {
+				if _, ok = signerMap[n]; ok {
+					break
+				}
+			}
+			if !ok {
+				pending[addr] = list.Flatten()
+			} else {
+				log.Warn("sender_in_signerlist_skip_txs 1:", "num", cb.Number(), "addr", addr.Hex())
+			}
+		} else if _, ok := signerMap[addr]; !ok {
 			pending[addr] = list.Flatten()
 		} else {
-			log.Warn("sender_in_signerlist_skip_txs", "num", cb.Number(), "addr", addr.Hex())
+			log.Warn("sender_in_signerlist_skip_txs 2:", "num", cb.Number(), "addr", addr.Hex())
 		}
 	}
 
@@ -725,20 +738,20 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 func (pool *TxPool) addChief(tx *types.Transaction) bool {
 	from := types.GetFromByTx(tx)
 	if pool.nodeKey != nil && from != nil && tx.To() != nil && params.IsChiefAddress(*tx.To()) {
-		log.Debug("TxPool.addChief", "tx", tx.Hash().Hex(), "from", (*from).Hex(), "nk", crypto.PubkeyToAddress(pool.nodeKey.PublicKey).Hex())
+		log.Debug("TODO<<TxPool.addChief>>", "tx", tx.Hash().Hex(), "from", (*from).Hex(), "nk", crypto.PubkeyToAddress(pool.nodeKey.PublicKey).Hex())
 		if params.IsChiefUpdate(tx.Data()) {
 			if *from == crypto.PubkeyToAddress(pool.nodeKey.PublicKey) {
 				pool.chiefTx = tx
-				log.Debug("TxPool.addChief", "txNonce", tx.Nonce())
+				log.Debug("TODO<<TxPool.addChief>> add_success", "txNonce", tx.Nonce())
 				return true
 			} else {
 				debug.PrintStack()
-				log.Warn("repeat chief.tx", "from", from.Hex(), "txid", tx.Hash().Hex())
+				log.Warn("TODO<<TxPool.addChief>> repeat_chiefTx", "from", from.Hex(), "txid", tx.Hash().Hex())
 				pool.removeTx(tx.Hash())
 				return true
 			}
 		} else {
-			log.Warn("👮 --onAddChief--> skip", "txid", tx.Hash().Hex(), "input", tx.Data())
+			log.Warn("TODO<<TxPool.addChief>> skip", "txid", tx.Hash().Hex(), "input", tx.Data())
 			return true
 		}
 	}
@@ -961,11 +974,15 @@ func (pool *TxPool) AddRemotes(txs []*types.Transaction) []error {
 
 // addTx enqueues a single transaction into the pool if it is valid.
 func (pool *TxPool) addTx(tx *types.Transaction, local bool) error {
+	log.Debug("TODO<<TxPool.addTx>> take_lock_begin", "tx", tx.Hash().Hex())
 	pool.mu.Lock()
 	defer pool.mu.Unlock()
+	log.Debug("TODO<<TxPool.addTx>> take_lock_end", "tx", tx.Hash().Hex())
 
 	// Try to inject the transaction and update any state
+	log.Debug("TODO<<TxPool.addTx>> add_begin", "tx", tx.Hash().Hex())
 	replace, err := pool.add(tx, local)
+	log.Debug("TODO<<TxPool.addTx>> add_end", "tx", tx.Hash().Hex())
 	if err != nil {
 		return err
 	}
