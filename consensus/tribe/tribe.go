@@ -166,9 +166,18 @@ func (t *Tribe) SetMining(i int32, currentNumber *big.Int, currentBlockHash comm
 
 // Author implements consensus.Engine, returning the Ethereum address recovered
 // from the signature in the header's extra-data section.
-func (t *Tribe) Author(header *types.Header) (a common.Address, e error) {
-	a, e = ecrecover(header, t)
-	return
+func (t *Tribe) Author(header *types.Header) (common.Address, error) {
+	var (
+		coinbase common.Address
+		err      error
+	)
+	if header.Coinbase == coinbase {
+		coinbase, err = ecrecover(header, t)
+	} else {
+		coinbase = header.Coinbase
+	}
+	log.Debug("<<Tribe.Author>>", "num", header.Number, "coinbase", coinbase.Hex())
+	return coinbase, err
 }
 
 // VerifyHeader checks whether a header conforms to the consensus rules.

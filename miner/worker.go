@@ -225,14 +225,14 @@ func (self *worker) start(s chan int) {
 			if self.chain.CurrentHeader().Number.Int64() > 1 { // free for genesis signer
 				// pending until miner level upgrade
 				tribe.WaitingNomination()
-				log.Info("✒️️  Everything is ready , signer started.")
+				log.Info("Everything is ready , signer started.")
 			}
 			tribe.SetMining(1, self.chain.CurrentBlock().Number(), self.chain.CurrentHeader().Hash())
 		}()
 	}
 
 	go func() {
-		defer func() { s <- 1 }()
+		defer func() { close(s) }()
 		wg.Wait()
 		atomic.StoreInt32(&self.mining, 1)
 		// spin up agents

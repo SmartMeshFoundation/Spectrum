@@ -131,6 +131,7 @@ func ApplyMessage(evm *vm.EVM, msg Message, gp *GasPool, blockNumber *big.Int) (
 	st := NewStateTransition(evm, msg, gp, blockNumber)
 
 	ret, _, gasUsed, failed, err := st.TransitionDb()
+	log.Debug("<<ApplyMessage>>", "err", err, "num", blockNumber, "from", st.from().Address().Hex())
 	return ret, gasUsed, failed, err
 }
 
@@ -167,6 +168,16 @@ func (st *StateTransition) useGas(amount uint64) error {
 	return nil
 }
 
+// TODO : if chief tx skip balance verify.
+func (st *StateTransition) IsChiefSIP004() bool {
+	if params.IsSIP004Block(st.blockNumber) &&
+		st.to().Address() != common.HexToAddress("0x") &&
+		params.IsChiefAddress(st.to().Address()) {
+		return true
+	}
+	return false
+}
+
 func (st *StateTransition) buyGas() error {
 	mgas := st.msg.Gas()
 	if mgas.BitLen() > 64 {
@@ -179,20 +190,25 @@ func (st *StateTransition) buyGas() error {
 		sender = st.from()
 	)
 
-	isok := state.GetBalance(sender.Address()).Cmp(mgval) < 0
-	//if state.GetBalance(sender.Address()).Cmp(mgval) < 0 {
-	if isok {
-		return errInsufficientBalanceForGas
-	}
 	if params.IsSIP001Block(st.blockNumber) {
 		if err := st.gp.SubGas(mgas); err != nil {
 			return err
 		}
 	}
 	st.gas += mgas.Uint64()
-
 	st.initialGas.Set(mgas)
+
+	if !st.IsChiefSIP004() {
+		isok := state.GetBalance(sender.Address()).Cmp(mgval) < 0
+		//if state.GetBalance(sender.Address()).Cmp(mgval) < 0 {
+		if isok {
+			return errInsufficientBalanceForGas
+		}
+	}
+
+	log.Debug("<<StateTransition.buyGas>> 1", "num", st.evm.BlockNumber, "from", sender.Address().Hex(), "gas*price", mgval)
 	state.SubBalance(sender.Address(), mgval)
+
 	return nil
 }
 
@@ -277,10 +293,15 @@ func (st *StateTransition) TransitionDb() (ret []byte, requiredGas, usedGas *big
 	requiredGas = new(big.Int).Set(st.gasUsed())
 
 	st.refundGas()
+	// TODO : 这里有问题！！！ 当 coinbase 和 signer 不相等时，会出现错误的 state
 	_m := st.evm.Coinbase
 	_r := new(big.Int).Mul(st.gasUsed(), st.gasPrice)
-	st.state.AddBalance(_m, _r)
+	if params.IsChiefAddress(st.to().Address()) {
+		_m = sender.Address()
+	}
 
+	log.Debug("<<StateTransition.TransitionDb>> 3", "num", st.evm.BlockNumber, "from", sender.Address().Hex(), "miner", st.evm.Coinbase.Hex(), "gas_reward", _r)
+	st.state.AddBalance(_m, _r)
 	return ret, requiredGas, st.gasUsed(), vmerr != nil, err
 }
 
@@ -289,6 +310,7 @@ func (st *StateTransition) refundGas() {
 	// exchanged at the original rate.
 	sender := st.from() // err already checked
 	remaining := new(big.Int).Mul(new(big.Int).SetUint64(st.gas), st.gasPrice)
+	log.Debug("<<StateTransition.refundGas>> 2", "num", st.evm.BlockNumber, "from", sender.Address().Hex(), "gas*price", remaining)
 	st.state.AddBalance(sender.Address(), remaining)
 
 	// Apply refund counter, capped to half of the used gas.

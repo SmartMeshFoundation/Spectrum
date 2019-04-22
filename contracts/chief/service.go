@@ -333,11 +333,14 @@ func (self *TribeService) update(mbox params.Mbox) {
 		case "0.0.5":
 			t, e = self.tribeChief_0_0_5.Update(auth, self.fetchVolunteer(blockNumber, chiefInfo.Version))
 		case "0.0.6":
-			t, e = self.tribeChief_0_0_6.Update(auth, self.fetchVolunteer(blockNumber, chiefInfo.Version))
+			v := self.fetchVolunteer(blockNumber, chiefInfo.Version)
+			log.Debug("<<TribeService.fetchVolunteer.result>>", "num", blockNumber, "v", v.Hex())
+			t, e = self.tribeChief_0_0_6.Update(auth, v)
 		}
 	}
 
 	if e != nil {
+		log.Error("❌ <<TribeService.update>>", "err", e, "from", auth.From.Hex())
 		success.Entity = e
 	} else {
 		success.Success = true
@@ -516,13 +519,17 @@ func (self *TribeService) fetchVolunteer(blockNumber *big.Int, vsn string) commo
 			vlist := make([]common.Address, 0, 0)
 			for _, pub := range vs {
 				add := crypto.PubkeyToAddress(*pub)
-				ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
-				defer cancel()
-				b, e := self.client.BalanceAt(ctx, add, nil)
-				if e == nil && b.Cmp(params.ChiefBaseBalance) >= 0 {
-					vlist = append(vlist, add)
-				}
+				vlist = append(vlist, add)
+				/*
+					ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+					defer cancel()
+					b, e := self.client.BalanceAt(ctx, add, nil)
+					if e == nil && b.Cmp(params.ChiefBaseBalance) >= 0 {
+						vlist = append(vlist, add)
+					}
+				*/
 			}
+
 			log.Debug("=> TribeService.fetchVolunteer :", "vsn", vsn, "vlist", len(vlist))
 			if len(vlist) > 0 {
 				ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
@@ -535,6 +542,12 @@ func (self *TribeService) fetchVolunteer(blockNumber *big.Int, vsn string) commo
 					for i, r := range rlist {
 						if r.Int64() > 0 {
 							v := vlist[i]
+							b := sdb.GetBalance(v)
+							if b.Cmp(params.GetMinMinerBalance()) >= 0 {
+								log.Error("1.<<statute.GetAnmapService>>", "v", v.Hex(), "balance", b.String())
+								return v
+							}
+
 							if ms, err := statute.GetMeshboxService(); err == nil {
 								// first : meshbox.sol
 								log.Debug("<< FilterVolunteer.meshbox-rule >>")
@@ -545,19 +558,28 @@ func (self *TribeService) fetchVolunteer(blockNumber *big.Int, vsn string) commo
 							}
 							// second : if vlist not in meshbox contract the balance great than 10w SMT is requirement
 							// check nodeid&account mapping contract and review balance
-							var _m = v
 							if as, err := statute.GetAnmapService(); err == nil {
 								cbh := ch.Hash()
-								if f, _, err := as.BindInfo(v, nil, &cbh); err == nil {
-									log.Info("1.<<statute.GetAnmapService>>", "f", f.Hex(), "n", v.Hex())
-									_m = f
+								if f, nl, err := as.BindInfo(v, nil, &cbh); err == nil && len(nl) > 0 {
+									// exclude meshbox n in nl
+									noBox := int64(0)
+									for _, n := range nl {
+										if !params.MeshboxExistAddress(n) {
+											noBox++
+										}
+									}
+									if noBox == 0 {
+										return v
+									}
+									fb := sdb.GetBalance(f)
+									mb := new(big.Int).Mul(params.GetMinMinerBalance(), big.NewInt(noBox))
+									log.Info("2.<<statute.GetAnmapService>>", "v", v.Hex(), "f", f.Hex(), "nl.len", len(nl), "nobox", noBox, "fb", fb, "mb", mb)
+									if fb.Cmp(mb) >= 0 {
+										return v
+									}
 								}
 							}
-							b := sdb.GetBalance(_m)
-							if b.Cmp(params.GetMinMinerBalance()) >= 0 {
-								log.Error("2.<<statute.GetAnmapService>>", "v", v.Hex(), "_m", _m.Hex(), "balance", b.String())
-								return v
-							}
+
 						}
 					}
 

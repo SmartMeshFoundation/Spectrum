@@ -633,6 +633,7 @@ func (d *Downloader) findAncestor(p *peerConnection, height uint64) (uint64, err
 	if ceil >= MaxForkAncestry {
 		floor = int64(ceil - MaxForkAncestry)
 	}
+	log.Debug(fmt.Sprintf("[ downloader ] ==> findAncestor() ceil=%d, maxforkancestry=%d, floor=%d ", ceil, MaxForkAncestry, floor))
 	// Request the topmost blocks to short circuit binary ancestor lookup
 	head := ceil
 	if head > height {
@@ -754,9 +755,10 @@ func (d *Downloader) findAncestor(p *peerConnection, height uint64) (uint64, err
 				arrived = true
 
 				// Modify the search interval based on the response
-				if (d.mode == FullSync && !d.blockchain.HasBlockAndState(headers[0].Hash())) || (d.mode != FullSync && !d.lightchain.HasHeader(headers[0].Hash(), headers[0].Number.Uint64())) {
+				if (d.mode == FullSync && !d.blockchain.HasBlockAndState(headers[0].Hash())) ||
+					(d.mode != FullSync && !d.lightchain.HasHeader(headers[0].Hash(), headers[0].Number.Uint64())) {
 					end = check
-					log.Info(fmt.Sprintf("[ downloader ] ==> findAncestor() matched block found, set start = %v", start))
+					log.Debug(fmt.Sprintf("[ downloader ] ==> findAncestor() matched block found, floor = %v , set start = %v , end = %v", floor, start, end))
 					break
 				}
 				header := d.lightchain.GetHeaderByHash(headers[0].Hash()) // Independent of sync mode, header surely exists

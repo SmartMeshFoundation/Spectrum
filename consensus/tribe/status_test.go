@@ -37,5 +37,7 @@ func TestMinerSigner(t *testing.T) {
 }
 
 func TestAddr(t *testing.T) {
+	var addr common.Address
+	t.Log(common.HexToAddress("0x") == addr)
 	t.Log(common.HexToAddress("0x") == common.HexToAddress(""))
 }

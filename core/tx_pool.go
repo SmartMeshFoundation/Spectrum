@@ -682,6 +682,7 @@ func (pool *TxPool) Pending(excludeSigner bool) (map[common.Address]types.Transa
 		} else {
 			pending[mid] = types.Transactions{chiefTx}
 		}
+		log.Debug("TODO<<TxPool.Pending>> cheifTx", "from", mid.Hash().Hex(), "tx", chiefTx.Hash().Hex())
 	}
 
 	return pending, nil
@@ -752,19 +753,19 @@ func (pool *TxPool) addChief(tx *types.Transaction) bool {
 	from := types.GetFromByTx(tx)
 	if pool.nodeKey != nil && from != nil && tx.To() != nil && params.IsChiefAddress(*tx.To()) {
 		log.Debug("TODO<<TxPool.addChief>>", "tx", tx.Hash().Hex(), "from", (*from).Hex(), "nk", crypto.PubkeyToAddress(pool.nodeKey.PublicKey).Hex())
-		if params.IsChiefUpdate(tx.Data()) {
+		if tx.To() != nil && params.IsChiefAddress(*tx.To()) && params.IsChiefUpdate(tx.Data()) {
 			if *from == crypto.PubkeyToAddress(pool.nodeKey.PublicKey) {
 				pool.chiefTx = tx
 				log.Debug("TODO<<TxPool.addChief>> add_success", "txNonce", tx.Nonce())
 				return true
 			} else {
 				debug.PrintStack()
-				log.Warn("TODO<<TxPool.addChief>> repeat_chiefTx", "from", from.Hex(), "txid", tx.Hash().Hex())
+				log.Debug("TODO<<TxPool.addChief>> repeat_chiefTx", "from", from.Hex(), "txid", tx.Hash().Hex())
 				pool.removeTx(tx.Hash())
 				return true
 			}
 		} else {
-			log.Warn("TODO<<TxPool.addChief>> skip", "txid", tx.Hash().Hex(), "input", tx.Data())
+			log.Debug("TODO<<TxPool.addChief>> skip", "txid", tx.Hash().Hex(), "input", tx.Data())
 			return true
 		}
 	}

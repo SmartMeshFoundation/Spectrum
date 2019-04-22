@@ -19,6 +19,7 @@ package miner
 
 import (
 	"fmt"
+	"math/big"
 	"sync/atomic"
 
 	"github.com/SmartMeshFoundation/Spectrum/accounts"
@@ -46,7 +47,8 @@ type Backend interface {
 
 // Miner creates blocks and searches for proof-of-work values.
 type Miner struct {
-	mux *event.TypeMux
+	stop chan struct{}
+	mux  *event.TypeMux
 
 	worker *worker
 
@@ -66,6 +68,7 @@ func New(eth Backend, config *params.ChainConfig, mux *event.TypeMux, engine con
 		engine:   engine,
 		worker:   newWorker(config, engine, common.Address{}, eth, mux),
 		canStart: 1,
+		stop:     make(chan struct{}),
 	}
 	miner.Register(NewCpuAgent(eth.BlockChain(), engine))
 	go miner.update()
@@ -140,18 +143,45 @@ func (self *Miner) Start(coinbase common.Address) {
 			if err != nil {
 				log.Error("miner start fail", err)
 			}
-			if s.GetBalance(m).Cmp(params.ChiefBaseBalance) >= 0 {
+			if params.IsSIP004Block(self.eth.BlockChain().CurrentBlock().Number()) {
+				if params.MeshboxExistAddress(m) {
+					break
+				}
+				f, nl, err := params.AnmapBindInfo(m, self.eth.BlockChain().CurrentHeader().Hash())
+				if err == nil && f != common.HexToAddress("0x") && len(nl) > 0 {
+					// exclude meshbox n in nl
+					noBox := int64(0)
+					for _, n := range nl {
+						if !params.MeshboxExistAddress(n) {
+							noBox++
+						}
+					}
+					if noBox > 0 {
+						fb := s.GetBalance(f)
+						mb := new(big.Int).Mul(params.GetMinMinerBalance(), big.NewInt(noBox))
+						if fb.Cmp(mb) >= 0 {
+							break
+						}
+					}
+				} else {
+					b := s.GetBalance(m)
+					if b.Cmp(params.GetMinMinerBalance()) >= 0 {
+						break
+					}
+				}
+			} else if s.GetBalance(m).Cmp(params.ChiefBaseBalance) >= 0 {
 				break
 			}
-			/*
-				if i%10 == 0 {
-					log.Warn(fmt.Sprintf("[%d] ⚠️ You need pay 1 finney to \"%s\" address to upgrade your node to be a miner", xx, m.Hex()))
-				}
-			*/
+
 			if atomic.LoadInt32(&self.mining) == 0 {
 				return
 			}
-			<-time.After(time.Second * 5)
+			select {
+			case <-self.stop:
+				return
+			default:
+				<-time.After(time.Second * 7)
+			}
 			i++
 		}
 	}
@@ -164,7 +194,13 @@ func (self *Miner) Start(coinbase common.Address) {
 	}()
 }
 
+func (self *Miner) dostop() {
+	defer func() { recover() }()
+	close(self.stop)
+}
+
 func (self *Miner) Stop() {
+	self.dostop()
 	self.worker.stop()
 	atomic.StoreInt32(&self.mining, 0)
 	atomic.StoreInt32(&self.shouldStart, 0)
