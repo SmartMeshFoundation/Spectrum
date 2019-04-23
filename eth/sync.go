@@ -209,7 +209,7 @@ func (pm *ProtocolManager) synchronise(peer *peer) {
 		}
 	}
 	if err != nil {
-		log.Error("<<synchronise>>", "err", err, "mode", mode, "peerid", peer.ID().String())
+		log.Debug("<<synchronise>>", "err", err, "mode", mode, "peerid", peer.ID().String())
 		return
 	}
 	atomic.StoreUint32(&pm.acceptTxs, 1) // Mark initial sync done

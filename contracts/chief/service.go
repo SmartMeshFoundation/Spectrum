@@ -558,9 +558,13 @@ func (self *TribeService) fetchVolunteer(blockNumber *big.Int, vsn string) commo
 							}
 							// second : if vlist not in meshbox contract the balance great than 10w SMT is requirement
 							// check nodeid&account mapping contract and review balance
-							if as, err := statute.GetAnmapService(); err == nil {
+							as, err := statute.GetAnmapService()
+							log.Debug("<<statute.GetAnmapService>> GetAnmapService", "num", blockNumber, "err", err)
+							if err == nil {
 								cbh := ch.Hash()
-								if f, nl, err := as.BindInfo(v, nil, &cbh); err == nil && len(nl) > 0 {
+								f, nl, err := as.BindInfo(v, nil, &cbh)
+								log.Debug("<<statute.GetAnmapService>> BindInfo", "num", blockNumber, "f", f.Hash(), "nl.len", len(nl), "err", err)
+								if err == nil && len(nl) > 0 {
 									// exclude meshbox n in nl
 									noBox := int64(0)
 									for _, n := range nl {
