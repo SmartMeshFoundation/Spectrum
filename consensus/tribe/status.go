@@ -475,6 +475,7 @@ func (self *TribeStatus) VerifySignerBalance(state *state.StateDB, addr common.A
 	// skip when v in meshbox.sol
 	if !params.MeshboxExistAddress(addr) {
 		f, nl, err := params.AnmapBindInfo(addr, header.ParentHash)
+		log.Debug("<<AnmapBindInfo>>", "f", f.Hex(), "nl.len", len(nl), "err", err)
 		if err == nil && f != common.HexToAddress("0x") && len(nl) > 0 {
 			// exclude meshbox n in nl
 			noBox := int64(0)
