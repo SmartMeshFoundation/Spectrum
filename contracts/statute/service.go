@@ -238,6 +238,11 @@ func (self *StatuteService) bindInfo(mbox params.Mbox) {
 	if h, ok := mbox.Params["hash"]; ok {
 		bh := h.(common.Hash)
 		blockHash = &bh
+		_header := self.ethereum.BlockChain().GetHeaderByHash(*blockHash)
+		log.Debug("<<StatuteService_bindInfo>>", "hash", blockHash.Hex(), "header", _header)
+		if _header == nil {
+			blockHash = nil
+		}
 	}
 	if n, ok := mbox.Params["number"]; ok {
 		blockNumber = n.(*big.Int)
