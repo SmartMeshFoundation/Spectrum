@@ -47,7 +47,7 @@ type Backend interface {
 
 // Miner creates blocks and searches for proof-of-work values.
 type Miner struct {
-	stop chan struct{}
+	stop []chan struct{}
 	mux  *event.TypeMux
 
 	worker *worker
@@ -68,7 +68,7 @@ func New(eth Backend, config *params.ChainConfig, mux *event.TypeMux, engine con
 		engine:   engine,
 		worker:   newWorker(config, engine, common.Address{}, eth, mux),
 		canStart: 1,
-		stop:     make(chan struct{}),
+		stop:     make([]chan struct{}, 0),
 	}
 	miner.Register(NewCpuAgent(eth.BlockChain(), engine))
 	go miner.update()
@@ -123,6 +123,8 @@ out:
 var xx int32 = 0
 
 func (self *Miner) Start(coinbase common.Address) {
+	stop := make(chan struct{})
+	self.stop = append(self.stop[:], stop)
 	atomic.AddInt32(&xx, 1)
 	atomic.StoreInt32(&self.shouldStart, 1)
 
@@ -138,6 +140,7 @@ func (self *Miner) Start(coinbase common.Address) {
 	if tribe, ok := self.engine.(*tribe.Tribe); ok {
 		i := 0
 		for {
+			//log.Info("<<MinerStart>> loop_start", "i", i, "num", self.eth.BlockChain().CurrentBlock().Number())
 			m := tribe.Status.GetMinerAddress()
 			s, err := self.worker.chain.State()
 			if err != nil {
@@ -148,6 +151,7 @@ func (self *Miner) Start(coinbase common.Address) {
 					break
 				}
 				f, nl, err := params.AnmapBindInfo(m, self.eth.BlockChain().CurrentHeader().Hash())
+				//log.Info("<<MinerStart>> AnmapBindInfo", "i", i, "num", self.eth.BlockChain().CurrentBlock().Number(), "f", f.Hex(), "nl.len", len(nl), "err", err)
 				if err == nil && f != common.HexToAddress("0x") && len(nl) > 0 {
 					// exclude meshbox n in nl
 					noBox := int64(0)
@@ -177,7 +181,7 @@ func (self *Miner) Start(coinbase common.Address) {
 				return
 			}
 			select {
-			case <-self.stop:
+			case <-stop:
 				return
 			default:
 				<-time.After(time.Second * 7)
@@ -189,14 +193,20 @@ func (self *Miner) Start(coinbase common.Address) {
 	go func() {
 		s := make(chan int)
 		self.worker.start(s)
-		<-s
-		self.worker.commitNewWork()
+		select {
+		case <-stop:
+			return
+		case <-s:
+			self.worker.commitNewWork()
+		}
 	}()
 }
 
 func (self *Miner) dostop() {
 	defer func() { recover() }()
-	close(self.stop)
+	for _, stop := range self.stop[:] {
+		close(stop)
+	}
 }
 
 func (self *Miner) Stop() {
