@@ -3,7 +3,9 @@ package chief
 import (
 	"context"
 	"errors"
+	"github.com/SmartMeshFoundation/Spectrum/contracts"
 	"github.com/SmartMeshFoundation/Spectrum/contracts/statute"
+	"github.com/SmartMeshFoundation/Spectrum/ethclient"
 	"math/big"
 	"time"
 
@@ -16,7 +18,6 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/core/types"
 	"github.com/SmartMeshFoundation/Spectrum/crypto"
 	"github.com/SmartMeshFoundation/Spectrum/eth"
-	"github.com/SmartMeshFoundation/Spectrum/ethclient"
 	"github.com/SmartMeshFoundation/Spectrum/internal/ethapi"
 	"github.com/SmartMeshFoundation/Spectrum/les"
 	"github.com/SmartMeshFoundation/Spectrum/log"
@@ -49,8 +50,6 @@ type TribeService struct {
 	tribeChief_0_0_6 *chieflib.TribeChief_0_0_6
 	quit             chan int
 	server           *p2p.Server // peers and nodekey ...
-	ipcpath          string
-	client           *ethclient.Client
 	ethereum         *eth.Ethereum
 }
 
@@ -67,10 +66,8 @@ func NewTribeService(ctx *node.ServiceContext) (node.Service, error) {
 			return nil, err
 		}
 	}
-	ipcpath := params.GetIPCPath()
 	ts := &TribeService{
 		quit:     make(chan int),
-		ipcpath:  ipcpath,
 		ethereum: ethereum,
 	}
 	if v0_0_2 := params.GetChiefInfoByVsn("0.0.2"); v0_0_2 != nil {
@@ -286,13 +283,14 @@ func (self *TribeService) update(mbox params.Mbox) {
 	//auth.GasLimit = big.NewInt(params.ChiefTxGas.Int64())
 	success := params.MBoxSuccess{Success: false}
 
-	if err := self.initEthclient(); err != nil {
+	client, err := contracts.GetEthclientInstance()
+	if err != nil {
 		success.Entity = err
 		mbox.Rtn <- success
 		return
 	}
 	//if params.ChiefTxNonce > 0 {
-	pnonce, perr := self.client.NonceAt(context.Background(), crypto.PubkeyToAddress(prv.PublicKey), nil)
+	pnonce, perr := client.NonceAt(context.Background(), crypto.PubkeyToAddress(prv.PublicKey), nil)
 	if perr != nil {
 		log.Warn(">>=== nonce_err=", "err", perr)
 	} else {
@@ -308,7 +306,7 @@ func (self *TribeService) update(mbox params.Mbox) {
 	// not nil
 	if n, ok := mbox.Params["number"]; ok {
 		blockNumber = n.(*big.Int)
-		_b, _e := self.client.BlockByNumber(context.Background(), blockNumber)
+		_b, _e := client.BlockByNumber(context.Background(), blockNumber)
 		if _b == nil || _e != nil {
 			log.Error("Tribe.update : getBlockError", "err", _e, "num", blockNumber.Int64())
 			success.Entity = errors.New(fmt.Sprintf("TribeService.update : get_block_error : %d", blockNumber))
@@ -325,15 +323,15 @@ func (self *TribeService) update(mbox params.Mbox) {
 	if chiefInfo := params.GetChiefInfo(blockNumber); chiefInfo != nil {
 		switch chiefInfo.Version {
 		case "0.0.2":
-			t, e = self.tribeChief_0_0_2.Update(auth, self.fetchVolunteer(blockNumber, chiefInfo.Version))
+			t, e = self.tribeChief_0_0_2.Update(auth, self.fetchVolunteer(client, blockNumber, chiefInfo.Version))
 		case "0.0.3":
-			t, e = self.tribeChief_0_0_3.Update(auth, self.fetchVolunteer(blockNumber, chiefInfo.Version))
+			t, e = self.tribeChief_0_0_3.Update(auth, self.fetchVolunteer(client, blockNumber, chiefInfo.Version))
 		case "0.0.4":
-			t, e = self.tribeChief_0_0_4.Update(auth, self.fetchVolunteer(blockNumber, chiefInfo.Version))
+			t, e = self.tribeChief_0_0_4.Update(auth, self.fetchVolunteer(client, blockNumber, chiefInfo.Version))
 		case "0.0.5":
-			t, e = self.tribeChief_0_0_5.Update(auth, self.fetchVolunteer(blockNumber, chiefInfo.Version))
+			t, e = self.tribeChief_0_0_5.Update(auth, self.fetchVolunteer(client, blockNumber, chiefInfo.Version))
 		case "0.0.6":
-			v := self.fetchVolunteer(blockNumber, chiefInfo.Version)
+			v := self.fetchVolunteer(client, blockNumber, chiefInfo.Version)
 			log.Debug("<<TribeService.fetchVolunteer.result>>", "num", blockNumber, "v", v.Hex())
 			t, e = self.tribeChief_0_0_6.Update(auth, v)
 		}
@@ -473,7 +471,7 @@ func (self *TribeService) isVolunteer(dict map[common.Address]interface{}, add c
 }
 
 //0.0.6 : volunteerList is nil on vsn0.0.6
-func (self *TribeService) fetchVolunteer(blockNumber *big.Int, vsn string) common.Address {
+func (self *TribeService) fetchVolunteer(client *ethclient.Client, blockNumber *big.Int, vsn string) common.Address {
 	ch := self.ethereum.BlockChain().CurrentHeader()
 	TD := self.ethereum.BlockChain().GetTd(ch.Hash(), ch.Number.Uint64())
 	min := new(big.Int).Sub(TD, min_td)
@@ -510,7 +508,7 @@ func (self *TribeService) fetchVolunteer(blockNumber *big.Int, vsn string) commo
 				add := crypto.PubkeyToAddress(*pub)
 				ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 				defer cancel()
-				b, e := self.client.BalanceAt(ctx, add, nil)
+				b, e := client.BalanceAt(ctx, add, nil)
 				if e == nil && b.Cmp(params.ChiefBaseBalance) >= 0 && self.isVolunteer(vmap, add) {
 					return add
 				}
@@ -593,16 +591,4 @@ func (self *TribeService) fetchVolunteer(blockNumber *big.Int, vsn string) commo
 		}
 	}
 	return common.Address{}
-}
-
-func (self *TribeService) initEthclient() error {
-	if self.client == nil {
-		ethclient, err := ethclient.Dial(self.ipcpath)
-		if err != nil {
-			log.Error("ipc error at tribeservice.update", "err", err)
-			return err
-		}
-		self.client = ethclient
-	}
-	return nil
 }

@@ -7,11 +7,11 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/accounts"
 	"github.com/SmartMeshFoundation/Spectrum/accounts/abi/bind"
 	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/contracts"
 	"github.com/SmartMeshFoundation/Spectrum/contracts/statute/anmaplib"
 	"github.com/SmartMeshFoundation/Spectrum/contracts/statute/meshboxlib"
 	"github.com/SmartMeshFoundation/Spectrum/core/types"
 	"github.com/SmartMeshFoundation/Spectrum/eth"
-	"github.com/SmartMeshFoundation/Spectrum/ethclient"
 	"github.com/SmartMeshFoundation/Spectrum/log"
 	"github.com/SmartMeshFoundation/Spectrum/node"
 	"github.com/SmartMeshFoundation/Spectrum/p2p"
@@ -38,7 +38,6 @@ type StatuteService struct {
 	ipcpath  string
 	server   *p2p.Server // peers and nodekey ...
 	quit     chan int
-	client   *ethclient.Client
 	ethereum *eth.Ethereum
 }
 
@@ -186,6 +185,20 @@ func (self *StatuteService) Bind(from, nodeAddr common.Address, sigHex string) (
 			return w.SignTx(a, tx, params.ChainID())
 		},
 	}
+	//client   *ethclient.Client
+	client, err := contracts.GetEthclientInstance()
+	if err != nil {
+		return common.Hash{}, err
+	}
+	//if params.ChiefTxNonce > 0 {
+	pnonce, perr := client.PendingNonceAt(context.Background(), from)
+	if perr != nil {
+		log.Debug("<<StatuteService_Bind>> === nonce_err", "err", perr)
+	} else {
+		log.Debug("<<StatuteService_Bind>> === nonce", "nonce", pnonce)
+		opts.Nonce = new(big.Int).SetUint64(pnonce)
+	}
+
 	r, s, v := sigSplit(sigHex)
 	tx, err := self.anmap.Bind(opts, nodeAddr, v, r, s)
 	log.Info("<<StatuteService.Bind>>", "err", err, "tx", tx)
