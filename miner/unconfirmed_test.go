@@ -17,6 +17,8 @@
 package miner
 
 import (
+	"fmt"
+	"sync"
 	"testing"
 
 	"github.com/SmartMeshFoundation/Spectrum/common"
@@ -90,4 +92,28 @@ func TestChannelClose(t *testing.T) {
 	close(ch)
 	t.Log("isNull", ch == nil)
 
+}
+
+func TestSyncMap(t *testing.T) {
+	var m = new(sync.Map)
+	c1 := make(chan struct{})
+	c2 := make(chan struct{})
+	m.Store(c1, c1)
+	m.Store(c2, c2)
+	go func() {
+		<-c1
+		fmt.Println("111111111111111")
+	}()
+	go func() {
+		<-c2
+		fmt.Println("222222222222222")
+	}()
+	m.Range(func(k, v interface{}) bool {
+		fmt.Println(k, v)
+		close(k.(chan struct{}))
+		m.Delete(k)
+		return true
+	})
+	_, ok := m.Load(c1)
+	fmt.Println(ok)
 }

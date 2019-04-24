@@ -20,6 +20,7 @@ package miner
 import (
 	"fmt"
 	"math/big"
+	"sync"
 	"sync/atomic"
 
 	"github.com/SmartMeshFoundation/Spectrum/accounts"
@@ -47,7 +48,7 @@ type Backend interface {
 
 // Miner creates blocks and searches for proof-of-work values.
 type Miner struct {
-	stop []chan struct{}
+	stop *sync.Map
 	mux  *event.TypeMux
 
 	worker *worker
@@ -68,7 +69,7 @@ func New(eth Backend, config *params.ChainConfig, mux *event.TypeMux, engine con
 		engine:   engine,
 		worker:   newWorker(config, engine, common.Address{}, eth, mux),
 		canStart: 1,
-		stop:     make([]chan struct{}, 0),
+		stop:     new(sync.Map),
 	}
 	miner.Register(NewCpuAgent(eth.BlockChain(), engine))
 	go miner.update()
@@ -124,7 +125,7 @@ var xx int32 = 0
 
 func (self *Miner) Start(coinbase common.Address) {
 	stop := make(chan struct{})
-	self.stop = append(self.stop[:], stop)
+	self.stop.Store(stop, struct{}{})
 	atomic.AddInt32(&xx, 1)
 	atomic.StoreInt32(&self.shouldStart, 1)
 
@@ -204,9 +205,11 @@ func (self *Miner) Start(coinbase common.Address) {
 
 func (self *Miner) dostop() {
 	defer func() { recover() }()
-	for _, stop := range self.stop[:] {
-		close(stop)
-	}
+	self.stop.Range(func(k, v interface{}) bool {
+		close(k.(chan struct{}))
+		self.stop.Delete(k)
+		return true
+	})
 }
 
 func (self *Miner) Stop() {
