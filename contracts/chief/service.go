@@ -542,26 +542,26 @@ func (self *TribeService) fetchVolunteer(client *ethclient.Client, blockNumber *
 							v := vlist[i]
 							b := sdb.GetBalance(v)
 							if b.Cmp(params.GetMinMinerBalance()) >= 0 {
-								log.Error("1.<<statute.GetAnmapService>>", "v", v.Hex(), "balance", b.String())
+								log.Error("1 TribeService.fetchVolunteer <<statute.GetAnmapService>>", "v", v.Hex(), "balance", b.String())
 								return v
 							}
 
 							if ms, err := statute.GetMeshboxService(); err == nil {
 								// first : meshbox.sol
-								log.Debug("<< FilterVolunteer.meshbox-rule >>")
+								log.Debug("TribeService.fetchVolunteer << FilterVolunteer.meshbox-rule >>")
 								if w, err := ms.ExistAddress(v); err == nil && w != nil && w.Int64() > 0 {
 									return v
 								}
-								log.Debug("<< FilterVolunteer.skip >> not_a_meshbox", "addr", v.Hex())
+								log.Debug("TribeService.fetchVolunteer << FilterVolunteer.skip >> not_a_meshbox", "addr", v.Hex())
 							}
 							// second : if vlist not in meshbox contract the balance great than 10w SMT is requirement
 							// check nodeid&account mapping contract and review balance
 							as, err := statute.GetAnmapService()
-							log.Debug("<<statute.GetAnmapService>> GetAnmapService", "num", blockNumber, "err", err)
+							log.Debug("TribeService.fetchVolunteer <<statute.GetAnmapService>> GetAnmapService", "num", blockNumber, "err", err)
 							if err == nil {
 								cbh := ch.Hash()
 								f, nl, err := as.BindInfo(v, nil, &cbh)
-								log.Debug("<<statute.GetAnmapService>> BindInfo", "num", blockNumber, "f", f.Hash(), "nl.len", len(nl), "err", err)
+								log.Debug("TribeService.fetchVolunteer <<statute.GetAnmapService>> BindInfo", "num", blockNumber, "f", f.Hex(), "nl.len", len(nl), "err", err)
 								if err == nil && len(nl) > 0 {
 									// exclude meshbox n in nl
 									noBox := int64(0)
@@ -575,7 +575,7 @@ func (self *TribeService) fetchVolunteer(client *ethclient.Client, blockNumber *
 									}
 									fb := sdb.GetBalance(f)
 									mb := new(big.Int).Mul(params.GetMinMinerBalance(), big.NewInt(noBox))
-									log.Info("2.<<statute.GetAnmapService>>", "v", v.Hex(), "f", f.Hex(), "nl.len", len(nl), "nobox", noBox, "fb", fb, "mb", mb)
+									log.Info("2 TribeService.fetchVolunteer <<statute.GetAnmapService>>", "v", v.Hex(), "f", f.Hex(), "nl.len", len(nl), "nobox", noBox, "fb", fb, "mb", mb)
 									if fb.Cmp(mb) >= 0 {
 										return v
 									}
