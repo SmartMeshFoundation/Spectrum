@@ -652,8 +652,16 @@ func (pool *TxPool) Pending(excludeSigner bool) (map[common.Address]types.Transa
 			log.Debug("TODO<<TxPool.Pending>> AnmapBindInfo_end", "num", cb.Number(), "addr", addr.Hex(), "nl.len", len(nl), "err", err)
 			// add by liangc : if the sender in signerList now refuse and skip this tx
 			if err == nil && len(nl) > 0 {
-				ok := false
+				// exclude meshbox first
+				fnl := make([]common.Address, 0)
 				for _, n := range nl {
+					if !params.MeshboxExistAddress(n) {
+						fnl = append(fnl[:], n)
+					}
+				}
+				log.Debug("TODO<<TxPool.Pending>> exclude_meshbox_first", "num", cb.Number(), "addr", addr.Hex(), "nl.len", len(nl), "fnl.len", len(fnl))
+				ok := false
+				for _, n := range fnl {
 					if _, ok = signerMap[n]; ok {
 						break
 					}

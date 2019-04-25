@@ -40,4 +40,6 @@ var BadHashes = map[common.Hash]bool{
 	*/
 	// add by liangc : testnet : rollback 2200022 in testnet for test and debug vsn0.6.0
 	common.HexToHash("0x3e7cb5d81c8f8b3998ec1b1c244333d16712f27cedac0f42b4039bf04689da09"): true,
+	// testnet rollback to 2243388
+	common.HexToHash("0x3a0c324ef355f3b12049851e75873e13e5b48aa69e79d68f5e8c9a61a2655bee"): true,
 }
