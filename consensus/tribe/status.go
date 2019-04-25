@@ -550,7 +550,6 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 
 	var total = 0
 	for i, tx := range block.Transactions() {
-
 		from := types.GetFromByTx(tx)
 		//verify by anmap bindinfo
 		_, nl, err := params.AnmapBindInfo(*from, parent.Hash())
@@ -569,7 +568,7 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 					fnl = append(fnl[:], n)
 				}
 			}
-			log.Info("TODO<<TribeStatus.ValidateBlock>> exclude_meshbox_first", "num", number, "nl.len", len(nl), "fnl.len", len(fnl))
+			log.Debug("TODO<<TribeStatus.ValidateBlock>> exclude_meshbox_first", "num", number, "i", i, "from", from.Hex(), "to", tx.To().Hex(), "nl.len", len(nl), "fnl.len", len(fnl))
 			for _, n := range fnl {
 				if err := verifyBySignerMap(n); err != nil {
 					return err
