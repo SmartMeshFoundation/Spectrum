@@ -561,7 +561,7 @@ func (self *TribeService) fetchVolunteer(client *ethclient.Client, blockNumber *
 							if err == nil {
 								cbh := ch.Hash()
 								f, nl, err := as.BindInfo(v, nil, &cbh)
-								log.Debug("TribeService.fetchVolunteer <<statute.GetAnmapService>> BindInfo", "num", blockNumber, "f", f.Hex(), "nl.len", len(nl), "err", err)
+								log.Debug("TribeService.fetchVolunteer <<statute.GetAnmapService>> BindInfo", "num", blockNumber, "f", f.Hex(), "v", v.Hex(), "nl.len", len(nl), "err", err)
 								if err == nil && len(nl) > 0 {
 									// exclude meshbox n in nl
 									noBox := int64(0)
