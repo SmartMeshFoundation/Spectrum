@@ -171,8 +171,15 @@ func (self *StatuteService) BindInfo(addr common.Address, blockNumber *big.Int, 
 		opts.Hash = &chash
 	}
 	vo, err := self.anmap.BindInfo(opts, addr)
+
+	// anmap.sol bindInfo func has a problum , an/na return diff nodeids so query again
+	if err == nil && len(vo.Nids) == 1 && vo.From != addr {
+		vo, err = self.anmap.BindInfo(opts, vo.From)
+	}
+
 	from = vo.From
 	nodeids = vo.Nids
+
 	return
 }
 
