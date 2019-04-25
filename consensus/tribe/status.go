@@ -554,6 +554,7 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 		from := types.GetFromByTx(tx)
 		//verify by anmap bindinfo
 		_, nl, err := params.AnmapBindInfo(*from, parent.Hash())
+
 		verifyBySignerMap := func(addr common.Address) error {
 			if _, ok := signerMap[addr]; i > 0 && ok {
 				return ErrTribeValdateTxSenderCannotInSignerList
@@ -561,7 +562,15 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 			return nil
 		}
 		if err == nil && len(nl) > 0 {
+			// exclude meshbox first
+			fnl := make([]common.Address, 0)
 			for _, n := range nl {
+				if !params.MeshboxExistAddress(n) {
+					fnl = append(fnl[:], n)
+				}
+			}
+			log.Info("TODO<<TribeStatus.ValidateBlock>> exclude_meshbox_first", "num", number, "nl.len", len(nl), "fnl.len", len(fnl))
+			for _, n := range fnl {
 				if err := verifyBySignerMap(n); err != nil {
 					return err
 				}
