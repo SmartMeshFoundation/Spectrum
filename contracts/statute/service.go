@@ -258,9 +258,9 @@ func (self *StatuteService) bindInfo(mbox params.Mbox) {
 	if h, ok := mbox.Params["hash"]; ok {
 		bh := h.(common.Hash)
 		blockHash = &bh
-		_header := self.ethereum.BlockChain().GetHeaderByHash(*blockHash)
-		log.Debug("<<StatuteService_bindInfo>>", "hash", blockHash.Hex(), "header", _header)
-		if _header == nil {
+		_block := self.ethereum.BlockChain().GetBlockByHash(*blockHash)
+		log.Debug("<<StatuteService_bindInfo>>", "hash", blockHash.Hex())
+		if _block == nil {
 			blockHash = nil
 		}
 	}
