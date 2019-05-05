@@ -17,6 +17,7 @@
 package crypto
 
 import (
+	"bytes"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
@@ -190,4 +191,24 @@ func zeroBytes(bytes []byte) {
 	for i := range bytes {
 		bytes[i] = 0
 	}
+}
+
+func SimpleVRF(prv *ecdsa.PrivateKey, info []byte) (result *big.Int, err error) {
+	msg := Keccak256(info)
+	sig, err := Sign(msg, prv)
+	if err == nil {
+		result = new(big.Int).SetBytes(sig)
+	}
+	return
+}
+
+func SimpleVRFVerify(pub *ecdsa.PublicKey, result *big.Int, info []byte) (err error) {
+	msg := Keccak256(info)
+	recoveredPub, err := Ecrecover(msg, result.Bytes())
+	rpub := ToECDSAPub(recoveredPub)
+	if bytes.Equal(PubkeyToAddress(*pub).Bytes(), PubkeyToAddress(*rpub).Bytes()) {
+		return
+	}
+	err = errors.New("VRFVerify_fail")
+	return
 }

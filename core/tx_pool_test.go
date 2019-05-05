@@ -211,7 +211,7 @@ func TestStateChangeDuringTransactionPoolReset(t *testing.T) {
 
 	pool.lockedReset(nil, nil)
 
-	pendingTx, err := pool.Pending()
+	pendingTx, err := pool.Pending(false)
 	if err != nil {
 		t.Fatalf("Could not fetch pending transactions: %v", err)
 	}
@@ -1768,7 +1768,7 @@ func TestSafekmap(t *testing.T) {
 		sync.RWMutex
 		m map[int]int
 	}
-	sm := &safeMap{m: make(map[int]int),}
+	sm := &safeMap{m: make(map[int]int)}
 	wg := new(sync.WaitGroup)
 	for n := 0; n < 100; n++ {
 		wg.Add(2)
@@ -1776,7 +1776,7 @@ func TestSafekmap(t *testing.T) {
 		go func(n int) {
 			for i := 0; i < 10; i++ {
 				sm.Lock()
-				fmt.Println(n,"-->WRITE-->", i)
+				fmt.Println(n, "-->WRITE-->", i)
 				sm.m[i] = n
 				sm.Unlock()
 				<-time.After(time.Second * 1)

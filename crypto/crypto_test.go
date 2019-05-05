@@ -21,6 +21,7 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -56,6 +57,16 @@ func BenchmarkSha3(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		Keccak256(a)
 	}
+}
+
+func TestVRF(t *testing.T) {
+	key, _ := HexToECDSA("0bcd616498bf7aa08be3aacf5a8e9396dce2977c7e475269c47aa869c1743009")
+	msg := []byte("0x2db1fd5f27b222975ade09b7b580084c079842b35c7c5098086020affdaad8bc")
+	result, err := SimpleVRF(key, msg)
+	t.Log("VRF", err, result)
+	err = SimpleVRFVerify(&key.PublicKey, result, msg)
+	t.Log("Verify", err)
+	assert.Empty(t, err)
 }
 
 /*
