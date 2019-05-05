@@ -203,8 +203,22 @@ func SimpleVRF(prv *ecdsa.PrivateKey, info []byte) (result *big.Int, err error) 
 }
 
 func SimpleVRFVerify(pub *ecdsa.PublicKey, result *big.Int, info []byte) (err error) {
+	if result == nil || info == nil || pub == nil {
+		return errors.New("error params")
+	}
 	msg := Keccak256(info)
-	recoveredPub, err := Ecrecover(msg, result.Bytes())
+	rbuff := result.Bytes()
+	if len(rbuff) < 65 {
+		var prefix = make([]byte, 0)
+		for i := 0; i < 65-len(rbuff); i++ {
+			prefix = append(prefix[:], byte(0))
+		}
+		rbuff = append(prefix[:], rbuff[:]...)
+	}
+	recoveredPub, err := Ecrecover(msg, rbuff)
+	if err != nil {
+		return
+	}
 	rpub := ToECDSAPub(recoveredPub)
 	if bytes.Equal(PubkeyToAddress(*pub).Bytes(), PubkeyToAddress(*rpub).Bytes()) {
 		return

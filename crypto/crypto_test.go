@@ -21,7 +21,6 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -61,12 +60,44 @@ func BenchmarkSha3(b *testing.B) {
 
 func TestVRF(t *testing.T) {
 	key, _ := HexToECDSA("0bcd616498bf7aa08be3aacf5a8e9396dce2977c7e475269c47aa869c1743009")
-	msg := []byte("0x2db1fd5f27b222975ade09b7b580084c079842b35c7c5098086020affdaad8bc")
-	result, err := SimpleVRF(key, msg)
-	t.Log("VRF", err, result)
-	err = SimpleVRFVerify(&key.PublicKey, result, msg)
-	t.Log("Verify", err)
-	assert.Empty(t, err)
+	pub := &key.PublicKey
+	var (
+		msg     []byte
+		counter int
+	)
+	for i := 0; i < 1000; i++ {
+		msg = []byte(fmt.Sprint(i))
+		result, _ := SimpleVRF(key, msg)
+		err := SimpleVRFVerify(pub, result, msg)
+		if err != nil {
+			t.Log(i, err, msg, "r->", result)
+			t.Log(len(result.Bytes()))
+		}
+		b := result.Bytes()[len(result.Bytes())-2:]
+		if bytes.Equal(b[:], []byte{0, 0}[:]) {
+			t.Log(i, "-->", b)
+			counter++
+		}
+	}
+	t.Log("counter", counter)
+}
+
+func TestVRF2(t *testing.T) {
+	key, _ := HexToECDSA("0bcd616498bf7aa08be3aacf5a8e9396dce2977c7e475269c47aa869c1743009")
+	pub := &key.PublicKey
+	var msg []byte
+	i := 1005
+	msg = []byte(fmt.Sprint(i))
+	result, _ := SimpleVRF(key, msg)
+	err := SimpleVRFVerify(pub, result, msg)
+	if err != nil {
+		t.Log(i, err, msg, "r->", result)
+		t.Log(len(result.Bytes()))
+	}
+	b := result.Bytes()[len(result.Bytes())-2:]
+	if bytes.Equal(b[:], []byte{0, 0}[:]) {
+		t.Log(i, "-->", b)
+	}
 }
 
 /*
