@@ -64,8 +64,9 @@ func TestVRF(t *testing.T) {
 	var (
 		msg     []byte
 		counter int
+		total   = 90000
 	)
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < total; i++ {
 		msg = []byte(fmt.Sprint(i))
 		result, _ := SimpleVRF(key, msg)
 		err := SimpleVRFVerify(pub, result, msg)
@@ -75,11 +76,11 @@ func TestVRF(t *testing.T) {
 		}
 		b := result.Bytes()[len(result.Bytes())-2:]
 		if bytes.Equal(b[:], []byte{0, 0}[:]) {
-			t.Log(i, "-->", b)
+			//t.Log(i, "-->", b)
 			counter++
 		}
 	}
-	t.Log("counter", counter)
+	t.Log("counter", counter, "scale", float64(counter)/float64(total))
 }
 
 func TestVRF2(t *testing.T) {
