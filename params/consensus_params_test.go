@@ -8,6 +8,7 @@ import (
 	"math/big"
 	"sort"
 	"strings"
+	"sync"
 	"testing"
 )
 
@@ -89,12 +90,31 @@ func TestRegisterContract(t *testing.T) {
 	err = method.Inputs.Unpack(id, data[4:])
 	t.Log("4 err=", err, r, id.Hex())
 
-	t.Log(bytes.Equal(data[:4], []byte{28, 27, 135, 114}),data[:4])
+	t.Log(bytes.Equal(data[:4], []byte{28, 27, 135, 114}), data[:4])
 
 	rrr, _ := _abi.Pack("update", common.HexToAddress("0xAd4c80164065a3c33dD2014908c7563eFf88Ab49"))
 	t.Log(rrr[4:])
 	aaa := common.Bytes2Hex(rrr[4:])
 	t.Log(common.HexToAddress(aaa) == common.HexToAddress("0xAd4c80164065a3c33dD2014908c7563eFf88Ab49"))
-	bbb := common.Bytes2Hex([]byte{0,0,0,0,0,0,0})
+	bbb := common.Bytes2Hex([]byte{0, 0, 0, 0, 0, 0, 0})
 	t.Log(common.HexToAddress(bbb) == common.HexToAddress(""))
+}
+
+func TestError(t *testing.T) {
+	ch := make(chan int)
+	sm := new(sync.Map)
+	sm.Store("foo", "bar")
+	sm.Store("hello", "world")
+
+	sm.Range(func(k, v interface{}) bool {
+		defer func() {
+			if err := recover(); err != nil {
+				t.Log(k, v, "err:", err)
+			}
+		}()
+		defer close(ch)
+		t.Log(k, v)
+		return true
+	})
+
 }

@@ -50,6 +50,7 @@ const (
 	TribeChief_0_0_4ABI = "[{\"constant\":false,\"inputs\":[{\"name\":\"n\",\"type\":\"uint256\"}],\"name\":\"setEpoch\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"volunteer\",\"type\":\"address\"}],\"name\":\"update\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getStatus\",\"outputs\":[{\"name\":\"volunteerList\",\"type\":\"address[]\"},{\"name\":\"signerList\",\"type\":\"address[]\"},{\"name\":\"blackList\",\"type\":\"address[]\"},{\"name\":\"scoreList\",\"type\":\"uint256[]\"},{\"name\":\"numberList\",\"type\":\"uint256[]\"},{\"name\":\"number\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"version\",\"outputs\":[{\"name\":\"\",\"type\":\"string\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"n\",\"type\":\"uint256\"}],\"name\":\"setVolunteerLimit\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getEpoch\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"n\",\"type\":\"uint256\"}],\"name\":\"setSingerLimit\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getVolunteerLimit\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getSignerLimit\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"name\":\"genesisSigners\",\"type\":\"address[]\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"}]"
 	TribeChief_0_0_5ABI = "[{\"constant\":false,\"inputs\":[{\"name\":\"n\",\"type\":\"uint256\"}],\"name\":\"setEpoch\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"volunteer\",\"type\":\"address\"}],\"name\":\"update\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getStatus\",\"outputs\":[{\"name\":\"volunteerList\",\"type\":\"address[]\"},{\"name\":\"signerList\",\"type\":\"address[]\"},{\"name\":\"blackList\",\"type\":\"address[]\"},{\"name\":\"scoreList\",\"type\":\"uint256[]\"},{\"name\":\"numberList\",\"type\":\"uint256[]\"},{\"name\":\"number\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"version\",\"outputs\":[{\"name\":\"\",\"type\":\"string\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"n\",\"type\":\"uint256\"}],\"name\":\"setVolunteerLimit\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getEpoch\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"n\",\"type\":\"uint256\"}],\"name\":\"setSingerLimit\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getVolunteerLimit\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getSignerLimit\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"name\":\"genesisSigners\",\"type\":\"address[]\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"}]"
 	TribeChief_0_0_6ABI = "[{\"constant\":false,\"inputs\":[{\"name\":\"volunteer\",\"type\":\"address\"}],\"name\":\"update\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"volunteers\",\"type\":\"address[]\"}],\"name\":\"filterVolunteer\",\"outputs\":[{\"name\":\"result\",\"type\":\"uint256[]\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getStatus\",\"outputs\":[{\"name\":\"signerList\",\"type\":\"address[]\"},{\"name\":\"blackList\",\"type\":\"address[]\"},{\"name\":\"scoreList\",\"type\":\"uint256[]\"},{\"name\":\"numberList\",\"type\":\"uint256[]\"},{\"name\":\"totalVolunteer\",\"type\":\"uint256\"},{\"name\":\"number\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"version\",\"outputs\":[{\"name\":\"\",\"type\":\"string\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getEpoch\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getVolunteerLimit\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getVolunteers\",\"outputs\":[{\"name\":\"volunteerList\",\"type\":\"address[]\"},{\"name\":\"weightList\",\"type\":\"uint256[]\"},{\"name\":\"length\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getSignerLimit\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"fillVolunteerForTest\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"fillSignerForTest\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"name\":\"genesisSigners\",\"type\":\"address[]\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"}]"
+	TribeChief_0_0_7ABI = "[{\"constant\":false,\"inputs\":[{\"name\":\"volunteer\",\"type\":\"address\"}],\"name\":\"update\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"volunteers\",\"type\":\"address[]\"}],\"name\":\"filterVolunteer\",\"outputs\":[{\"name\":\"result\",\"type\":\"uint256[]\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getStatus\",\"outputs\":[{\"name\":\"signerList\",\"type\":\"address[]\"},{\"name\":\"blackList\",\"type\":\"address[]\"},{\"name\":\"scoreList\",\"type\":\"uint256[]\"},{\"name\":\"numberList\",\"type\":\"uint256[]\"},{\"name\":\"totalVolunteer\",\"type\":\"uint256\"},{\"name\":\"number\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"version\",\"outputs\":[{\"name\":\"\",\"type\":\"string\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getEpoch\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getVolunteerLimit\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getVolunteers\",\"outputs\":[{\"name\":\"volunteerList\",\"type\":\"address[]\"},{\"name\":\"weightList\",\"type\":\"uint256[]\"},{\"name\":\"length\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getSignerLimit\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"name\":\"genesisSigners\",\"type\":\"address[]\"},{\"name\":\"_epoch\",\"type\":\"uint256\"},{\"name\":\"_signerLimit\",\"type\":\"uint256\"},{\"name\":\"_volunteerLimit\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"}]"
 )
 
 var (
@@ -73,6 +74,8 @@ var (
 func GetMinMinerBalance() (mb *big.Int) {
 	if IsTestnet() {
 		mb = TestnetChainConfig.MinMinerBalance
+	} else if IsDevnet() {
+		mb = DevnetChainConfig.MinMinerBalance
 	} else {
 		mb = MainnetChainConfig.MinMinerBalance
 	}
@@ -82,37 +85,49 @@ func GetMinMinerBalance() (mb *big.Int) {
 func ChainID() (id *big.Int) {
 	if IsTestnet() {
 		id = TestnetChainConfig.ChainId
+	} else if IsDevnet() {
+		id = DevnetChainConfig.ChainId
 	} else {
 		id = MainnetChainConfig.ChainId
 	}
 	return
 }
 
-func AnmapInfo(num *big.Int) (n *big.Int, addr common.Address) {
+func AnmapInfo(num *big.Int, vsn string) (n *big.Int, addr common.Address) {
 	if IsTestnet() {
-		n = TestnetChainConfig.AnmapBlock
-		if n.Cmp(big.NewInt(0)) > 0 && n.Cmp(num) <= 0 {
-			addr = TestnetChainConfig.AnmapAddress
+		n = TestnetChainConfig.Anmap001Block
+		if n != nil && n.Cmp(big.NewInt(0)) > 0 && n.Cmp(num) <= 0 {
+			addr = TestnetChainConfig.Anmap001Address
+		}
+	} else if IsDevnet() {
+		n = DevnetChainConfig.Anmap001Block
+		if n != nil && n.Cmp(big.NewInt(0)) > 0 && n.Cmp(num) <= 0 {
+			addr = DevnetChainConfig.Anmap001Address
 		}
 	} else {
-		n = MainnetChainConfig.AnmapBlock
-		if n.Cmp(big.NewInt(0)) > 0 && n.Cmp(num) <= 0 {
-			addr = MainnetChainConfig.AnmapAddress
+		n = MainnetChainConfig.Anmap001Block
+		if n != nil && n.Cmp(big.NewInt(0)) > 0 && n.Cmp(num) <= 0 {
+			addr = MainnetChainConfig.Anmap001Address
 		}
 	}
 	return
 }
 
-func MeshboxInfo(num *big.Int) (n *big.Int, addr common.Address) {
+func MeshboxInfo(num *big.Int, vsn string) (n *big.Int, addr common.Address) {
 	if IsTestnet() {
-		n = TestnetChainConfig.MeshboxBlock
-		if n.Cmp(big.NewInt(0)) > 0 && n.Cmp(num) <= 0 {
-			addr = TestnetChainConfig.MeshboxAddress
+		n = TestnetChainConfig.Meshbox001Block
+		if n != nil && n.Cmp(big.NewInt(0)) > 0 && n.Cmp(num) <= 0 {
+			addr = TestnetChainConfig.Meshbox001Address
+		}
+	} else if IsDevnet() {
+		n = DevnetChainConfig.Meshbox001Block
+		if n != nil && n.Cmp(big.NewInt(0)) > 0 && n.Cmp(num) <= 0 {
+			addr = DevnetChainConfig.Meshbox001Address
 		}
 	} else {
-		n = MainnetChainConfig.MeshboxBlock
-		if n.Cmp(big.NewInt(0)) > 0 && n.Cmp(num) <= 0 {
-			addr = MainnetChainConfig.MeshboxAddress
+		n = MainnetChainConfig.Meshbox001Block
+		if n != nil && n.Cmp(big.NewInt(0)) > 0 && n.Cmp(num) <= 0 {
+			addr = MainnetChainConfig.Meshbox001Address
 		}
 	}
 	return
@@ -122,6 +137,10 @@ func MeshboxInfo(num *big.Int) (n *big.Int, addr common.Address) {
 func IsSIP001Block(num *big.Int) bool {
 	if IsTestnet() {
 		if TestnetChainConfig.SIP001Block.Cmp(num) <= 0 {
+			return true
+		}
+	} else if IsDevnet() {
+		if DevnetChainConfig.SIP001Block.Cmp(num) <= 0 {
 			return true
 		}
 	} else {
@@ -139,6 +158,10 @@ func IsSIP002Block(num *big.Int) bool {
 		if TestnetChainConfig.SIP002Block.Cmp(big.NewInt(0)) > 0 && TestnetChainConfig.SIP002Block.Cmp(num) <= 0 {
 			return true
 		}
+	} else if IsDevnet() {
+		if DevnetChainConfig.SIP002Block.Cmp(num) <= 0 {
+			return true
+		}
 	} else {
 		if MainnetChainConfig.SIP002Block.Cmp(big.NewInt(0)) > 0 && MainnetChainConfig.SIP002Block.Cmp(num) <= 0 {
 			return true
@@ -153,10 +176,40 @@ func IsSIP003Block(num *big.Int) bool {
 		if TestnetChainConfig.SIP003Block.Cmp(big.NewInt(0)) > 0 && TestnetChainConfig.SIP003Block.Cmp(num) <= 0 {
 			return true
 		}
+	} else if IsDevnet() {
+		if DevnetChainConfig.SIP003Block.Cmp(num) <= 0 {
+			return true
+		}
 	} else {
 		if MainnetChainConfig.SIP003Block.Cmp(big.NewInt(0)) > 0 && MainnetChainConfig.SIP003Block.Cmp(num) <= 0 {
 			return true
 		}
+	}
+	return false
+}
+
+func IsReadyMeshbox(num *big.Int) bool {
+	n := MainnetChainConfig.Meshbox001Block
+	if IsTestnet() {
+		n = TestnetChainConfig.Meshbox001Block
+	} else if IsDevnet() {
+		n = DevnetChainConfig.Meshbox001Block
+	}
+	if n != nil && n.Cmp(big.NewInt(0)) > 0 && n.Cmp(num) <= 0 {
+		return true
+	}
+	return false
+}
+
+func IsReadyAnmap(num *big.Int) bool {
+	n := MainnetChainConfig.Anmap001Block
+	if IsTestnet() {
+		n = TestnetChainConfig.Anmap001Block
+	} else if IsDevnet() {
+		n = DevnetChainConfig.Anmap001Block
+	}
+	if n != nil && n.Cmp(big.NewInt(0)) > 0 && n.Cmp(num) <= 0 {
+		return true
 	}
 	return false
 }
@@ -166,6 +219,10 @@ func IsSIP003Block(num *big.Int) bool {
 func IsSIP004Block(num *big.Int) bool {
 	if IsTestnet() {
 		if TestnetChainConfig.SIP004Block.Cmp(big.NewInt(0)) > 0 && TestnetChainConfig.SIP004Block.Cmp(num) <= 0 {
+			return true
+		}
+	} else if IsDevnet() {
+		if DevnetChainConfig.SIP004Block.Cmp(big.NewInt(0)) > 0 && DevnetChainConfig.SIP004Block.Cmp(num) <= 0 {
 			return true
 		}
 	} else {
@@ -189,6 +246,10 @@ func chiefAddressList() (list ChiefInfoList) {
 			newChiefInfo(TestnetChainConfig.Chief004Block, "0.0.4", TestnetChainConfig.Chief004Address, TribeChief_0_0_4ABI),
 			newChiefInfo(TestnetChainConfig.Chief005Block, "0.0.5", TestnetChainConfig.Chief005Address, TribeChief_0_0_5ABI),
 			newChiefInfo(TestnetChainConfig.Chief006Block, "0.0.6", TestnetChainConfig.Chief006Address, TribeChief_0_0_6ABI),
+		}
+	} else if IsDevnet() {
+		list = ChiefInfoList{
+			newChiefInfo(DevnetChainConfig.Chief007Block, "0.0.7", DevnetChainConfig.Chief007Address, TribeChief_0_0_7ABI),
 		}
 	} else {
 		list = ChiefInfoList{
@@ -358,7 +419,6 @@ func IsChiefAddress(addr common.Address) bool {
 }
 func isChiefAddress(list ChiefInfoList, addr common.Address) bool {
 	if addr == common.HexToAddress("0x") {
-		log.Warn("--> isChiefAddress :: address_not_be_empty", "addr", addr)
 		return false
 	}
 	for _, ci := range list {
@@ -480,4 +540,8 @@ func GetIPCPath() string {
 
 func IsTestnet() bool {
 	return os.Getenv("TESTNET") == "1"
+}
+
+func IsDevnet() bool {
+	return os.Getenv("DEVNET") == "1"
 }

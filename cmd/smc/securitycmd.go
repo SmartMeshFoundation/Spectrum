@@ -1,17 +1,18 @@
 package main
 
 import (
-	"gopkg.in/urfave/cli.v1"
-	"fmt"
-	"github.com/SmartMeshFoundation/Spectrum/node"
-	"os"
-	"io/ioutil"
-	"path/filepath"
-	"encoding/hex"
-	"github.com/SmartMeshFoundation/Spectrum/crypto"
-	"github.com/SmartMeshFoundation/Spectrum/accounts/keystore"
 	"crypto/ecdsa"
+	"encoding/hex"
+	"fmt"
+	"github.com/SmartMeshFoundation/Spectrum/accounts/keystore"
+	"github.com/SmartMeshFoundation/Spectrum/cmd/utils"
+	"github.com/SmartMeshFoundation/Spectrum/crypto"
+	"github.com/SmartMeshFoundation/Spectrum/node"
 	"github.com/pborman/uuid"
+	"gopkg.in/urfave/cli.v1"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 )
 
 const PWD_MIN_LEN = 6
@@ -21,9 +22,12 @@ var (
 	securityCommand = cli.Command{
 		Before: func(ctx *cli.Context) error {
 			fmt.Println("-----------------------")
-			if ctx.Bool("testnet") {
+			if ctx.Bool(utils.TestnetFlag.Name) {
 				fmt.Println("-   TESTNET ")
 				os.Setenv("TESTNET", "1")
+			} else if ctx.Bool(utils.DevnetFlag.Name) {
+				fmt.Println("-   DEVNET ")
+				os.Setenv("DEVNET", "1")
 			} else {
 				fmt.Println("-   MAINNET ")
 			}
@@ -101,7 +105,7 @@ INPUT:
 	fmt.Println("Please input password : ")
 	fmt.Scanln(&pwd)
 	if _, err := keystore.DecryptKey(kjson, pwd); err != nil {
-		counter ++
+		counter++
 		fmt.Println(counter, "❌ Wrong password .")
 		if counter < 3 {
 			goto INPUT
@@ -134,7 +138,7 @@ func (self *Security) passwdCmd() {
 		fmt.Println("Please input password : ")
 		fmt.Scanln(&pwd)
 		if len(pwd) < PWD_MIN_LEN {
-			counter ++
+			counter++
 			fmt.Println(counter, "❌ The password length needs to be greater than", PWD_MIN_LEN)
 			if counter < 3 {
 				goto INPUT
@@ -162,7 +166,7 @@ func (self *Security) passwdCmd() {
 		fmt.Println("Please input new password : ")
 		fmt.Scanln(&pwd)
 		if len(pwd) < PWD_MIN_LEN {
-			counter ++
+			counter++
 			fmt.Println(counter, "❌ The new password length needs to be greater than", PWD_MIN_LEN)
 			if counter < 3 {
 				goto NEWPWD

@@ -138,7 +138,7 @@ func (self *Miner) Start(coinbase common.Address) {
 	atomic.StoreInt32(&self.mining, 1)
 	log.Info("Starting mining operation")
 
-	if tribe, ok := self.engine.(*tribe.Tribe); ok {
+	if tribe, ok := self.engine.(*tribe.Tribe); ok && self.eth.BlockChain().CurrentBlock().NumberU64() > 3 {
 		i := 0
 		for {
 			//log.Info("<<MinerStart>> loop_start", "i", i, "num", self.eth.BlockChain().CurrentBlock().Number())
@@ -147,7 +147,8 @@ func (self *Miner) Start(coinbase common.Address) {
 			if err != nil {
 				log.Error("miner start fail", err)
 			}
-			if params.IsSIP004Block(self.eth.BlockChain().CurrentBlock().Number()) {
+			cn := self.eth.BlockChain().CurrentBlock().Number()
+			if params.IsSIP004Block(cn) && params.IsReadyMeshbox(cn) && params.IsReadyAnmap(cn) {
 				if params.MeshboxExistAddress(m) {
 					break
 				}
@@ -201,12 +202,13 @@ func (self *Miner) Start(coinbase common.Address) {
 			self.worker.commitNewWork()
 		}
 	}()
+
 }
 
 func (self *Miner) dostop() {
-	defer func() { recover() }()
 	self.stop.Range(func(k, v interface{}) bool {
-		close(k.(chan struct{}))
+		defer func() { recover() }()
+		defer close(k.(chan struct{}))
 		self.stop.Delete(k)
 		return true
 	})

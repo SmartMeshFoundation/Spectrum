@@ -103,20 +103,21 @@ var (
 		utils.DiscoveryV5Flag,
 
 		utils.FakePoWFlag,
+		utils.DeveloperPeriodFlag,
+		utils.EtherbaseFlag,
 		*/
 		utils.CacheFlag,
 		utils.TrieCacheGenFlag,
 		utils.ListenPortFlag,
 		utils.MaxPeersFlag,
 		utils.MaxPendingPeersFlag,
-		utils.EtherbaseFlag,
 		utils.GasPriceFlag,
 		utils.TargetGasLimitFlag,
 		utils.NATFlag,
 		utils.NoDiscoverFlag,
 		utils.NetrestrictFlag,
-		utils.DeveloperFlag,
-		utils.DeveloperPeriodFlag,
+		//utils.DeveloperFlag,
+		utils.DevnetFlag,
 		utils.TestnetFlag,
 		utils.VMEnableDebugFlag,
 		utils.NetworkIdFlag,
@@ -195,8 +196,12 @@ func init() {
 	app.Before = func(ctx *cli.Context) error {
 		// add by liangc : append testnet flag
 		if tn := ctx.GlobalBool(utils.TestnetFlag.Name); tn {
-			log.Info("is_testnet :", tn)
+			fmt.Println("Testnet started.")
 			os.Setenv("TESTNET", "1")
+		}
+		if tn := ctx.GlobalBool(utils.DevnetFlag.Name); tn {
+			fmt.Println("Devnet started.")
+			os.Setenv("DEVNET", "1")
 		}
 		ipc := node.DefaultIPCEndpoint(clientIdentifier)
 

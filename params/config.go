@@ -26,6 +26,7 @@ import (
 var (
 	MainnetGenesisHash = common.HexToHash("0xa8ab5ecb308dd061e6baa8c8a04a62b3e35fae7aae1393921f8d52deac2c5712") // enforce below configs on
 	TestnetGenesisHash = common.HexToHash("0x28242478c4f01d9208a79d962b7f6383af488565f36aea7038a34020c07db697") // Testnet genesis hash to enforce below configs on
+	DevnetGenesisHash  = common.HexToHash("0xe11f21ee330cfb50c3f31d9b792df2fb5e196739d562e642416974f339aa4304")
 )
 
 var (
@@ -49,18 +50,19 @@ var (
 		Chief006Block:   big.NewInt(595888),
 		Chief006Address: common.HexToAddress("0xba7f507d5aab3e931312512c234fbeb85cbd9dce"),
 
-		MeshboxBlock:   big.NewInt(1870333),
-		MeshboxAddress: common.HexToAddress("0xf0ced0b1ce8738eeac06fdca51e0ff398328634b"),
+		Meshbox001Block:   big.NewInt(1870333),
+		Meshbox001Address: common.HexToAddress("0xf0ced0b1ce8738eeac06fdca51e0ff398328634b"),
 
-		AnmapBlock:      big.NewInt(0),
-		AnmapAddress:    common.HexToAddress("0x"),
+		Anmap001Block:   big.NewInt(0),
+		Anmap001Address: common.HexToAddress("0x"),
 		MinMinerBalance: new(big.Int).Mul(big.NewInt(100000), big.NewInt(Ether)),
 
 		SIP001Block: big.NewInt(0), // new rules for chief.tx of gaspool
 		SIP002Block: big.NewInt(588888),
 		SIP003Block: big.NewInt(808888),
-		SIP004Block: big.NewInt(2488888), // maybe begin at 2019-6-14
-		Tribe:       &TribeConfig{},
+		SIP004Block: big.NewInt(0),
+		//SIP004Block: big.NewInt(2888888), // maybe begin at 2019-8-18
+		Tribe: &TribeConfig{},
 	}
 
 	// TestnetChainConfig contains the chain parameters to run a node on the Ropsten test network.
@@ -93,11 +95,11 @@ var (
 		Chief006Block:   big.NewInt(595710),
 		Chief006Address: common.HexToAddress("0x53cb83888e6d28cf7ec168308c65172001f441aa"),
 
-		MeshboxBlock:   big.NewInt(1976666),
-		MeshboxAddress: common.HexToAddress("0x0f15e1e44322b2946215705d2ed60cba899f0b38"),
+		Meshbox001Block:   big.NewInt(1976666),
+		Meshbox001Address: common.HexToAddress("0x0f15e1e44322b2946215705d2ed60cba899f0b38"),
 
-		AnmapBlock:   big.NewInt(2200050),
-		AnmapAddress: common.HexToAddress("0xffab698a4cead35a6f52569e328f9127e66413bb"),
+		Anmap001Block:   big.NewInt(2200050),
+		Anmap001Address: common.HexToAddress("0xffab698a4cead35a6f52569e328f9127e66413bb"),
 
 		MinMinerBalance: new(big.Int).Mul(big.NewInt(10), big.NewInt(Ether)),
 
@@ -107,6 +109,39 @@ var (
 		SIP003Block: big.NewInt(917013),
 		//SIP004Block: big.NewInt(2213022),
 		SIP004Block: big.NewInt(2212557), //2166666
+		Tribe:       &TribeConfig{},
+	}
+
+	// DevnetChainConfig contains the chain parameters to run a node on the Ropsten test network.
+	DevnetChainConfig = &ChainConfig{
+		ChainId:        big.NewInt(4),
+		HomesteadBlock: big.NewInt(0),
+		DAOForkBlock:   nil,
+		DAOForkSupport: false,
+		EIP150Block:    nil,
+		EIP150Hash:     common.Hash{},
+		EIP155Block:    big.NewInt(0),
+		EIP158Block:    big.NewInt(0),
+		ByzantiumBlock: big.NewInt(0),
+
+		// if skip this vsn please set 0 or nil to block and set common.Address{} to address
+		// 0.0.6 : ready for release
+		Chief007Block:   big.NewInt(3),
+		Chief007Address: common.HexToAddress("0xc4a2d182fe92f0eadffbddea9a0977d5b95b31a5"),
+
+		//MeshboxBlock:   nil,
+		//MeshboxAddress: common.HexToAddress("0x"),
+
+		//AnmapBlock:   nil,
+		//AnmapAddress: common.HexToAddress("0x"),
+
+		MinMinerBalance: new(big.Int).Mul(big.NewInt(1), big.NewInt(Ether)),
+
+		// new rules for chief.tx of gaspool
+		SIP001Block: big.NewInt(0),
+		SIP002Block: big.NewInt(1),
+		SIP003Block: big.NewInt(1),
+		SIP004Block: big.NewInt(1),
 		Tribe:       &TribeConfig{},
 	}
 
@@ -209,6 +244,11 @@ type ChainConfig struct {
 	// chief.sol vsn 0.0.6
 	Chief006Block   *big.Int       `json:"chief006Block,omitempty"`
 	Chief006Address common.Address `json:"chief006Address,omitempty"`
+
+	// extends 0.0.6 only for dev and test
+	Chief007Block   *big.Int       `json:"chief007Block,omitempty"`
+	Chief007Address common.Address `json:"chief007Address,omitempty"`
+
 	// <<< add by liangc : set chief start number <<<
 	// add by liangc : new rules for chief.tx of gaspool
 	SIP001Block *big.Int `json:"sip001Block,omitempty"` // SIP001 HF block
@@ -220,11 +260,11 @@ type ChainConfig struct {
 	// https://github.com/SmartMeshFoundation/Spectrum/wiki/%5BChinese%5D-v0.6.0-Standard
 	SIP004Block *big.Int `json:"sip004Block,omitempty"`
 
-	MeshboxBlock   *big.Int       `json:"meshboxBlock,omitempty"`
-	MeshboxAddress common.Address `json:"meshboxAddress,omitempty"`
+	Meshbox001Block   *big.Int       `json:"meshbox001Block,omitempty"`
+	Meshbox001Address common.Address `json:"meshbox001Address,omitempty"`
 
-	AnmapBlock   *big.Int       `json:"anmapBlock,omitempty"`
-	AnmapAddress common.Address `json:"anmapAddress,omitempty"`
+	Anmap001Block   *big.Int       `json:"anmap001Block,omitempty"`
+	Anmap001Address common.Address `json:"anmap001Address,omitempty"`
 
 	MinMinerBalance *big.Int `json:"minMinerBalance,omitempty"`
 }

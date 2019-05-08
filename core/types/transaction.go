@@ -53,7 +53,8 @@ func GetFromByTx(tx *Transaction) *common.Address {
 // deriveSigner makes a *best* guess about which signer to use.
 func deriveSigner(V *big.Int) Signer {
 	if V.Sign() != 0 && isProtectedV(V) {
-		return NewEIP155Signer(deriveChainId(V))
+		cid := deriveChainId(V)
+		return NewEIP155Signer(cid)
 	} else {
 		return HomesteadSigner{}
 	}

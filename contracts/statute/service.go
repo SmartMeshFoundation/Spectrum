@@ -32,13 +32,13 @@ type MeshboxService interface {
 }
 
 type StatuteService struct {
-	accman   *accounts.Manager
-	anmap    *anmaplib.Anmap
-	meshbox  *meshboxlib.MeshBox
-	ipcpath  string
-	server   *p2p.Server // peers and nodekey ...
-	quit     chan int
-	ethereum *eth.Ethereum
+	accman        *accounts.Manager
+	anmap_0_0_1   *anmaplib.Anmap
+	meshbox_0_0_1 *meshboxlib.MeshBox
+	ipcpath       string
+	server        *p2p.Server // peers and nodekey ...
+	quit          chan int
+	ethereum      *eth.Ethereum
 }
 
 var statuteService *StatuteService
@@ -57,57 +57,74 @@ func NewStatuteService(ctx *node.ServiceContext) (node.Service, error) {
 	return statuteService, nil
 }
 
+func (self *StatuteService) startMeshbox(vsn string, backend *eth.ContractBackend) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Warn("ignore_this_err", r)
+		}
+	}()
+	for {
+		var cn = self.ethereum.BlockChain().CurrentBlock().Number()
+		if params.IsReadyMeshbox(cn) {
+			mn, maddr := params.MeshboxInfo(cn, vsn)
+			if maddr != common.HexToAddress("") {
+				switch vsn {
+				case "0.0.1":
+					contract, err := meshboxlib.NewMeshBox(maddr, backend)
+					if err != nil {
+						panic(err)
+					}
+					statuteService.meshbox_0_0_1 = contract
+				}
+				defer close(params.InitMeshbox)
+				log.Info("<<Meshbox.Start>> success ", "vsn", vsn, "cn", cn.Int64(), "tn", mn.Int64())
+				return
+			} else if cn.Cmp(mn) >= 0 {
+				log.Info("<<Meshbox.Start>> cancel ", "vsn", vsn, "cn", cn.Int64(), "tn", mn.Int64())
+				return
+			}
+		}
+		<-time.After(14 * time.Second)
+	}
+}
+
+func (self *StatuteService) startAnmap(vsn string, backend *eth.ContractBackend) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Warn("ignore_this_err", r)
+		}
+	}()
+	for {
+		var cn = self.ethereum.BlockChain().CurrentBlock().Number()
+		if params.IsReadyAnmap(cn) {
+			mn, maddr := params.AnmapInfo(cn, vsn)
+			if maddr != common.HexToAddress("") {
+				switch vsn {
+				case "0.0.1":
+					contract, err := anmaplib.NewAnmap(maddr, backend)
+					if err != nil {
+						panic(err)
+					}
+					statuteService.anmap_0_0_1 = contract
+				}
+				defer close(params.InitAnmap)
+				log.Info("<<Anmap.Start>> success ", "vsn", vsn, "cn", cn.Int64(), "tn", mn.Int64())
+				return
+			} else if cn.Cmp(mn) >= 0 {
+				log.Info("<<Anmap.Start>> cancel ", "vsn", vsn, "cn", cn.Int64(), "tn", mn.Int64())
+				return
+			}
+		}
+		<-time.After(14 * time.Second)
+	}
+}
+
 func (self *StatuteService) Protocols() []p2p.Protocol { return nil }
 func (self *StatuteService) APIs() []rpc.API           { return nil }
 func (self *StatuteService) Start(server *p2p.Server) error {
-	go func() {
-		for {
-			var (
-				be = eth.NewContractBackend(self.ethereum.ApiBackend)
-				cn = self.ethereum.BlockChain().CurrentBlock().Number()
-			)
-			mn, maddr := params.MeshboxInfo(cn)
-			if maddr != common.HexToAddress("") {
-				contract, err := meshboxlib.NewMeshBox(maddr, be)
-				if err != nil {
-					panic(err)
-				}
-				statuteService.meshbox = contract
-				close(params.InitMeshbox)
-				log.Info("<<Meshbox.Start>> success ", "cn", cn.Int64(), "tn", mn.Int64())
-				return
-			} else if cn.Cmp(mn) >= 0 {
-				log.Info("<<Meshbox.Start>> cancel ", "cn", cn.Int64(), "tn", mn.Int64())
-				return
-			}
-			//log.Info("<<Meshbox.Start>> waiting... ", "cn", cn.Int64(), "tn", mn.Int64())
-			<-time.After(14 * time.Second)
-		}
-	}()
-	go func() {
-		for {
-			var (
-				be = eth.NewContractBackend(self.ethereum.ApiBackend)
-				cn = self.ethereum.BlockChain().CurrentBlock().Number()
-			)
-			mn, maddr := params.AnmapInfo(cn)
-			if maddr != common.HexToAddress("") {
-				contract, err := anmaplib.NewAnmap(maddr, be)
-				if err != nil {
-					panic(err)
-				}
-				statuteService.anmap = contract
-				close(params.InitAnmap)
-				log.Info("<<Anmap.Start>> success ", "cn", cn.Int64(), "tn", mn.Int64())
-				return
-			} else if cn.Cmp(mn) >= 0 {
-				log.Info("<<Anmap.Start>> cancel ", "cn", cn.Int64(), "tn", mn.Int64())
-				return
-			}
-			//log.Info("<<Anmap.Start>> waiting... ", "cn", cn.Int64(), "tn", mn.Int64())
-			<-time.After(14 * time.Second)
-		}
-	}()
+	var be = eth.NewContractBackend(self.ethereum.ApiBackend)
+	go self.startMeshbox("0.0.1", be)
+	go self.startAnmap("0.0.1", be)
 	self.server = server
 	return nil
 }
@@ -170,11 +187,11 @@ func (self *StatuteService) BindInfo(addr common.Address, blockNumber *big.Int, 
 	if blockNumber == nil && blockHash == nil {
 		opts.Hash = &chash
 	}
-	vo, err := self.anmap.BindInfo(opts, addr)
+	vo, err := self.anmap_0_0_1.BindInfo(opts, addr)
 
 	// anmap.sol bindInfo func has a problum , an/na return diff nodeids so query again
 	if err == nil && len(vo.Nids) == 1 && vo.From != addr {
-		vo, err = self.anmap.BindInfo(opts, vo.From)
+		vo, err = self.anmap_0_0_1.BindInfo(opts, vo.From)
 	}
 
 	from = vo.From
@@ -207,7 +224,7 @@ func (self *StatuteService) Bind(from, nodeAddr common.Address, sigHex string) (
 	}
 
 	r, s, v := sigSplit(sigHex)
-	tx, err := self.anmap.Bind(opts, nodeAddr, v, r, s)
+	tx, err := self.anmap_0_0_1.Bind(opts, nodeAddr, v, r, s)
 	log.Info("<<StatuteService.Bind>>", "err", err, "tx", tx)
 	if err != nil {
 		return common.HexToHash("0x"), err
@@ -225,7 +242,7 @@ func (self *StatuteService) Unbind(from, nodeAddr common.Address, sigHex string)
 		},
 	}
 	r, s, v := sigSplit(sigHex)
-	tx, err := self.anmap.UnbindBySig(opts, nodeAddr, v, r, s)
+	tx, err := self.anmap_0_0_1.UnbindBySig(opts, nodeAddr, v, r, s)
 	log.Info("<<StatuteService.Unbind>>", "err", err, "tx", tx)
 	if err != nil {
 		return common.HexToHash("0x"), err
@@ -338,7 +355,7 @@ func (self *StatuteService) ExistAddress(addr common.Address) (*big.Int, error) 
 		defer cancel()
 		opts := new(bind.CallOptsWithNumber)
 		opts.Context = ctx
-		i, err := self.meshbox.ExistAddress(opts, addr)
+		i, err := self.meshbox_0_0_1.ExistAddress(opts, addr)
 		log.Debug("<<StatuteService.ExistAddress>>", "r", i, "err", err)
 		return i, err
 	default:

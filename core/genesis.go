@@ -164,9 +164,10 @@ func SetupGenesisBlock(db ethdb.Database, genesis *Genesis) (*params.ChainConfig
 			log.Info("Writing custom genesis block")
 		}
 		block, err := genesis.Commit(db)
-		fmt.Println("==genesis==> c:", block.Hash().Hex())
-		fmt.Println("==genesis==> m:", params.MainnetGenesisHash.Hex())
-		fmt.Println("==genesis==> t:", params.TestnetGenesisHash.Hex())
+		fmt.Println("==genesis==> current\t:", block.Hash().Hex())
+		fmt.Println("==genesis==> main\t:", params.MainnetGenesisHash.Hex())
+		fmt.Println("==genesis==> test\t:", params.TestnetGenesisHash.Hex())
+		fmt.Println("==genesis==> dev\t:", params.DevnetGenesisHash.Hex())
 
 		return genesis.Config, block.Hash(), err
 	}
@@ -219,6 +220,8 @@ func (g *Genesis) configOrDefault(ghash common.Hash) *params.ChainConfig {
 		return params.MainnetChainConfig
 	case ghash == params.TestnetGenesisHash:
 		return params.TestnetChainConfig
+	case ghash == params.DevnetGenesisHash:
+		return params.DevnetChainConfig
 	default:
 		return params.AllEthashProtocolChanges
 	}
@@ -337,6 +340,20 @@ func DefaultTestnetGenesisBlock() *Genesis {
 	}
 }
 
+// DefaultTestnetGenesisBlock returns the Ropsten network genesis block.
+func DeveloperGenesisBlock() *Genesis {
+	genesisSigner := "0x00000000000000000000000000000000000000000000000000000000000000009944D0CC757CD9391EE320FC17d5B6f61693f2c50000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+	return &Genesis{
+		Config:     params.DevnetChainConfig,
+		Nonce:      0,
+		ExtraData:  hexutil.MustDecode(genesisSigner),
+		GasLimit:   16777216,
+		Difficulty: big.NewInt(1),
+		Alloc:      decodePrealloc(devnetAllocData),
+	}
+}
+
+/*
 // DeveloperGenesisBlock returns the 'geth --dev' genesis block. Note, this must
 // be seeded with the
 func DeveloperGenesisBlock(period uint64, faucet common.Address) *Genesis {
@@ -363,6 +380,7 @@ func DeveloperGenesisBlock(period uint64, faucet common.Address) *Genesis {
 		},
 	}
 }
+*/
 
 func decodePrealloc(data string) GenesisAlloc {
 	var p []struct{ Addr, Balance *big.Int }

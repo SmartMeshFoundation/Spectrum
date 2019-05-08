@@ -289,7 +289,6 @@ type TxPool struct {
 func NewTxPool(config TxPoolConfig, chainconfig *params.ChainConfig, chain blockChain) *TxPool {
 	// Sanitize the input to ensure no vulnerable gas prices are set
 	config = (&config).sanitize()
-
 	// Create the transaction pool with its initial settings
 	pool := &TxPool{
 		config:      config,
@@ -630,10 +629,11 @@ func (pool *TxPool) Pending(excludeSigner bool) (map[common.Address]types.Transa
 	var (
 		mid     common.Address
 		pending = make(map[common.Address]types.Transactions)
+		cn      = pool.chain.CurrentBlock().Number()
 	)
 
 	// add by liangc 190412 : if the sender in signerList now refuse and skip this tx
-	if excludeSigner {
+	if excludeSigner && params.IsSIP004Block(cn) && params.IsReadyMeshbox(cn) && params.IsReadyAnmap(cn) {
 		signerMap := make(map[common.Address]struct{})
 		cb := pool.chain.CurrentBlock()
 		log.Debug("TODO<<TxPool.Pending>> TribeGetStatus_begin", "num", cb.Number())
@@ -690,7 +690,8 @@ func (pool *TxPool) Pending(excludeSigner bool) (map[common.Address]types.Transa
 		} else {
 			pending[mid] = types.Transactions{chiefTx}
 		}
-		log.Debug("TODO<<TxPool.Pending>> cheifTx", "from", mid.Hash().Hex(), "tx", chiefTx.Hash().Hex())
+		ff := types.GetFromByTx(chiefTx)
+		log.Debug("TODO<<TxPool.Pending>> cheifTx", "from", mid.Hash().Hex(), "tx", chiefTx.Hash().Hex(), "ff", ff.Hex())
 	}
 
 	return pending, nil

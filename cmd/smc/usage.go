@@ -32,7 +32,7 @@ import (
 var AppHelpTemplate = `NAME:
    {{.App.Name}} - {{.App.Usage}}
 
-   Copyright 2013-2017 The Spectrum Authors
+   Copyright 2017-2019 The Spectrum Authors
 
 USAGE:
    {{.App.HelpName}} [options]{{if .App.Commands}} command [command options]{{end}} {{if .App.ArgsUsage}}{{.App.ArgsUsage}}{{else}}[arguments...]{{end}}
@@ -64,16 +64,17 @@ type flagGroup struct {
 // AppHelpFlagGroups is the application flags, grouped by functionality.
 var AppHelpFlagGroups = []flagGroup{
 	{
-		Name: "ETHEREUM",
+		Name: "SPECTRUM",
 		Flags: []cli.Flag{
-			configFileFlag,
 			utils.DataDirFlag,
 			utils.KeyStoreDirFlag,
-			utils.NetworkIdFlag,
 			utils.TestnetFlag,
+			utils.DeveloperFlag,
 			utils.EthStatsURLFlag,
-			utils.IdentityFlag,
 			/*
+				utils.NetworkIdFlag,
+				configFileFlag,
+				utils.IdentityFlag,
 				utils.NoUSBFlag,
 				utils.SyncModeFlag,
 				utils.LightServFlag,
@@ -208,7 +209,7 @@ var AppHelpFlagGroups = []flagGroup{
 		Name: "LOGGING AND DEBUGGING",
 		Flags: append([]cli.Flag{
 			utils.MetricsEnabledFlag,
-			utils.FakePoWFlag,
+			//utils.FakePoWFlag,
 			utils.NoCompactionFlag,
 		}, debug.Flags...),
 	},

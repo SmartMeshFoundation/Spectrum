@@ -222,7 +222,7 @@ func (self *worker) start(s chan int) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			if self.chain.CurrentHeader().Number.Int64() > 1 { // free for genesis signer
+			if self.chain.CurrentHeader().Number.Int64() > 3 { // free for genesis signer
 				// pending until miner level upgrade
 				tribe.WaitingNomination()
 				log.Info("Everything is ready , signer started.")

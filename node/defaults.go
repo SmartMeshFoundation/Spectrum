@@ -80,6 +80,22 @@ func TestDataDir() string {
 	return ""
 }
 
+//add by liangc : for testnet build ipc path
+func DevDataDir() string {
+	home := homeDir()
+	if home != "" {
+		testnet := "devnet"
+		if runtime.GOOS == "darwin" {
+			return filepath.Join(home, "Library", "Spectrum", testnet)
+		} else if runtime.GOOS == "windows" {
+			return filepath.Join(home, "AppData", "Roaming", "Spectrum", testnet)
+		} else {
+			return filepath.Join(home, ".spectrum", testnet)
+		}
+	}
+	return ""
+}
+
 func homeDir() string {
 	if home := os.Getenv("HOME"); home != "" {
 		return home

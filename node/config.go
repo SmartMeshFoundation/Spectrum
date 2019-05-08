@@ -188,9 +188,9 @@ func DefaultIPCEndpointWithDir(dir, clientIdentifier string) string {
 	}
 
 	config := &Config{DataDir: dir, IPCPath: clientIdentifier + ".ipc"}
-	if params.IsTestnet() {
-		config = &Config{DataDir: dir, IPCPath: clientIdentifier + ".ipc"}
-	}
+	//if params.IsTestnet() {
+	//	config = &Config{DataDir: dir, IPCPath: clientIdentifier + ".ipc"}
+	//}
 	return config.IPCEndpoint()
 }
 
@@ -203,10 +203,13 @@ func DefaultIPCEndpoint(clientIdentifier string) string {
 		}
 	}
 
-	config := &Config{DataDir: DefaultDataDir(), IPCPath: clientIdentifier + ".ipc"}
+	datadir := DefaultDataDir()
 	if params.IsTestnet() {
-		config = &Config{DataDir: TestDataDir(), IPCPath: clientIdentifier + ".ipc"}
+		datadir = TestDataDir()
+	} else if params.IsDevnet() {
+		datadir = DevDataDir()
 	}
+	config := &Config{DataDir: datadir, IPCPath: clientIdentifier + ".ipc"}
 	path := config.IPCEndpoint()
 	return path
 }
@@ -215,6 +218,8 @@ func DefaultNodekeyDir() string {
 	home := DefaultDataDir()
 	if params.IsTestnet() {
 		home = TestDataDir()
+	} else if params.IsDevnet() {
+		home = DevDataDir()
 	}
 	return filepath.Join(home, "smc")
 }

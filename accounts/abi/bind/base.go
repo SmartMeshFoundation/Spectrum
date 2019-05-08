@@ -279,6 +279,8 @@ func (c *BoundContract) transact(opts *TransactOpts, contract *common.Address, i
 	cid := params.MainnetChainConfig.ChainId
 	if params.IsTestnet() {
 		cid = params.TestnetChainConfig.ChainId
+	} else if params.IsDevnet() {
+		cid = params.DevnetChainConfig.ChainId
 	}
 	signedTx, err := opts.Signer(types.NewEIP155Signer(cid), opts.From, rawTx)
 	if err != nil {

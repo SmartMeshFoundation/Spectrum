@@ -267,6 +267,7 @@ func (self *TribeStatus) GetSignersFromChiefByHash(hash common.Hash, number *big
 
 // 在 加载完所有 node.service 后，需要主动调用一次
 func (self *TribeStatus) LoadSignersFromChief(hash common.Hash, number *big.Int) error {
+	fmt.Println("LoadSignersFromChiefLoadSignersFromChiefLoadSignersFromChiefLoadSignersFromChiefLoadSignersFromChiefLoadSignersFromChief")
 	cs, err := params.TribeGetStatus(number, hash)
 	if err != nil {
 		log.Warn("TribeGetStatusError", "err", err, "num", number, "hash", hash.Hex())
@@ -457,6 +458,12 @@ func (self *TribeStatus) ValidateSigner(parentHeader, header *types.Header, sign
 }
 
 func (self *TribeStatus) VerifySignerBalance(state *state.StateDB, addr common.Address, header *types.Header) error {
+	var (
+		pnum, num *big.Int
+		f         common.Address
+		nl        []common.Address
+		err       error
+	)
 	if addr == common.HexToAddress("0x") {
 		if _addr, err := ecrecover(header, self.tribe); err == nil {
 			addr = _addr
@@ -464,43 +471,47 @@ func (self *TribeStatus) VerifySignerBalance(state *state.StateDB, addr common.A
 			return err
 		}
 	}
-	var (
-		num *big.Int
-	)
 	if header != nil {
 		num = header.Number
+		pnum = new(big.Int).Sub(num, big.NewInt(1))
 	} else {
 		return errors.New("params of header can not be null")
 	}
 	// skip when v in meshbox.sol
-	if !params.MeshboxExistAddress(addr) {
-		f, nl, err := params.AnmapBindInfo(addr, header.Hash())
-		log.Debug("<<VerifySignerBalance_AnmapBindInfo>>", "num", header.Number, "addr", addr.Hex(), "f", f.Hex(), "nl.len", len(nl), "err", err)
-		if err == nil && f != common.HexToAddress("0x") && len(nl) > 0 {
-			// exclude meshbox n in nl
-			noBox := int64(0)
-			for _, n := range nl {
-				if !params.MeshboxExistAddress(n) {
-					noBox++
-				}
+	if params.IsReadyMeshbox(pnum) && params.MeshboxExistAddress(addr) {
+		return nil
+	}
+
+	if params.IsReadyAnmap(pnum) {
+		f, nl, err = params.AnmapBindInfo(addr, header.Hash())
+	} else {
+		err = errors.New("anmap_not_ready")
+	}
+	log.Debug("<<VerifySignerBalance_AnmapBindInfo>>", "num", num, "addr", addr.Hex(), "f", f.Hex(), "nl.len", len(nl), "err", err)
+	if err == nil && f != common.HexToAddress("0x") && len(nl) > 0 {
+		// exclude meshbox n in nl
+		noBox := int64(0)
+		for _, n := range nl {
+			if !params.MeshboxExistAddress(n) {
+				noBox++
 			}
-			if noBox == 0 {
-				return nil
-			}
-			fb := state.GetBalance(f)
-			mb := new(big.Int).Mul(params.GetMinMinerBalance(), big.NewInt(noBox))
-			log.Debug("<<VerifySignerBalance>> 0 :", "nl.len", len(nl), "nobox", noBox, "fb", fb, "mb", mb)
-			//nb := state.GetBalance(n)
-			if fb.Cmp(mb) < 0 {
-				log.Debug("<<VerifySignerBalance>> 1 :", "f", f.Hex(), "fb", fb, "mb", mb)
-				return ErrTribeChiefVolunteerLowBalance
-			}
-		} else if params.IsSIP004Block(num) {
-			b := state.GetBalance(addr)
-			if b.Cmp(params.GetMinMinerBalance()) < 0 {
-				log.Debug("<<VerifySignerBalance>> 2 :", "n", addr.Hex(), "nb", b, "mb", params.GetMinMinerBalance())
-				return ErrTribeChiefVolunteerLowBalance
-			}
+		}
+		if noBox == 0 {
+			return nil
+		}
+		fb := state.GetBalance(f)
+		mb := new(big.Int).Mul(params.GetMinMinerBalance(), big.NewInt(noBox))
+		log.Debug("<<VerifySignerBalance>> 0 :", "nl.len", len(nl), "nobox", noBox, "fb", fb, "mb", mb)
+		//nb := state.GetBalance(n)
+		if fb.Cmp(mb) < 0 {
+			log.Debug("<<VerifySignerBalance>> 1 :", "f", f.Hex(), "fb", fb, "mb", mb)
+			return ErrTribeChiefVolunteerLowBalance
+		}
+	} else if params.IsSIP004Block(num) {
+		b := state.GetBalance(addr)
+		if b.Cmp(params.GetMinMinerBalance()) < 0 {
+			log.Debug("<<VerifySignerBalance>> 2 :", "n", addr.Hex(), "nb", b, "mb", params.GetMinMinerBalance())
+			return ErrTribeChiefVolunteerLowBalance
 		}
 	}
 	return nil
@@ -510,7 +521,7 @@ func (self *TribeStatus) VerifySignerBalance(state *state.StateDB, addr common.A
 // sync download or mine
 // check chief tx
 func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *types.Block, validateSigner bool) error {
-	if block.Number().Int64() < 3 {
+	if block.Number().Int64() <= 3 {
 		return nil
 	}
 
