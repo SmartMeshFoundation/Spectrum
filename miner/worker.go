@@ -295,9 +295,8 @@ func (self *worker) update() {
 			// Handle TxPreEvent
 		case ev := <-self.txCh:
 			// Apply transaction to the pending state if we're not mining
-			if atomic.LoadInt32(&self.mining) == 0 {
+			if self.current != nil && atomic.LoadInt32(&self.mining) == 0 {
 				self.currentMu.Lock()
-				log.Info("debug_for_meshbox", "ev", ev, "current", self.current)
 				acc, _ := types.Sender(self.current.signer, ev.Tx)
 				txs := map[common.Address]types.Transactions{acc: {ev.Tx}}
 				txset := types.NewTransactionsByPriceAndNonce(self.current.signer, txs)
@@ -310,7 +309,6 @@ func (self *worker) update() {
 					self.commitNewWork()
 				}
 			}
-
 			// System stopped
 		case <-self.txSub.Err():
 			return
