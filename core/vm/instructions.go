@@ -19,6 +19,7 @@ package vm
 import (
 	"errors"
 	"fmt"
+	"github.com/SmartMeshFoundation/Spectrum/log"
 	"math/big"
 
 	"github.com/SmartMeshFoundation/Spectrum/common"
@@ -345,12 +346,27 @@ func opCallValue(pc *uint64, evm *EVM, contract *Contract, memory *Memory, stack
 	return nil, nil
 }
 
+// 2019-5-13 : append by liangc
+func chiefDataVerify(evm *EVM, contract *Contract) error {
+	if contract != nil && params.IsChiefAddress(contract.Address()) && params.IsChiefUpdate(contract.Code) {
+		log.Error("👿 what are you doing ?")
+		return errors.New("can_not_call_in_tribechief_in_contract")
+	}
+	return nil
+}
+
 func opCallDataLoad(pc *uint64, evm *EVM, contract *Contract, memory *Memory, stack *Stack) ([]byte, error) {
+	if err := chiefDataVerify(evm, contract); err != nil {
+		return nil, err
+	}
 	stack.push(new(big.Int).SetBytes(getDataBig(contract.Input, stack.pop(), big32)))
 	return nil, nil
 }
 
 func opCallDataSize(pc *uint64, evm *EVM, contract *Contract, memory *Memory, stack *Stack) ([]byte, error) {
+	if err := chiefDataVerify(evm, contract); err != nil {
+		return nil, err
+	}
 	stack.push(evm.interpreter.intPool.get().SetInt64(int64(len(contract.Input))))
 	return nil, nil
 }
