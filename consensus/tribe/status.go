@@ -267,7 +267,6 @@ func (self *TribeStatus) GetSignersFromChiefByHash(hash common.Hash, number *big
 
 // 在 加载完所有 node.service 后，需要主动调用一次
 func (self *TribeStatus) LoadSignersFromChief(hash common.Hash, number *big.Int) error {
-	fmt.Println("LoadSignersFromChiefLoadSignersFromChiefLoadSignersFromChiefLoadSignersFromChiefLoadSignersFromChiefLoadSignersFromChief")
 	cs, err := params.TribeGetStatus(number, hash)
 	if err != nil {
 		log.Warn("TribeGetStatusError", "err", err, "num", number, "hash", hash.Hex())
