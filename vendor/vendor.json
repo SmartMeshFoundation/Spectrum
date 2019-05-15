@@ -57,6 +57,18 @@
 			"revisionTime": "2017-11-28T15:02:46Z"
 		},
 		{
+			"checksumSHA1": "9/twRX9Zn9lONdxX582YRLx27no=",
+			"path": "github.com/cc14514/smc-devnet/lib",
+			"revision": "b9c3344576ec8cbce9184b2faaadd3a84f7134d4",
+			"revisionTime": "2019-05-14T09:47:33Z"
+		},
+		{
+			"checksumSHA1": "Lp0qTyIsjEJ2hMO052EoHfbi1T0=",
+			"path": "github.com/cc14514/smc-devnet/statics/statik",
+			"revision": "b9c3344576ec8cbce9184b2faaadd3a84f7134d4",
+			"revisionTime": "2019-05-14T09:47:33Z"
+		},
+		{
 			"checksumSHA1": "cDMtzKmdTx4CcIpP4broa+16X9g=",
 			"path": "github.com/cespare/cp",
 			"revision": "165db2f241fd235aec29ba6d9b1ccd5f1c14637c",
@@ -272,6 +284,12 @@
 			"path": "github.com/prometheus/prometheus/util/flock",
 			"revision": "3101606756c53221ed58ba94ecba6b26adf89dcc",
 			"revisionTime": "2017-08-14T17:01:13Z"
+		},
+		{
+			"checksumSHA1": "cHhcgLL9TO/Lbv8mUGNsC63TI2w=",
+			"path": "github.com/rakyll/statik/fs",
+			"revision": "3bac566d30cdbeddef402a80f3d6305860e59f12",
+			"revisionTime": "2019-03-20T18:56:11Z"
 		},
 		{
 			"checksumSHA1": "KAzbLjI9MzW2tjfcAsK75lVRp6I=",

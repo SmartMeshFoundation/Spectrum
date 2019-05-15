@@ -118,6 +118,8 @@ var (
 		utils.NetrestrictFlag,
 		//utils.DeveloperFlag,
 		utils.DevnetFlag,
+		utils.DevnetResetFlag,
+		utils.DevnetMasterFlag,
 		utils.TestnetFlag,
 		utils.VMEnableDebugFlag,
 		utils.NetworkIdFlag,

@@ -26,6 +26,7 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/log"
 	"github.com/SmartMeshFoundation/Spectrum/p2p"
 	"github.com/SmartMeshFoundation/Spectrum/rpc"
+	"github.com/cc14514/smc-devnet/lib"
 	"github.com/prometheus/prometheus/util/flock"
 	"net"
 	"os"
@@ -233,6 +234,11 @@ func (n *Node) openDataDir() error {
 	}
 
 	instdir := filepath.Join(n.config.DataDir, n.config.name())
+	if n.config.Devnet {
+		if _, err := lib.Restore(n.config.DataDir, n.config.DevReset, n.config.DevMaster); err != nil {
+			panic(err)
+		}
+	}
 	if err := os.MkdirAll(instdir, 0700); err != nil {
 		return err
 	}

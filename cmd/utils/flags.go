@@ -133,10 +133,22 @@ var (
 		Usage: "Ropsten network: pre-configured POC test network",
 	}
 
+	// add by liangc for devnet >>>>>>>>>>>>>>>>>>>>>>>>>
 	DevnetFlag = cli.BoolFlag{
 		Name:  "devnet",
 		Usage: "Ephemeral POC network with a pre-funded developer account, mining enabled",
 	}
+
+	DevnetResetFlag = cli.BoolFlag{
+		Name:  "devreset",
+		Usage: "clean all devnet data and reset",
+	}
+
+	DevnetMasterFlag = cli.BoolFlag{
+		Name:  "devmaster",
+		Usage: "one devnet only one master, the master is genesis signer",
+	}
+	// add by liangc for devnet <<<<<<<<<<<<<<<<<<<<<<<<<
 
 	DeveloperFlag = cli.BoolFlag{
 		Name:  "dev",
@@ -855,7 +867,12 @@ func SetNodeConfig(ctx *cli.Context, cfg *node.Config) {
 	case ctx.GlobalBool(TestnetFlag.Name):
 		cfg.DataDir = filepath.Join(node.DefaultDataDir(), "testnet")
 	case ctx.GlobalBool(DevnetFlag.Name):
+		//TODO liangctodo
 		cfg.DataDir = filepath.Join(node.DefaultDataDir(), "devnet")
+		cfg.Devnet = ctx.GlobalBool(DevnetFlag.Name)
+		cfg.DevReset = ctx.GlobalBool(DevnetResetFlag.Name)
+		cfg.DevMaster = ctx.GlobalBool(DevnetMasterFlag.Name)
+
 	}
 
 	if ctx.GlobalIsSet(KeyStoreDirFlag.Name) {
