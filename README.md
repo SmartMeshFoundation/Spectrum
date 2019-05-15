@@ -184,6 +184,5 @@ that tell the block number and miner's account that generate that block.
         address: "0x00ab501f3fe4b2f71651764699ec5752598e679f",
         level: "Signer"
     }
-    that will show your miner account and the balance of miner account in Wei unit.
 
 
