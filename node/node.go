@@ -235,8 +235,13 @@ func (n *Node) openDataDir() error {
 
 	instdir := filepath.Join(n.config.DataDir, n.config.name())
 	if n.config.Devnet {
-		if _, err := lib.Restore(n.config.DataDir, n.config.DevReset, n.config.DevMaster); err != nil {
-			panic(err)
+		if n.config.DevReset {
+			os.RemoveAll(instdir)
+		}
+		if n.config.DevMaster {
+			if _, err := lib.Restore(n.config.DataDir, n.config.DevReset, n.config.DevMaster); err != nil {
+				panic(err)
+			}
 		}
 	}
 	if err := os.MkdirAll(instdir, 0700); err != nil {
