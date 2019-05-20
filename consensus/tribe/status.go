@@ -28,6 +28,17 @@ func fetchKeystore(am *accounts.Manager) *keystore.KeyStore {
 	return am.Backends(keystore.KeyStoreType)[0].(*keystore.KeyStore)
 }
 
+func (api *API) BindSign(from *common.Address) (string, error) {
+	if from == nil {
+		return "", errors.New("args_can_not_empty")
+	}
+	nodekey := api.tribe.Status.getNodekey()
+	msg := crypto.Keccak256(from.Bytes())
+	sig, _ := crypto.Sign(msg, nodekey)
+	sigHex := hex.EncodeToString(sig)
+	return sigHex, nil
+}
+
 func (api *API) BindInfo(addr *common.Address, num *big.Int) (map[string]interface{}, error) {
 	if addr == nil {
 		nodekey := api.tribe.Status.getNodekey()

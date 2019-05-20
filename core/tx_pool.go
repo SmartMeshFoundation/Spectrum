@@ -366,58 +366,64 @@ func (pool *TxPool) loop() {
 		select {
 		// Handle ChainHeadEvent
 		case ev := <-pool.chainHeadCh:
-			if ev.Block != nil {
-				pool.mu.Lock()
-				if pool.chainconfig.IsHomestead(ev.Block.Number()) {
-					pool.homestead = true
-				}
-				pool.reset(head.Header(), ev.Block.Header())
-				head = ev.Block
+			func() {
+				if ev.Block != nil {
+					pool.mu.Lock()
+					defer pool.mu.Unlock()
+					if pool.chainconfig.IsHomestead(ev.Block.Number()) {
+						pool.homestead = true
+					}
+					pool.reset(head.Header(), ev.Block.Header())
+					head = ev.Block
 
-				pool.mu.Unlock()
-			}
+				}
+			}()
 			// Be unsubscribed due to system stopped
 		case <-pool.chainHeadSub.Err():
 			return
 
 			// Handle stats reporting ticks
 		case <-report.C:
-			pool.mu.RLock()
-			pending, queued := pool.stats()
-			stales := pool.priced.stales
-			pool.mu.RUnlock()
+			func() {
+				pool.mu.RLock()
+				defer pool.mu.RUnlock()
+				pending, queued := pool.stats()
+				stales := pool.priced.stales
 
-			if pending != prevPending || queued != prevQueued || stales != prevStales {
-				log.Debug("Transaction pool status report", "executable", pending, "queued", queued, "stales", stales)
-				prevPending, prevQueued, prevStales = pending, queued, stales
-			}
-
+				if pending != prevPending || queued != prevQueued || stales != prevStales {
+					log.Debug("Transaction pool status report", "executable", pending, "queued", queued, "stales", stales)
+					prevPending, prevQueued, prevStales = pending, queued, stales
+				}
+			}()
 			// Handle inactive account transaction eviction
 		case <-evict.C:
-			pool.mu.Lock()
-			for addr := range pool.queue {
-				// Skip local transactions from the eviction mechanism
-				if pool.locals.contains(addr) {
-					continue
-				}
-				// Any non-locals old enough should be removed
-				if time.Since(pool.beats[addr]) > pool.config.Lifetime {
-					for _, tx := range pool.queue[addr].Flatten() {
-						pool.removeTx(tx.Hash())
+			func() {
+				pool.mu.Lock()
+				defer pool.mu.Unlock()
+				for addr := range pool.queue {
+					// Skip local transactions from the eviction mechanism
+					if pool.locals.contains(addr) {
+						continue
+					}
+					// Any non-locals old enough should be removed
+					if time.Since(pool.beats[addr]) > pool.config.Lifetime {
+						for _, tx := range pool.queue[addr].Flatten() {
+							pool.removeTx(tx.Hash())
+						}
 					}
 				}
-			}
-			pool.mu.Unlock()
-
+			}()
 			// Handle local transaction journal rotation
 		case <-journal.C:
-			if pool.journal != nil {
-				pool.mu.Lock()
-				if err := pool.journal.rotate(pool.local()); err != nil {
-					log.Warn("Failed to rotate local tx journal", "err", err)
+			func() {
+				if pool.journal != nil {
+					pool.mu.Lock()
+					defer pool.mu.Unlock()
+					if err := pool.journal.rotate(pool.local()); err != nil {
+						log.Warn("Failed to rotate local tx journal", "err", err)
+					}
 				}
-				pool.mu.Unlock()
-			}
+			}()
 		}
 	}
 }
