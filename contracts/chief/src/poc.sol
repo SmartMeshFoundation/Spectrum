@@ -53,7 +53,20 @@ contract POC{
         owner.push(_addr);
         withdrawWaitNumber = _number;
     }
-    
+
+    //存款进入出块人列表
+    function depositTest(address minerAddress) public payable {
+
+        //存款金额至少100w
+        require (msg.value >= minDeposit);
+        require (minerAddress != address(uint160(0)));
+        //只能质押一次
+        require (minerMap[minerAddress].amount == 0);
+        //记录出块信息
+        minerMap[minerAddress] = minerInfo(msg.sender, msg.value, 0);
+        //添加到正常出块列表
+        normalList.push(minerAddress);
+    }
 
     //存款进入出块人列表    
     function deposit(bytes32 _r, bytes32 _s, uint8 _v) public payable {
