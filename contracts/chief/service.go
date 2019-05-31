@@ -49,6 +49,7 @@ type TribeService struct {
 	tribeChief_0_0_5 *chieflib.TribeChief_0_0_5
 	tribeChief_0_0_6 *chieflib.TribeChief_0_0_6
 	tribeChief_0_0_7 *chieflib.TribeChief_0_0_7
+	tribeChief_1_0_0 *chieflib.TribeChief_1_0_0
 	quit             chan int
 	server           *p2p.Server // peers and nodekey ...
 	ethereum         *eth.Ethereum
@@ -112,6 +113,13 @@ func NewTribeService(ctx *node.ServiceContext) (node.Service, error) {
 			return nil, err
 		}
 		ts.tribeChief_0_0_7 = contract_0_0_7
+	}
+	if v1_0_0 := params.GetChiefInfoByVsn("1.0.0"); v1_0_0 != nil {
+		contract_1_0_0, err := chieflib.NewTribeChief_1_0_0(v1_0_0.Addr, eth.NewContractBackend(apiBackend))
+		if err != nil {
+			return nil, err
+		}
+		ts.tribeChief_1_0_0 = contract_1_0_0
 	}
 	return ts, nil
 }
