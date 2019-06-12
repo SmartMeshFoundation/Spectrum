@@ -32,7 +32,8 @@ const (
 
 var (
 	blockPeriod    = uint64(15)                               // Default minimum difference between two consecutive block's timestamps
-	extraVanity    = 32                                       // Fixed number of extra-data prefix bytes reserved for signer vanity
+	_extraVanity   = 32                                       // Fixed number of extra-data prefix bytes reserved for signer vanity
+	_extraVrf      = 65                                       // before SIP005 extra format is bytes[extraVanity+extraSeal], after is bytes[extraVrf+extraSeal]
 	extraSeal      = 65                                       // Fixed number of extra-data suffix bytes reserved for signer seal
 	nonceSync      = hexutil.MustDecode("0xffffffffffffffff") // TODO Reserved to control behavior
 	nonceAsync     = hexutil.MustDecode("0x0000000000000000") // TODO Reserved to control behavior
@@ -40,6 +41,12 @@ var (
 	diffInTurnMain = big.NewInt(3)                            // Block difficulty for in-turn Main
 	diffInTurn     = big.NewInt(2)                            // Block difficulty for in-turn Sub
 	diffNoTurn     = big.NewInt(1)                            // Block difficulty for out-of-turn Other
+	extraVanityFn  = func(num *big.Int) int {
+		if params.IsSIP005Block(num) {
+			return _extraVrf
+		}
+		return _extraVanity
+	}
 )
 
 // Various error messages to mark blocks invalid. These should be private to

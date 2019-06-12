@@ -867,12 +867,13 @@ func SetNodeConfig(ctx *cli.Context, cfg *node.Config) {
 	case ctx.GlobalBool(TestnetFlag.Name):
 		cfg.DataDir = filepath.Join(node.DefaultDataDir(), "testnet")
 	case ctx.GlobalBool(DevnetFlag.Name):
-		//TODO liangctodo
 		cfg.DataDir = filepath.Join(node.DefaultDataDir(), "devnet")
+	}
+
+	if ctx.GlobalBool(DevnetFlag.Name) {
 		cfg.Devnet = ctx.GlobalBool(DevnetFlag.Name)
 		cfg.DevReset = ctx.GlobalBool(DevnetResetFlag.Name)
 		cfg.DevMaster = ctx.GlobalBool(DevnetMasterFlag.Name)
-
 	}
 
 	if ctx.GlobalIsSet(KeyStoreDirFlag.Name) {

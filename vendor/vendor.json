@@ -59,14 +59,14 @@
 		{
 			"checksumSHA1": "9/twRX9Zn9lONdxX582YRLx27no=",
 			"path": "github.com/cc14514/smc-devnet/lib",
-			"revision": "b9c3344576ec8cbce9184b2faaadd3a84f7134d4",
-			"revisionTime": "2019-05-14T09:47:33Z"
+			"revision": "b5d25e3941ced95d210a40d5ad928c3e4228b526",
+			"revisionTime": "2019-06-11T07:35:47Z"
 		},
 		{
-			"checksumSHA1": "Lp0qTyIsjEJ2hMO052EoHfbi1T0=",
+			"checksumSHA1": "bapY/Kgis4/q5YQFvIRSVQjs2zU=",
 			"path": "github.com/cc14514/smc-devnet/statics/statik",
-			"revision": "b9c3344576ec8cbce9184b2faaadd3a84f7134d4",
-			"revisionTime": "2019-05-14T09:47:33Z"
+			"revision": "b5d25e3941ced95d210a40d5ad928c3e4228b526",
+			"revisionTime": "2019-06-11T07:35:47Z"
 		},
 		{
 			"checksumSHA1": "cDMtzKmdTx4CcIpP4broa+16X9g=",

@@ -517,6 +517,8 @@ web3._extend({
 			name: 'stop',
 			call: 'miner_stop'
 		}),
+
+		/*
 		new web3._extend.Method({
 			name: 'setEtherbase',
 			call: 'miner_setEtherbase',
@@ -529,15 +531,17 @@ web3._extend({
 			params: 1
 		}),
 		new web3._extend.Method({
+			name: 'getHashrate',
+			call: 'miner_getHashrate'
+		}),
+		*/
+		new web3._extend.Method({
 			name: 'setGasPrice',
 			call: 'miner_setGasPrice',
 			params: 1,
 			inputFormatter: [web3._extend.utils.fromDecimal]
 		}),
-		new web3._extend.Method({
-			name: 'getHashrate',
-			call: 'miner_getHashrate'
-		}),
+
 	],
 	properties: []
 });

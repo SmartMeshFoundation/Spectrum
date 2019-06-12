@@ -2,7 +2,7 @@ pragma solidity ^0.5.3;
 
 import "./owned.sol";
 
-contract MeshBox is Owned {
+contract MeshBox_0_0_2 is Owned {
 
     string vsn = "0.0.2";
 

@@ -234,6 +234,7 @@ func (n *Node) openDataDir() error {
 	}
 
 	instdir := filepath.Join(n.config.DataDir, n.config.name())
+
 	if n.config.Devnet {
 		if n.config.DevReset {
 			os.RemoveAll(instdir)
@@ -244,9 +245,11 @@ func (n *Node) openDataDir() error {
 			}
 		}
 	}
+
 	if err := os.MkdirAll(instdir, 0700); err != nil {
 		return err
 	}
+
 	// Lock the instance directory to prevent concurrent use by another instance as well as
 	// accidental use of the instance directory as a database.
 	release, _, err := flock.New(filepath.Join(instdir, "LOCK"))

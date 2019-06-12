@@ -1,15 +1,15 @@
 package tribe
 
 import (
-	"testing"
 	"crypto/ecdsa"
-	"crypto/rand"
-	mrand "math/rand"
-	"github.com/SmartMeshFoundation/Spectrum/crypto"
 	"crypto/elliptic"
-	"time"
+	"crypto/rand"
 	"encoding/hex"
 	"github.com/SmartMeshFoundation/Spectrum/accounts/keystore"
+	"github.com/SmartMeshFoundation/Spectrum/crypto"
+	mrand "math/rand"
+	"testing"
+	"time"
 )
 
 func TestNormal(t *testing.T) {
@@ -55,12 +55,12 @@ func TestNodekey(t *testing.T) {
 
 }
 
-func TestHexToPrv(t *testing.T){
+func TestHexToPrv(t *testing.T) {
 	h := "4755839cb237126c4317a858d85d3837745615b1f67eb20de260416658c43b19"
-	prv,e := crypto.HexToECDSA(h)
+	prv, e := crypto.HexToECDSA(h)
 	t.Log(e)
 	pub := prv.PublicKey
-	pbytes := elliptic.Marshal(pub.Curve,pub.X,pub.Y)
+	pbytes := elliptic.Marshal(pub.Curve, pub.X, pub.Y)
 	nodeid := pbytes[1:]
 	t.Log(crypto.PubkeyToAddress(pub).Hex())
 	t.Log(h)
@@ -70,23 +70,28 @@ func TestHexToPrv(t *testing.T){
 
 func TestKeyAddressExange(t *testing.T) {
 	nodekey := "6188edbba7ba30e7c29f314fea016937816598c8d43a903dabea58bef189d09a"
-	prv,_ := crypto.HexToECDSA(nodekey)
+	prv, _ := crypto.HexToECDSA(nodekey)
 	target := "bff277e91e8adeff5c39bb5969f7c8d9be27db76cb61080dc1f1b98601029eb69912731717580dfc140fe331a7953fcba211d59b1d2b086fb669dbdedbf1f717"
 	pub := prv.PublicKey
-	pbytes := elliptic.Marshal(pub.Curve,pub.X,pub.Y)
+	pbytes := elliptic.Marshal(pub.Curve, pub.X, pub.Y)
 	t.Log(pbytes)
 	nodeid := pbytes[1:]
 	t.Log("---------------")
 	t.Log(target)
 	t.Log(hex.EncodeToString(nodeid))
-	t.Logf("%x\n",nodeid)
-	t.Log(hex.EncodeToString(nodeid)==target)
+	t.Logf("%x\n", nodeid)
+	t.Log(hex.EncodeToString(nodeid) == target)
 	pub2 := new(ecdsa.PublicKey)
 	pub2.Curve = pub.Curve
-	tb,_ := hex.DecodeString(target)
-	tb = append([]byte{4},tb...)
+	tb, _ := hex.DecodeString(target)
+	tb = append([]byte{4}, tb...)
 	t.Log(tb)
-	pub2.X,pub2.Y = elliptic.Unmarshal(pub.Curve,tb)
+	pub2.X, pub2.Y = elliptic.Unmarshal(pub.Curve, tb)
 	t.Log(pub)
 	t.Log(pub2)
+}
+
+func TestExtra(t *testing.T) {
+	extra := []byte("0xd68301000083736d6386676f312e31328664617277696e00000000000000000009b5bd71d0cababfc178e89f63210d322675d53d16bdb58ce5741e06d78f60bd4e2e517089c35d9e278bd6bbf52b6f77746ff314c6cf3237a27209a3e922035300")
+	t.Log(len(extra))
 }

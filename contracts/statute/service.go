@@ -35,6 +35,7 @@ type StatuteService struct {
 	accman        *accounts.Manager
 	anmap_0_0_1   *anmaplib.Anmap
 	meshbox_0_0_1 *meshboxlib.MeshBox
+	meshbox_0_0_2 *meshboxlib.MeshBox_0_0_2
 	ipcpath       string
 	server        *p2p.Server // peers and nodekey ...
 	quit          chan int
@@ -75,6 +76,12 @@ func (self *StatuteService) startMeshbox(vsn string, backend *eth.ContractBacken
 						panic(err)
 					}
 					statuteService.meshbox_0_0_1 = contract
+				case "0.0.2":
+					contract, err := meshboxlib.NewMeshBox_0_0_2(maddr, backend)
+					if err != nil {
+						panic(err)
+					}
+					statuteService.meshbox_0_0_2 = contract
 				}
 				defer close(params.InitMeshbox)
 				log.Info("<<Meshbox.Start>> success ", "vsn", vsn, "cn", cn.Int64(), "tn", mn.Int64())
@@ -350,14 +357,55 @@ func (self *StatuteService) ExistAddress(addr common.Address) (*big.Int, error) 
 	log.Debug("<<StatuteService.ExistAddress>>")
 	select {
 	case <-params.InitMeshbox:
-		var ctx = context.Background()
+		var (
+			num  = self.ethereum.BlockChain().CurrentHeader().Number
+			ctx  = context.Background()
+			opts = new(bind.CallOptsWithNumber)
+			i    *big.Int
+		)
+		vsn, err := params.MeshboxVsn(num)
+		if err != nil {
+			return nil, err
+		}
 		ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 		defer cancel()
-		opts := new(bind.CallOptsWithNumber)
 		opts.Context = ctx
-		i, err := self.meshbox_0_0_1.ExistAddress(opts, addr)
+		switch vsn {
+		case "0.0.1":
+			i, err = self.meshbox_0_0_1.ExistAddress(opts, addr)
+		case "0.0.2":
+			i, err = self.meshbox_0_0_2.ExistAddress(opts, addr)
+		}
 		log.Debug("<<StatuteService.ExistAddress>>", "r", i, "err", err)
 		return i, err
+	default:
+		return nil, errors.New("wait init")
+	}
+}
+
+func (self *StatuteService) GetMeshboxList() ([]common.Address, error) {
+	log.Debug("<<StatuteService.GetMeshboxList>>")
+	select {
+	case <-params.InitMeshbox:
+		var (
+			num  = self.ethereum.BlockChain().CurrentHeader().Number
+			ctx  = context.Background()
+			opts = new(bind.CallOptsWithNumber)
+			mbs  []common.Address
+		)
+		vsn, err := params.MeshboxVsn(num)
+		if err != nil {
+			return nil, err
+		}
+		ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+		defer cancel()
+		opts.Context = ctx
+		switch vsn {
+		case "0.0.2":
+			mbs, err = self.meshbox_0_0_2.GetMeshboxList(opts)
+		}
+		log.Debug("<<StatuteService.GetMeshboxList>>", "err", err)
+		return mbs, err
 	default:
 		return nil, errors.New("wait init")
 	}

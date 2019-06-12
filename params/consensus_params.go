@@ -13,10 +13,10 @@ import (
 )
 
 type ChiefInfo struct {
-	StartNumber *big.Int // 0 is nil
-	Version     string
-	Addr        common.Address
-	Abi         string
+	StartNumber, PocStartNumber *big.Int // 0 is nil
+	Version                     string
+	Addr, PocAddr               common.Address
+	Abi                         string
 }
 type ChiefInfoList []*ChiefInfo
 
@@ -33,11 +33,16 @@ func (self *ChiefInfo) String() string {
 }
 
 func newChiefInfo(num *big.Int, vsn string, addr common.Address, abi string) *ChiefInfo {
+	return newChiefInfoWithPoc(num, nil, vsn, addr, common.HexToAddress("0x"), abi)
+}
+
+func newChiefInfoWithPoc(num, pocNum *big.Int, vsn string, addr, pocAddr common.Address, abi string) *ChiefInfo {
 	return &ChiefInfo{
 		StartNumber: num,
 		Version:     vsn,
 		Addr:        addr,
 		Abi:         abi,
+		PocAddr:     pocAddr,
 	}
 }
 
@@ -114,21 +119,75 @@ func AnmapInfo(num *big.Int, vsn string) (n *big.Int, addr common.Address) {
 	return
 }
 
-func MeshboxInfo(num *big.Int, vsn string) (n *big.Int, addr common.Address) {
+func MeshboxVsn(num *big.Int) (string, error) {
+	var n *big.Int
 	if IsTestnet() {
+		n = TestnetChainConfig.Meshbox002Block
+		if n != nil && n.Cmp(big.NewInt(0)) > 0 && n.Cmp(num) <= 0 {
+			return "0.0.2", nil
+		}
 		n = TestnetChainConfig.Meshbox001Block
 		if n != nil && n.Cmp(big.NewInt(0)) > 0 && n.Cmp(num) <= 0 {
-			addr = TestnetChainConfig.Meshbox001Address
+			return "0.0.1", nil
 		}
+
 	} else if IsDevnet() {
+		n = DevnetChainConfig.Meshbox002Block
+		if n != nil && n.Cmp(big.NewInt(0)) > 0 && n.Cmp(num) <= 0 {
+			return "0.0.2", nil
+		}
 		n = DevnetChainConfig.Meshbox001Block
 		if n != nil && n.Cmp(big.NewInt(0)) > 0 && n.Cmp(num) <= 0 {
-			addr = DevnetChainConfig.Meshbox001Address
+			return "0.0.1", nil
 		}
 	} else {
+		n = MainnetChainConfig.Meshbox002Block
+		if n != nil && n.Cmp(big.NewInt(0)) > 0 && n.Cmp(num) <= 0 {
+			return "0.0.2", nil
+		}
 		n = MainnetChainConfig.Meshbox001Block
 		if n != nil && n.Cmp(big.NewInt(0)) > 0 && n.Cmp(num) <= 0 {
-			addr = MainnetChainConfig.Meshbox001Address
+			return "0.0.1", nil
+		}
+	}
+	return "", errors.New("meshbox_service_not_started")
+}
+
+func MeshboxInfo(num *big.Int, vsn string) (n *big.Int, addr common.Address) {
+	switch vsn {
+	case "0.0.1":
+		if IsTestnet() {
+			n = TestnetChainConfig.Meshbox001Block
+			if n != nil && n.Cmp(big.NewInt(0)) > 0 && n.Cmp(num) <= 0 {
+				addr = TestnetChainConfig.Meshbox001Address
+			}
+		} else if IsDevnet() {
+			n = DevnetChainConfig.Meshbox001Block
+			if n != nil && n.Cmp(big.NewInt(0)) > 0 && n.Cmp(num) <= 0 {
+				addr = DevnetChainConfig.Meshbox001Address
+			}
+		} else {
+			n = MainnetChainConfig.Meshbox001Block
+			if n != nil && n.Cmp(big.NewInt(0)) > 0 && n.Cmp(num) <= 0 {
+				addr = MainnetChainConfig.Meshbox001Address
+			}
+		}
+	case "0.0.2":
+		if IsTestnet() {
+			n = TestnetChainConfig.Meshbox002Block
+			if n != nil && n.Cmp(big.NewInt(0)) > 0 && n.Cmp(num) <= 0 {
+				addr = TestnetChainConfig.Meshbox002Address
+			}
+		} else if IsDevnet() {
+			n = DevnetChainConfig.Meshbox002Block
+			if n != nil && n.Cmp(big.NewInt(0)) > 0 && n.Cmp(num) <= 0 {
+				addr = DevnetChainConfig.Meshbox002Address
+			}
+		} else {
+			n = MainnetChainConfig.Meshbox002Block
+			if n != nil && n.Cmp(big.NewInt(0)) > 0 && n.Cmp(num) <= 0 {
+				addr = MainnetChainConfig.Meshbox002Address
+			}
 		}
 	}
 	return
@@ -193,15 +252,15 @@ func IsSIP003Block(num *big.Int) bool {
 // https://github.com/SmartMeshFoundation/Spectrum/wiki/%5BChinese%5D-v0.6.0-Standard
 func IsSIP004Block(num *big.Int) bool {
 	if IsTestnet() {
-		if TestnetChainConfig.SIP004Block.Cmp(big.NewInt(0)) > 0 && TestnetChainConfig.SIP004Block.Cmp(num) <= 0 {
+		if TestnetChainConfig.SIP004Block != nil && TestnetChainConfig.SIP004Block.Cmp(big.NewInt(0)) > 0 && TestnetChainConfig.SIP004Block.Cmp(num) <= 0 {
 			return true
 		}
 	} else if IsDevnet() {
-		if DevnetChainConfig.SIP004Block.Cmp(big.NewInt(0)) > 0 && DevnetChainConfig.SIP004Block.Cmp(num) <= 0 {
+		if DevnetChainConfig.SIP004Block != nil && DevnetChainConfig.SIP004Block.Cmp(big.NewInt(0)) > 0 && DevnetChainConfig.SIP004Block.Cmp(num) <= 0 {
 			return true
 		}
 	} else {
-		if MainnetChainConfig.SIP004Block.Cmp(big.NewInt(0)) > 0 && MainnetChainConfig.SIP004Block.Cmp(num) <= 0 {
+		if MainnetChainConfig.SIP004Block != nil && MainnetChainConfig.SIP004Block.Cmp(big.NewInt(0)) > 0 && MainnetChainConfig.SIP004Block.Cmp(num) <= 0 {
 			return true
 		}
 	}
@@ -209,17 +268,18 @@ func IsSIP004Block(num *big.Int) bool {
 }
 
 // add by liangc : 19-05-31 : for smc-1.0.0
+// may be discard
 func IsSIP005Block(num *big.Int) bool {
 	if IsTestnet() {
-		if TestnetChainConfig.SIP005Block.Cmp(big.NewInt(0)) > 0 && TestnetChainConfig.SIP005Block.Cmp(num) <= 0 {
+		if TestnetChainConfig.SIP005Block != nil && TestnetChainConfig.SIP005Block.Cmp(big.NewInt(0)) > 0 && TestnetChainConfig.SIP005Block.Cmp(num) <= 0 {
 			return true
 		}
 	} else if IsDevnet() {
-		if DevnetChainConfig.SIP005Block.Cmp(big.NewInt(0)) > 0 && DevnetChainConfig.SIP005Block.Cmp(num) <= 0 {
+		if DevnetChainConfig.SIP005Block != nil && DevnetChainConfig.SIP005Block.Cmp(big.NewInt(0)) > 0 && DevnetChainConfig.SIP005Block.Cmp(num) <= 0 {
 			return true
 		}
 	} else {
-		if MainnetChainConfig.SIP005Block.Cmp(big.NewInt(0)) > 0 && MainnetChainConfig.SIP005Block.Cmp(num) <= 0 {
+		if MainnetChainConfig.SIP005Block != nil && MainnetChainConfig.SIP005Block.Cmp(big.NewInt(0)) > 0 && MainnetChainConfig.SIP005Block.Cmp(num) <= 0 {
 			return true
 		}
 	}
@@ -252,8 +312,6 @@ func IsReadyAnmap(num *big.Int) bool {
 	return false
 }
 
-
-
 // startNumber and address must from chain's config
 func chiefAddressList() (list ChiefInfoList) {
 	if chiefInfoList != nil {
@@ -271,7 +329,7 @@ func chiefAddressList() (list ChiefInfoList) {
 	} else if IsDevnet() {
 		list = ChiefInfoList{
 			newChiefInfo(DevnetChainConfig.Chief007Block, "0.0.7", DevnetChainConfig.Chief007Address, TribeChief_0_0_7ABI),
-			newChiefInfo(DevnetChainConfig.Chief007Block, "1.0.0", DevnetChainConfig.Chief100Address, TribeChief_1_0_0ABI),
+			newChiefInfoWithPoc(DevnetChainConfig.Chief100Block, DevnetChainConfig.PocBlock, "1.0.0", DevnetChainConfig.Chief100Address, DevnetChainConfig.PocAddress, TribeChief_1_0_0ABI),
 		}
 	} else {
 		list = ChiefInfoList{

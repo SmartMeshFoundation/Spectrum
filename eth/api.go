@@ -169,22 +169,14 @@ func (api *PrivateMinerAPI) Stop() bool {
 	return true
 }
 
+/*
+
 // SetExtra sets the extra data string that is included when this miner mines a block.
 func (api *PrivateMinerAPI) SetExtra(extra string) (bool, error) {
 	if err := api.e.Miner().SetExtra([]byte(extra)); err != nil {
 		return false, err
 	}
 	return true, nil
-}
-
-// SetGasPrice sets the minimum accepted gas price for the miner.
-func (api *PrivateMinerAPI) SetGasPrice(gasPrice hexutil.Big) bool {
-	api.e.lock.Lock()
-	api.e.gasPrice = (*big.Int)(&gasPrice)
-	api.e.lock.Unlock()
-
-	api.e.txPool.SetGasPrice((*big.Int)(&gasPrice))
-	return true
 }
 
 // SetEtherbase sets the etherbase of the miner
@@ -196,6 +188,18 @@ func (api *PrivateMinerAPI) SetEtherbase(etherbase common.Address) bool {
 // GetHashrate returns the current hashrate of the miner.
 func (api *PrivateMinerAPI) GetHashrate() uint64 {
 	return uint64(api.e.miner.HashRate())
+}
+
+*/
+
+// SetGasPrice sets the minimum accepted gas price for the miner.
+func (api *PrivateMinerAPI) SetGasPrice(gasPrice hexutil.Big) bool {
+	api.e.lock.Lock()
+	api.e.gasPrice = (*big.Int)(&gasPrice)
+	api.e.lock.Unlock()
+
+	api.e.txPool.SetGasPrice((*big.Int)(&gasPrice))
+	return true
 }
 
 // PrivateAdminAPI is the collection of Ethereum full node-related APIs

@@ -60,7 +60,7 @@ func BenchmarkSha3(b *testing.B) {
 
 func TestVRF(t *testing.T) {
 	key, _ := HexToECDSA("0bcd616498bf7aa08be3aacf5a8e9396dce2977c7e475269c47aa869c1743009")
-	pub := &key.PublicKey
+	pub := key.PublicKey
 	var (
 		msg     []byte
 		counter int
@@ -68,8 +68,8 @@ func TestVRF(t *testing.T) {
 	)
 	for i := 0; i < total; i++ {
 		msg = []byte(fmt.Sprint(i))
-		result, _ := SimpleVRF(key, msg)
-		err := SimpleVRFVerify(pub, result, msg)
+		result, _ := SimpleVRF2Int(key, msg)
+		err := SimpleVRFVerify(PubkeyToAddress(pub), result, msg)
 		if err != nil {
 			t.Log(i, err, msg, "r->", result)
 			t.Log(len(result.Bytes()))
@@ -83,13 +83,24 @@ func TestVRF(t *testing.T) {
 	t.Log("counter", counter, "scale", float64(counter)/float64(total))
 }
 
-func TestVRF2(t *testing.T) {
+func TestVRF1(t *testing.T) {
 	key, _ := HexToECDSA("0bcd616498bf7aa08be3aacf5a8e9396dce2977c7e475269c47aa869c1743009")
-	pub := &key.PublicKey
+	pub := PubkeyToAddress(key.PublicKey)
 	var msg []byte
 	i := 1005
 	msg = []byte(fmt.Sprint(i))
-	result, _ := SimpleVRF(key, msg)
+	result, _ := SimpleVRF2Bytes(key, msg)
+	t.Log(pub.Hex(), len(result))
+
+}
+
+func TestVRF2(t *testing.T) {
+	key, _ := HexToECDSA("0bcd616498bf7aa08be3aacf5a8e9396dce2977c7e475269c47aa869c1743009")
+	pub := PubkeyToAddress(key.PublicKey)
+	var msg []byte
+	i := 1005
+	msg = []byte(fmt.Sprint(i))
+	result, _ := SimpleVRF2Int(key, msg)
 	err := SimpleVRFVerify(pub, result, msg)
 	if err != nil {
 		t.Log(i, err, msg, "r->", result)
@@ -99,6 +110,48 @@ func TestVRF2(t *testing.T) {
 	if bytes.Equal(b[:], []byte{0, 0}[:]) {
 		t.Log(i, "-->", b)
 	}
+}
+
+func TestVRF3(t *testing.T) {
+	key, _ := HexToECDSA("0bcd616498bf7aa08be3aacf5a8e9396dce2977c7e475269c47aa869c1743009")
+	for i := 32; i < 33; i++ {
+		msg := []byte(fmt.Sprintf("%d", i))
+		result, _ := SimpleVRF2Int(key, msg)
+		l := len(result.Bytes())
+		if l < 65 {
+			t.Log(i, l, result.Bytes())
+		}
+		t.Log(result.String())
+		r := append([]byte{0}[:], result.Bytes()[:]...)
+		t.Log(result.Bytes())
+		t.Log(r)
+		ri := new(big.Int).SetBytes(r)
+		t.Log(ri)
+	}
+}
+
+func TestVRF4(t *testing.T) {
+	prv, _ := HexToECDSA("507fd083b5c5af7e645e77a3a3a82708f3af304164e02612ab4b1d5b36c627c6")
+	s := PubkeyToAddress(prv.PublicKey)
+	parentHash, _ := hex.DecodeString("6dde11794aa31fb385b9d8d7ea1cfa03e5a0f389efb9cd90be388a342bdf8d7e")
+	vr, _ := SimpleVRF2Bytes(prv, parentHash)
+
+	t.Log("miner", s.Hex())
+	t.Log("parent", parentHash)
+	t.Log("vrf", vr)
+
+	err := SimpleVRFVerify(s, new(big.Int).SetBytes(vr), parentHash)
+	t.Log("verify", err)
+
+}
+
+func TestSign4(t *testing.T) {
+	e := "0xd88301000083736d6388676f312e31322e348664617277696e000000000000003e4d2c4b22f5c8174e8876f75e1a1ed47d023fc48001992b3a7a3b5c308cf5a21de7f4ae348e55353215a57fbd5252b5fa2a715d60c3ba92a195fe5c46a06b2701"
+	b := []byte(e)
+	t.Log(len(b), b)
+	r := b[len(b)-65:]
+	i := new(big.Int).SetBytes(r)
+	t.Log(i)
 }
 
 /*

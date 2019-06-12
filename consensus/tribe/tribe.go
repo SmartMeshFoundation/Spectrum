@@ -3,6 +3,7 @@ package tribe
 
 import (
 	"bytes"
+	"encoding/hex"
 	"errors"
 	"math/big"
 	"math/rand"
@@ -64,6 +65,7 @@ func sigHash(header *types.Header) (hash common.Hash) {
 // ecrecover extracts the Ethereum account address from a signed header.
 func ecrecover(header *types.Header, t *Tribe) (common.Address, error) {
 	// XXXX : 掐头去尾 ，约定创世区块只能指定一个签名人，因为第一个块要部署合约
+	extraVanity := extraVanityFn(header.Number)
 	if header.Number.Uint64() == 0 {
 		signer := common.Address{}
 		copy(signer[:], header.Extra[extraVanity:])
@@ -215,6 +217,7 @@ func (t *Tribe) VerifyHeaders(chain consensus.ChainReader, headers []*types.Head
 // looking those up from the database. This is useful for concurrently verifying
 // a batch of new headers.
 func (t *Tribe) verifyHeader(chain consensus.ChainReader, header *types.Header, parents []*types.Header) error {
+	extraVanity := extraVanityFn(header.Number)
 	if !t.isInit && header.Number.Int64() >= CHIEF_NUMBER {
 		t.Init(header.Hash(), header.Number)
 	}
@@ -229,9 +232,11 @@ func (t *Tribe) verifyHeader(chain consensus.ChainReader, header *types.Header, 
 		return consensus.ErrFutureBlock
 	}
 	// Nonces must be 0x00..0 or 0xff..f, zeroes enforced on checkpoints
-	if !bytes.Equal(header.Nonce[:], nonceSync) && !bytes.Equal(header.Nonce[:], nonceAsync) {
-		return errInvalidNonce
-	}
+	/*
+		if !bytes.Equal(header.Nonce[:], nonceSync) && !bytes.Equal(header.Nonce[:], nonceAsync) {
+			return errInvalidNonce
+		}*/
+
 	// Check that the extra-data contains both the vanity and signature
 	if len(header.Extra) < extraVanity {
 		return errMissingVanity
@@ -399,6 +404,7 @@ func (t *Tribe) verifySeal(chain consensus.ChainReader, header *types.Header, pa
 // Prepare implements consensus.Engine, preparing all the consensus fields of the
 // header for running the transactions on top.
 func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error {
+	extraVanity := extraVanityFn(header.Number)
 	number := header.Number.Uint64()
 	if f, _, err := params.AnmapBindInfo(t.Status.GetMinerAddress(), chain.CurrentHeader().Hash()); err == nil && f != common.HexToAddress("0x") {
 		header.Coinbase = f
@@ -409,6 +415,7 @@ func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error
 	copy(header.Nonce[:], nonceAsync)
 
 	// Extra : append sig to last 65 bytes >>>>
+	log.Debug("fix extra", "extra-len", len(header.Extra), "extraVanity", extraVanity)
 	if len(header.Extra) < extraVanity {
 		header.Extra = append(header.Extra, bytes.Repeat([]byte{0x00}, extraVanity-len(header.Extra))...)
 	}
@@ -513,6 +520,20 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 		return nil, nil
 	case <-time.After(delay):
 	}
+
+	if params.IsSIP005Block(header.Number) {
+		// append vrf to header.Extra before sign
+		vr, err := crypto.SimpleVRF2Bytes(t.Status.nodeKey, block.ParentHash().Bytes())
+		if err != nil {
+			panic(err)
+		}
+		copy(header.Extra[:extraSeal], vr)
+		log.Debug("seal_vrf", "num", header.Number, "parent_hash", block.ParentHash().Hex(), "bytes", block.ParentHash().Bytes())
+		log.Debug("seal_vrf", "num", header.Number, "miner", crypto.PubkeyToAddress(t.Status.nodeKey.PublicKey).Hex())
+		log.Debug("seal_vrf", "num", header.Number, "err", err, "vrf", hex.EncodeToString(vr), "bytes", vr)
+		log.Debug("seal_vrf", "num", header.Number, "extra", hex.EncodeToString(header.Extra), "bytes", header.Extra)
+	}
+
 	// Sign all the things!
 	hash := sigHash(header).Bytes()
 	sighash, err := signFn(accounts.Account{Address: signer}, hash)

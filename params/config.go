@@ -127,12 +127,16 @@ var (
 		// if skip this vsn please set 0 or nil to block and set common.Address{} to address
 		// 0.0.6 : ready for release
 		Chief007Block:   big.NewInt(3),
-		Chief007Address: common.HexToAddress("0xc4a2d182fe92f0eadffbddea9a0977d5b95b31a5"),
+		Chief007Address: common.HexToAddress("0x24bfadf2803638b26b653e1f94927052d4aa74eb"),
 
 		Chief100Block:   big.NewInt(0),
 		Chief100Address: common.HexToAddress("0x"),
-		SIP005Block: big.NewInt(0),
 
+		PocBlock:   big.NewInt(0),
+		PocAddress: common.HexToAddress("0x"),
+
+		Meshbox002Block:   nil,
+		Meshbox002Address: common.HexToAddress("0x"),
 		//MeshboxBlock:   nil,
 		//MeshboxAddress: common.HexToAddress("0x"),
 
@@ -144,10 +148,11 @@ var (
 		// new rules for chief.tx of gaspool
 		SIP001Block: big.NewInt(0),
 		SIP002Block: big.NewInt(1),
-		SIP003Block: big.NewInt(1),
-		SIP004Block: big.NewInt(1),
+		SIP003Block: big.NewInt(3),
+		SIP004Block: big.NewInt(3),
+		SIP005Block: big.NewInt(7),
 
-		Tribe:       &TribeConfig{},
+		Tribe: &TribeConfig{},
 	}
 
 	// AllEthashProtocolChanges contains every protocol change (EIPs) introduced
@@ -257,6 +262,9 @@ type ChainConfig struct {
 	Chief100Block   *big.Int       `json:"chief100Block,omitempty"`
 	Chief100Address common.Address `json:"chief100Address,omitempty"`
 
+	PocBlock   *big.Int       `json:"PocBlock,omitempty"`
+	PocAddress common.Address `json:"PocAddress,omitempty"`
+
 	// <<< add by liangc : set chief start number <<<
 	// add by liangc : new rules for chief.tx of gaspool
 	SIP001Block *big.Int `json:"sip001Block,omitempty"` // SIP001 HF block
@@ -273,6 +281,9 @@ type ChainConfig struct {
 
 	Meshbox001Block   *big.Int       `json:"meshbox001Block,omitempty"`
 	Meshbox001Address common.Address `json:"meshbox001Address,omitempty"`
+
+	Meshbox002Block   *big.Int       `json:"meshbox002Block,omitempty"`
+	Meshbox002Address common.Address `json:"meshbox002Address,omitempty"`
 
 	Anmap001Block   *big.Int       `json:"anmap001Block,omitempty"`
 	Anmap001Address common.Address `json:"anmap001Address,omitempty"`

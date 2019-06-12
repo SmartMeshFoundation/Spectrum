@@ -136,3 +136,18 @@ func TestChainId(t *testing.T) {
 		t.Error("expected no error")
 	}
 }
+
+func TestChainId2(t *testing.T) {
+	cid := deriveChainId(big.NewInt(27))
+	t.Log(27, cid)
+	cid = deriveChainId(big.NewInt(28))
+	t.Log(28, cid)
+	cid = deriveChainId(big.NewInt(41))
+	t.Log(41, cid)
+	cid = deriveChainId(big.NewInt(42))
+	t.Log(42, cid)
+	cid = deriveChainId(big.NewInt(43))
+	t.Log(43, cid)
+	cid = deriveChainId(big.NewInt(44))
+	t.Log(44, cid)
+}

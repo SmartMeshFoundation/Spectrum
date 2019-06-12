@@ -396,6 +396,7 @@ func (self *TribeStatus) InTurnForVerify(number int64, parentHash common.Hash, s
 }
 
 func (self *TribeStatus) genesisSigner(header *types.Header) (common.Address, error) {
+	extraVanity := extraVanityFn(header.Number)
 	signer := common.Address{}
 	copy(signer[:], header.Extra[extraVanity:])
 	self.loadSigners([]*Signer{{signer, 3}})
@@ -429,6 +430,13 @@ func (self *TribeStatus) Update(currentNumber *big.Int, hash common.Hash) {
 	}
 }
 
+func verifyVrfNum(header *types.Header, signer common.Address) (err error) {
+	var n = header.Extra[:extraVanityFn(header.Number)]
+	err = crypto.SimpleVRFVerify(signer, new(big.Int).SetBytes(n), header.ParentHash.Bytes())
+	log.Debug("verifyVrfNum", "num", header.Number, "err", err, "vrfn", n, "parent", header.ParentHash.Bytes())
+	return
+}
+
 func (self *TribeStatus) ValidateSigner(parentHeader, header *types.Header, signer common.Address) bool {
 	var (
 		err        error
@@ -442,6 +450,9 @@ func (self *TribeStatus) ValidateSigner(parentHeader, header *types.Header, sign
 	}
 
 	signers, err = self.GetSignersFromChiefByHash(parentHash, big.NewInt(number))
+	if err != nil {
+		log.Warn("TribeStatus.ValidateSigner : GetSignersFromChiefByNumber :", "err", err)
+	}
 
 	if params.IsSIP002Block(header.Number) {
 		// second time of verification block time
@@ -456,9 +467,6 @@ func (self *TribeStatus) ValidateSigner(parentHeader, header *types.Header, sign
 		return false
 	}
 
-	if err != nil {
-		log.Warn("TribeStatus.ValidateSigner : GetSignersFromChiefByNumber :", "err", err)
-	}
 	_, _, err = self.fetchOnSigners(signer, signers)
 	if err == nil {
 		return true
@@ -537,7 +545,6 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 
 	header := block.Header()
 	number := header.Number.Int64()
-
 	//number := block.Number().Int64()
 	// add by liangc : seal call this func must skip validate signer
 	if validateSigner {
@@ -557,6 +564,16 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 		if !self.ValidateSigner(parent.Header(), header, signer) {
 			return errUnauthorized
 		}
+
+		// verify vrf num
+		if params.IsSIP005Block(header.Number) {
+			err = verifyVrfNum(header, signer)
+			if err != nil {
+				log.Error("vrf_num_fail", "num", number, "err", err)
+				return err
+			}
+		}
+
 	}
 	// check first tx , must be chief.tx , and onely one chief.tx in tx list
 	if block != nil && block.Transactions().Len() == 0 {

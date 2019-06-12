@@ -193,7 +193,13 @@ func zeroBytes(bytes []byte) {
 	}
 }
 
-func SimpleVRF(prv *ecdsa.PrivateKey, info []byte) (result *big.Int, err error) {
+func SimpleVRF2Bytes(prv *ecdsa.PrivateKey, info []byte) (sig []byte, err error) {
+	msg := Keccak256(info)
+	sig, err = Sign(msg, prv)
+	return
+}
+
+func SimpleVRF2Int(prv *ecdsa.PrivateKey, info []byte) (result *big.Int, err error) {
 	msg := Keccak256(info)
 	sig, err := Sign(msg, prv)
 	if err == nil {
@@ -202,8 +208,8 @@ func SimpleVRF(prv *ecdsa.PrivateKey, info []byte) (result *big.Int, err error) 
 	return
 }
 
-func SimpleVRFVerify(pub *ecdsa.PublicKey, result *big.Int, info []byte) (err error) {
-	if result == nil || info == nil || pub == nil {
+func SimpleVRFVerify(addr common.Address, result *big.Int, info []byte) (err error) {
+	if result == nil || info == nil || addr == common.HexToAddress("0x") {
 		return errors.New("error params")
 	}
 	msg := Keccak256(info)
@@ -220,7 +226,7 @@ func SimpleVRFVerify(pub *ecdsa.PublicKey, result *big.Int, info []byte) (err er
 		return
 	}
 	rpub := ToECDSAPub(recoveredPub)
-	if bytes.Equal(PubkeyToAddress(*pub).Bytes(), PubkeyToAddress(*rpub).Bytes()) {
+	if bytes.Equal(addr.Bytes(), PubkeyToAddress(*rpub).Bytes()) {
 		return
 	}
 	err = errors.New("VRFVerify_fail")
