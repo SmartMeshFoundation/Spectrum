@@ -21,6 +21,7 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 	"fmt"
+	"github.com/SmartMeshFoundation/Spectrum/crypto/vrf"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -55,6 +56,30 @@ func BenchmarkSha3(b *testing.B) {
 	a := []byte("hello world")
 	for i := 0; i < b.N; i++ {
 		Keccak256(a)
+	}
+}
+
+func TestVRFF(t *testing.T) {
+	key, _ := HexToECDSA("0bcd616498bf7aa08be3aacf5a8e9396dce2977c7e475269c47aa869c1743009")
+	vrfPrv := vrf.PrivateKey{key}
+	vrfPub := vrf.PublicKey{&key.PublicKey}
+	msg, _ := hex.DecodeString("6dde11794aa31fb385b9d8d7ea1cfa03e5a0f389efb9cd90be388a342bdf8d7e")
+	i1, p1 := vrfPrv.Evaluate(msg)
+	i2, p2 := vrfPrv.Evaluate(msg)
+	t.Log(len(i1), len(p1), p1)
+	t.Log(len(i2), len(p2), p2)
+	v1, _ := vrfPub.ProofToHash(msg, p1)
+	v2, _ := vrfPub.ProofToHash(msg, p2)
+	t.Log(i1 == v1, v1)
+	t.Log(i2 == v2, v2)
+	for i := 0; i < 30000; i++ {
+		i3, p3 := vrfPrv.Evaluate(msg)
+		if len(i3) != 32 {
+			t.Log("XXX", len(i3), i)
+		}
+		if len(p3) != 129 {
+			t.Log("YYY", len(p3), i)
+		}
 	}
 }
 

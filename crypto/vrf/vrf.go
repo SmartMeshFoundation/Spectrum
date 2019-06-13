@@ -12,13 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package secp256k1 implements a verifiable random function using curve secp256k1.
-package secp256k1
-
-// Discrete Log based VRF from Appendix A of CONIKS:
-// http://www.jbonneau.com/doc/MBBFF15-coniks.pdf
-// based on "Unique Ring Signatures, a Practical Construction"
-// http://fc13.ifca.ai/proc/5-1.pdf
+// Package vrf defines the interface to a verifiable random function.
+package vrf
 
 import (
 	"bytes"
@@ -31,15 +26,33 @@ import (
 	"crypto/sha512"
 	"encoding/binary"
 	"errors"
-	"math/big"
-
+	"github.com/SmartMeshFoundation/Spectrum/crypto/secp256k1"
 	"github.com/google/keytransparency/core/crypto/vrf"
-
-	crypto2 "github.com/SmartMeshFoundation/Spectrum/crypto"
+	"math/big"
 )
 
+// A VRF is a pseudorandom function f_k from a secret key k, such that that
+// knowledge of k not only enables one to evaluate f_k at for any message m,
+// but also to provide an NP-proof that the value f_k(m) is indeed correct
+// without compromising the unpredictability of f_k for any m' != m.
+// http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=814584
+
+// PrivateKey supports evaluating the VRF function.
+type IPrivateKey interface {
+	// Evaluate returns the output of H(f_k(m)) and its proof.
+	Evaluate(m []byte) (index [32]byte, proof []byte)
+	// Public returns the corresponding public key.
+	Public() crypto.PublicKey
+}
+
+// PublicKey supports verifying output from the VRF function.
+type IPublicKey interface {
+	// ProofToHash verifies the NP-proof supplied by Proof and outputs Index.
+	ProofToHash(m, proof []byte) (index [32]byte, err error)
+}
+
 var (
-	curve=crypto2.S256()
+	curve  = secp256k1.S256()
 	params = curve.Params()
 
 	// ErrPointNotOnCurve occurs when a public key is not on the curve.
@@ -52,6 +65,63 @@ var (
 	ErrInvalidVRF = errors.New("invalid VRF proof")
 )
 
+// Unmarshal a compressed point in the form specified in section 4.3.6 of ANSI X9.62.
+func Unmarshal(curve elliptic.Curve, data []byte) (x, y *big.Int) {
+	byteLen := (curve.Params().BitSize + 7) >> 3
+	if (data[0] &^ 1) != 2 {
+		return // unrecognized point encoding
+	}
+	if len(data) != 1+byteLen {
+		return
+	}
+
+	// Based on Routine 2.2.4 in NIST Mathematical routines paper
+	params := curve.Params()
+	tx := new(big.Int).SetBytes(data[1 : 1+byteLen])
+	y2 := y2(params, tx)
+	sqrt := defaultSqrt
+	ty := sqrt(y2, params.P)
+	if ty == nil {
+		return // "y^2" is not a square: invalid point
+	}
+	var y2c big.Int
+	y2c.Mul(ty, ty).Mod(&y2c, params.P)
+	if y2c.Cmp(y2) != 0 {
+		return // sqrt(y2)^2 != y2: invalid point
+	}
+	if ty.Bit(0) != uint(data[0]&1) {
+		ty.Sub(params.P, ty)
+	}
+
+	x, y = tx, ty // valid point: return it
+	return
+}
+
+// Use the curve equation to calculate y² given x.
+// only applies to curves of the form y² = x³ - 3x + b.
+func y2(curve *elliptic.CurveParams, x *big.Int) *big.Int {
+
+	// y² = x³ - 3x + b
+	x3 := new(big.Int).Mul(x, x)
+	x3.Mul(x3, x)
+
+	//threeX := new(big.Int).Lsh(x, 1)
+	//threeX.Add(threeX, x)
+	//
+	//x3.Sub(x3, threeX)
+	x3.Add(x3, curve.B)
+	x3.Mod(x3, curve.P)
+	return x3
+}
+
+func defaultSqrt(x, p *big.Int) *big.Int {
+	var r big.Int
+	if nil == r.ModSqrt(x, p) {
+		return nil // x is not a square
+	}
+	return &r
+}
+
 // PublicKey holds a public VRF key.
 type PublicKey struct {
 	*ecdsa.PublicKey
@@ -63,7 +133,7 @@ type PrivateKey struct {
 }
 
 // GenerateKey generates a fresh keypair for this VRF
-func GenerateKey() (vrf.PrivateKey, vrf.PublicKey) {
+func GenerateKey() (IPrivateKey, IPublicKey) {
 	key, err := ecdsa.GenerateKey(curve, rand.Reader)
 	if err != nil {
 		return nil, nil
@@ -122,12 +192,12 @@ func (k PrivateKey) Evaluate(m []byte) (index [32]byte, proof []byte) {
 
 	// H = H1(m)
 	Hx, Hy := H1(m)
-	if !curve.IsOnCurve(Hx,Hy) {
+	if !curve.IsOnCurve(Hx, Hy) {
 		panic("not on curve")
 	}
 	// VRF_k(m) = [k]H
 	sHx, sHy := curve.ScalarMult(Hx, Hy, k.D.Bytes())
-	if !curve. IsOnCurve(sHx,sHy) {
+	if !curve.IsOnCurve(sHx, sHy) {
 		panic("not on curve2")
 	}
 	vrf := elliptic.Marshal(curve, sHx, sHy) // 65 bytes.
@@ -220,7 +290,6 @@ func (pk *PublicKey) ProofToHash(m, proof []byte) (index [32]byte, err error) {
 	}
 	return sha256.Sum256(vrf), nil
 }
-
 
 // NewVRFSigner creates a signer object from a private key.
 func NewVRFSigner(key *ecdsa.PrivateKey) (vrf.PrivateKey, error) {

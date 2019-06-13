@@ -12,16 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package secp256k1
+package vrf
 
 import (
 	"bytes"
 	"crypto/rand"
 	"github.com/SmartMeshFoundation/Spectrum/crypto"
+	_ "github.com/google/trillian/crypto/keys/der/proto"
 	"math"
 	"testing"
-
-	_ "github.com/google/trillian/crypto/keys/der/proto"
 )
 
 func TestH1(t *testing.T) {
