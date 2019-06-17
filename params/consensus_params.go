@@ -482,6 +482,25 @@ func MeshboxExistAddress(addr common.Address) bool {
 	return false
 }
 
+func GetVRFByHash(hash common.Hash) ([]byte, error) {
+	rtn := make(chan MBoxSuccess)
+	m := Mbox{
+		Method: "GetVRF",
+		Rtn:    rtn,
+	}
+	if hash == common.HexToHash("0x") {
+		panic(errors.New("hash and number can not nil"))
+	}
+	m.Params = map[string]interface{}{"hash": hash}
+	MboxChan <- m
+
+	success := <-rtn
+	if success.Success {
+		return success.Entity.([]byte), nil
+	}
+	return nil, success.Entity.(error)
+}
+
 func SetChiefContractCode(addr common.Address, code []byte) {
 	chiefContractCodeCache.Store(addr, code)
 }

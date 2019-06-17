@@ -62,6 +62,11 @@ func sigHash(header *types.Header) (hash common.Hash) {
 	return hash
 }
 
+func ecrecoverPubkey(header *types.Header, signature []byte) ([]byte, error) {
+	pubkey, err := crypto.Ecrecover(sigHash(header).Bytes(), signature)
+	return pubkey, err
+}
+
 // ecrecover extracts the Ethereum account address from a signed header.
 func ecrecover(header *types.Header, t *Tribe) (common.Address, error) {
 	// XXXX : 掐头去尾 ，约定创世区块只能指定一个签名人，因为第一个块要部署合约
@@ -82,17 +87,22 @@ func ecrecover(header *types.Header, t *Tribe) (common.Address, error) {
 	if len(header.Extra) < extraSeal {
 		return common.Address{}, errMissingSignature
 	}
-	signature := header.Extra[len(header.Extra)-extraSeal:]
-
 	// Recover the public key and the Ethereum address
-	pubkey, err := crypto.Ecrecover(sigHash(header).Bytes(), signature)
+	pubkey, err := ecrecoverPubkey(header, header.Extra[len(header.Extra)-extraSeal:])
+
+	//pubkey, err := crypto.Ecrecover(sigHash(header).Bytes(), signature)
 	if err != nil {
 		return common.Address{}, err
 	}
+
+	//x, y := elliptic.Unmarshal(crypto.S256(), pubkey)
+	//pk := ecdsa.PublicKey{crypto.S256(), x, y}
+
 	var signer common.Address
 	copy(signer[:], crypto.Keccak256(pubkey[1:])[12:])
 
 	sigcache.Add(hash, signer)
+
 	return signer, nil
 }
 
@@ -404,7 +414,6 @@ func (t *Tribe) verifySeal(chain consensus.ChainReader, header *types.Header, pa
 // Prepare implements consensus.Engine, preparing all the consensus fields of the
 // header for running the transactions on top.
 func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error {
-	extraVanity := extraVanityFn(header.Number)
 	number := header.Number.Uint64()
 	if f, _, err := params.AnmapBindInfo(t.Status.GetMinerAddress(), chain.CurrentHeader().Hash()); err == nil && f != common.HexToAddress("0x") {
 		header.Coinbase = f
@@ -415,12 +424,31 @@ func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error
 	copy(header.Nonce[:], nonceAsync)
 
 	// Extra : append sig to last 65 bytes >>>>
-	log.Debug("fix extra", "extra-len", len(header.Extra), "extraVanity", extraVanity)
-	if len(header.Extra) < extraVanity {
-		header.Extra = append(header.Extra, bytes.Repeat([]byte{0x00}, extraVanity-len(header.Extra))...)
+	if params.IsSIP005Block(header.Number) {
+		header.Extra = make([]byte, _extraVrf+extraSeal)
+		// append vrf to header.Extra before sign
+
+		vrfnp, err := params.GetVRFByHash(header.ParentHash)
+		log.Info("Tribe.Prepare --> params.GetVRFByHash", "err", err, "hash", header.ParentHash.Hex(), "vrfn", hex.EncodeToString(vrfnp[:32]))
+		//vr, err := crypto.SimpleVRF2Bytes(t.Status.nodeKey, header.ParentHash.Bytes())
+		if err != nil {
+			panic(err)
+		}
+
+		copy(header.Extra[:len(header.Extra)-extraSeal], vrfnp)
+		log.Debug("prepare_vrf", "num", header.Number, "parent_hash", header.ParentHash.Hex(), "bytes", header.ParentHash.Bytes())
+		log.Debug("prepare_vrf", "num", header.Number, "miner", crypto.PubkeyToAddress(t.Status.nodeKey.PublicKey).Hex())
+		log.Debug("prepare_vrf", "num", header.Number, "err", err, "vrf", hex.EncodeToString(vrfnp), "bytes", vrfnp)
+		log.Debug("prepare_vrf", "num", header.Number, "extra", hex.EncodeToString(header.Extra), "bytes", header.Extra)
+	} else {
+		extraVanity := extraVanityFn(header.Number)
+		log.Debug("fix extra", "extra-len", len(header.Extra), "extraVanity", extraVanity)
+		if len(header.Extra) < extraVanity {
+			header.Extra = append(header.Extra, bytes.Repeat([]byte{0x00}, extraVanity-len(header.Extra))...)
+		}
+		header.Extra = header.Extra[:extraVanity]
+		header.Extra = append(header.Extra, make([]byte, extraSeal)...)
 	}
-	header.Extra = header.Extra[:extraVanity]
-	header.Extra = append(header.Extra, make([]byte, extraSeal)...)
 	// Extra : append sig to last 65 bytes <<<<
 
 	// Mix digest is reserved for now, set to empty
@@ -519,19 +547,6 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 		log.Warn(fmt.Sprintf("🐦 cancel -> num=%d, diff=%d, miner=%s, delay=%d", number, header.Difficulty, header.Coinbase.Hex(), delay))
 		return nil, nil
 	case <-time.After(delay):
-	}
-
-	if params.IsSIP005Block(header.Number) {
-		// append vrf to header.Extra before sign
-		vr, err := crypto.SimpleVRF2Bytes(t.Status.nodeKey, block.ParentHash().Bytes())
-		if err != nil {
-			panic(err)
-		}
-		copy(header.Extra[:extraSeal], vr)
-		log.Debug("seal_vrf", "num", header.Number, "parent_hash", block.ParentHash().Hex(), "bytes", block.ParentHash().Bytes())
-		log.Debug("seal_vrf", "num", header.Number, "miner", crypto.PubkeyToAddress(t.Status.nodeKey.PublicKey).Hex())
-		log.Debug("seal_vrf", "num", header.Number, "err", err, "vrf", hex.EncodeToString(vr), "bytes", vr)
-		log.Debug("seal_vrf", "num", header.Number, "extra", hex.EncodeToString(header.Extra), "bytes", header.Extra)
 	}
 
 	// Sign all the things!

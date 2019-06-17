@@ -3,6 +3,7 @@ package tribe
 import (
 	"context"
 	"crypto/ecdsa"
+	"crypto/elliptic"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -431,9 +432,18 @@ func (self *TribeStatus) Update(currentNumber *big.Int, hash common.Hash) {
 }
 
 func verifyVrfNum(header *types.Header, signer common.Address) (err error) {
-	var n = header.Extra[:extraVanityFn(header.Number)]
-	err = crypto.SimpleVRFVerify(signer, new(big.Int).SetBytes(n), header.ParentHash.Bytes())
-	log.Debug("verifyVrfNum", "num", header.Number, "err", err, "vrfn", n, "parent", header.ParentHash.Bytes())
+	var (
+		n   = header.Extra[:extraVanityFn(header.Number)]
+		sig = header.Extra[len(header.Extra)-extraSeal:]
+	)
+	pubbuf, err := ecrecoverPubkey(header, sig)
+	if err != nil {
+		panic(err)
+	}
+	x, y := elliptic.Unmarshal(crypto.S256(), pubbuf)
+	pubkey := ecdsa.PublicKey{crypto.S256(), x, y}
+	err = crypto.SimpleVRFVerify(&pubkey, header.ParentHash.Bytes(), n)
+	log.Debug("[verifyVrfNum]", "err", err, "num", header.Number, "vrfn", n, "parent", header.ParentHash.Bytes())
 	return
 }
 
@@ -621,12 +631,18 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 		if tx.To() != nil && params.IsChiefAddress(*tx.To()) && params.IsChiefUpdate(tx.Data()) {
 			//verify volunteer
 			if state != nil {
-				volunteerHex := common.Bytes2Hex(tx.Data()[4:])
-				volunteer := common.HexToAddress(volunteerHex)
-				if volunteer != common.HexToAddress("0x") {
-					log.Debug("<<TribeStatus.ValidateBlock>> verify_volunteer =>", "num", number, "v", volunteer.Hex())
-					if err := self.VerifySignerBalance(state, volunteer, parent.Header()); err != nil {
-						return err
+				if params.IsSIP005Block(header.Number) {
+					// TODO SIP005 check volunteer by vrfnp
+					volunteerHex := common.Bytes2Hex(tx.Data()[4:])
+					log.Warn("⚠️ TODO SIP005 check volunteer by vrfnp", "arg1", volunteerHex)
+				} else {
+					volunteerHex := common.Bytes2Hex(tx.Data()[4:])
+					volunteer := common.HexToAddress(volunteerHex)
+					if volunteer != common.HexToAddress("0x") {
+						log.Debug("<<TribeStatus.ValidateBlock>> verify_volunteer =>", "num", number, "v", volunteer.Hex())
+						if err := self.VerifySignerBalance(state, volunteer, parent.Header()); err != nil {
+							return err
+						}
 					}
 				}
 			}
@@ -638,6 +654,7 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 	} else if total > 1 {
 		return ErrTribeChiefCannotRepeat
 	}
+
 	log.Debug("ValidateBlockp-->", "num", block.NumberU64(), "check_signer", validateSigner)
 	return nil
 }

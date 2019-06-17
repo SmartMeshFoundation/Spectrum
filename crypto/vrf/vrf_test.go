@@ -16,8 +16,9 @@ package vrf
 
 import (
 	"bytes"
+	"crypto/ecdsa"
 	"crypto/rand"
-	"github.com/SmartMeshFoundation/Spectrum/crypto"
+	"github.com/SmartMeshFoundation/Spectrum/crypto/secp256k1"
 	_ "github.com/google/trillian/crypto/keys/der/proto"
 	"math"
 	"testing"
@@ -141,7 +142,7 @@ func flipBit(a []byte, pos int) []byte {
 }
 
 func TestVRFForS256(t *testing.T) {
-	key, err := crypto.GenerateKey()
+	key, err := ecdsa.GenerateKey(secp256k1.S256(), rand.Reader)
 	if err != nil {
 		t.Error(err)
 		return
@@ -158,6 +159,7 @@ func TestVRFForS256(t *testing.T) {
 	}
 	msg := []byte("data1")
 	index, proof := k.Evaluate(msg)
+	_index, _proof := k.Evaluate(msg)
 	index2, err := pk.ProofToHash(msg, proof)
 
 	if err != nil {
@@ -167,4 +169,6 @@ func TestVRFForS256(t *testing.T) {
 		t.Error("index not equal")
 	}
 
+	t.Log(index, _index)
+	t.Log(proof, _proof)
 }

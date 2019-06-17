@@ -24,6 +24,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/SmartMeshFoundation/Spectrum/crypto/vrf"
 	"io"
 	"io/ioutil"
 	"math/big"
@@ -193,42 +194,28 @@ func zeroBytes(bytes []byte) {
 	}
 }
 
-func SimpleVRF2Bytes(prv *ecdsa.PrivateKey, info []byte) (sig []byte, err error) {
-	msg := Keccak256(info)
-	sig, err = Sign(msg, prv)
+// vrfnp == num + proof == byte[32] + byte[129]
+func SimpleVRF2Bytes(prv *ecdsa.PrivateKey, msg []byte) (vrfnp []byte, err error) {
+	vrfPrv := vrf.PrivateKey{prv}
+	i, p := vrfPrv.Evaluate(msg)
+	vrfnp = append(vrfnp, i[:]...)
+	vrfnp = append(vrfnp, p[:]...)
 	return
 }
 
-func SimpleVRF2Int(prv *ecdsa.PrivateKey, info []byte) (result *big.Int, err error) {
-	msg := Keccak256(info)
-	sig, err := Sign(msg, prv)
-	if err == nil {
-		result = new(big.Int).SetBytes(sig)
-	}
-	return
-}
-
-func SimpleVRFVerify(addr common.Address, result *big.Int, info []byte) (err error) {
-	if result == nil || info == nil || addr == common.HexToAddress("0x") {
+func SimpleVRFVerify(pub *ecdsa.PublicKey, msg, vrfnp []byte) error {
+	if vrfnp == nil || pub == nil {
 		return errors.New("error params")
 	}
-	msg := Keccak256(info)
-	rbuff := result.Bytes()
-	if len(rbuff) < 65 {
-		var prefix = make([]byte, 0)
-		for i := 0; i < 65-len(rbuff); i++ {
-			prefix = append(prefix[:], byte(0))
-		}
-		rbuff = append(prefix[:], rbuff[:]...)
-	}
-	recoveredPub, err := Ecrecover(msg, rbuff)
+	n := vrfnp[:32]
+	p := vrfnp[32:]
+	vrfPub := vrf.PublicKey{pub}
+	i, err := vrfPub.ProofToHash(msg, p)
 	if err != nil {
-		return
+		return err
 	}
-	rpub := ToECDSAPub(recoveredPub)
-	if bytes.Equal(addr.Bytes(), PubkeyToAddress(*rpub).Bytes()) {
-		return
+	if bytes.Equal(n[:], i[:]) {
+		return nil
 	}
-	err = errors.New("VRFVerify_fail")
-	return
+	return errors.New("vrf_verify_fail")
 }

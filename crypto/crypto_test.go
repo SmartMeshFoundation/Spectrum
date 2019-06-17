@@ -84,89 +84,67 @@ func TestVRFF(t *testing.T) {
 }
 
 func TestVRF(t *testing.T) {
-	key, _ := HexToECDSA("0bcd616498bf7aa08be3aacf5a8e9396dce2977c7e475269c47aa869c1743009")
-	pub := key.PublicKey
-	var (
-		msg     []byte
-		counter int
-		total   = 90000
-	)
-	for i := 0; i < total; i++ {
-		msg = []byte(fmt.Sprint(i))
-		result, _ := SimpleVRF2Int(key, msg)
-		err := SimpleVRFVerify(PubkeyToAddress(pub), result, msg)
-		if err != nil {
-			t.Log(i, err, msg, "r->", result)
-			t.Log(len(result.Bytes()))
-		}
-		b := result.Bytes()[len(result.Bytes())-2:]
-		if bytes.Equal(b[:], []byte{0, 0}[:]) {
-			//t.Log(i, "-->", b)
-			counter++
-		}
+	key, err := GenerateKey()
+	if err != nil {
+		t.Error(err)
+		return
 	}
-	t.Log("counter", counter, "scale", float64(counter)/float64(total))
+	k, err := vrf.NewVRFSigner(key)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	pk, err := vrf.NewVRFVerifier(&key.PublicKey)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	msg := []byte("data1")
+	index, proof := k.Evaluate(msg)
+	_index, _proof := k.Evaluate(msg)
+	index2, err := pk.ProofToHash(msg, proof)
+
+	if err != nil {
+		t.Error(err)
+	}
+	if index2 != index {
+		t.Error("index not equal")
+	}
+
+	t.Log(index)
+	t.Log(_index)
+	t.Log("=========")
+	t.Log(proof)
+	t.Log(_proof)
 }
 
 func TestVRF1(t *testing.T) {
-	key, _ := HexToECDSA("0bcd616498bf7aa08be3aacf5a8e9396dce2977c7e475269c47aa869c1743009")
-	pub := PubkeyToAddress(key.PublicKey)
-	var msg []byte
-	i := 1005
-	msg = []byte(fmt.Sprint(i))
-	result, _ := SimpleVRF2Bytes(key, msg)
-	t.Log(pub.Hex(), len(result))
-
-}
-
-func TestVRF2(t *testing.T) {
-	key, _ := HexToECDSA("0bcd616498bf7aa08be3aacf5a8e9396dce2977c7e475269c47aa869c1743009")
-	pub := PubkeyToAddress(key.PublicKey)
-	var msg []byte
-	i := 1005
-	msg = []byte(fmt.Sprint(i))
-	result, _ := SimpleVRF2Int(key, msg)
-	err := SimpleVRFVerify(pub, result, msg)
-	if err != nil {
-		t.Log(i, err, msg, "r->", result)
-		t.Log(len(result.Bytes()))
-	}
-	b := result.Bytes()[len(result.Bytes())-2:]
-	if bytes.Equal(b[:], []byte{0, 0}[:]) {
-		t.Log(i, "-->", b)
-	}
-}
-
-func TestVRF3(t *testing.T) {
-	key, _ := HexToECDSA("0bcd616498bf7aa08be3aacf5a8e9396dce2977c7e475269c47aa869c1743009")
-	for i := 32; i < 33; i++ {
-		msg := []byte(fmt.Sprintf("%d", i))
-		result, _ := SimpleVRF2Int(key, msg)
-		l := len(result.Bytes())
-		if l < 65 {
-			t.Log(i, l, result.Bytes())
-		}
-		t.Log(result.String())
-		r := append([]byte{0}[:], result.Bytes()[:]...)
-		t.Log(result.Bytes())
-		t.Log(r)
-		ri := new(big.Int).SetBytes(r)
-		t.Log(ri)
-	}
-}
-
-func TestVRF4(t *testing.T) {
+	//data := "89702163480656fb718d9a06d56f719fda0ab2361d42de308ef3589a0a71f8e11a11c9d38a6a0c8e58c6d3a64a5dbd9a914216dc997f48c186daa4d772e613136005baac9928765fc92db4b541b05e5ef1638c56594ef2af2d80c735feb169437e0d56aafd225566059da85922d1a2bea0ebd7da5b63d1e2d846109378a075d67d00"
+	msg := []byte("helloworld")
 	prv, _ := HexToECDSA("507fd083b5c5af7e645e77a3a3a82708f3af304164e02612ab4b1d5b36c627c6")
-	s := PubkeyToAddress(prv.PublicKey)
-	parentHash, _ := hex.DecodeString("6dde11794aa31fb385b9d8d7ea1cfa03e5a0f389efb9cd90be388a342bdf8d7e")
-	vr, _ := SimpleVRF2Bytes(prv, parentHash)
-
-	t.Log("miner", s.Hex())
-	t.Log("parent", parentHash)
-	t.Log("vrf", vr)
-
-	err := SimpleVRFVerify(s, new(big.Int).SetBytes(vr), parentHash)
+	pub := &prv.PublicKey
+	np, _ := SimpleVRF2Bytes(prv, msg)
+	t.Log("vrfnp", len(np), np)
+	t.Log(hex.EncodeToString(np))
+	err := SimpleVRFVerify(pub, msg, np)
 	t.Log("verify", err)
+
+	buf := elliptic.Marshal(pub.Curve, pub.X, pub.Y)
+
+	var signer common.Address
+	copy(signer[:], Keccak256(buf[1:])[12:])
+
+	aa := PubkeyToAddress(*pub)
+
+	t.Log(signer.Hex())
+	t.Log(aa.Hex())
+
+	x, y := elliptic.Unmarshal(S256(), buf)
+	t.Log(x, pub.X)
+	t.Log(y, pub.Y)
+
+	pub2 := ecdsa.PublicKey{S256(), x, y}
+	t.Log(PubkeyToAddress(pub2).Hex())
 
 }
 

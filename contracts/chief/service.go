@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/SmartMeshFoundation/Spectrum/contracts"
 	"github.com/SmartMeshFoundation/Spectrum/contracts/statute"
+	"github.com/hashicorp/golang-lru"
 
 	"github.com/SmartMeshFoundation/Spectrum/ethclient"
 	"math/big"
@@ -56,11 +57,18 @@ type TribeService struct {
 	server           *p2p.Server // peers and nodekey ...
 	ethereum         *eth.Ethereum
 	ctx              *node.ServiceContext
+	vrfcache         *lru.ARCCache
 }
 
 func NewTribeService(ctx *node.ServiceContext) (node.Service, error) {
-	var apiBackend ethapi.Backend
-	var ethereum *eth.Ethereum
+	var (
+		apiBackend ethapi.Backend
+		ethereum   *eth.Ethereum
+	)
+	vrfcache, err := lru.NewARC(2048)
+	if err != nil {
+		panic(err)
+	}
 	if err := ctx.Service(&ethereum); err == nil {
 		apiBackend = ethereum.ApiBackend
 	} else {
@@ -71,10 +79,12 @@ func NewTribeService(ctx *node.ServiceContext) (node.Service, error) {
 			return nil, err
 		}
 	}
+
 	ts := &TribeService{
 		quit:     make(chan int),
 		ethereum: ethereum,
 		ctx:      ctx,
+		vrfcache: vrfcache,
 	}
 	if v0_0_2 := params.GetChiefInfoByVsn("0.0.2"); v0_0_2 != nil {
 		contract_0_0_2, err := chieflib.NewTribeChief(v0_0_2.Addr, eth.NewContractBackend(apiBackend))
@@ -161,6 +171,8 @@ func (self *TribeService) loop() {
 				self.filterVolunteer(mbox)
 			case "GetVolunteers":
 				self.getVolunteers(mbox)
+			case "GetVRF": // for 1.0.0 generate vrf num and proof
+				self.getVRF(mbox)
 			case "GetMiners": // for 1.0.0 vrf selected
 				self.getMiners(mbox)
 			}
@@ -400,7 +412,7 @@ func (self *TribeService) update(mbox params.Mbox) {
 	}
 
 	if e != nil {
-		log.Error("❌ <<TribeService.update>>", "err", e, "from", auth.From.Hex())
+		log.Error("<<TribeService.update>>", "err", e, "from", auth.From.Hex())
 		success.Entity = e
 	} else {
 		success.Success = true
@@ -700,17 +712,54 @@ func (self *TribeService) fetchVolunteer(client *ethclient.Client, blockNumber *
 		case "1.0.0":
 			nl := self.minerList(ch.Number, ch.Hash())
 			if nl != nil && len(nl) > 0 {
-				vr, err := crypto.SimpleVRF2Int(self.server.PrivateKey, ch.Hash().Bytes())
+				vrfnp, err := self._getVRF(hash)
 				if err != nil {
 					panic(err)
 				}
-				idx := new(big.Int).Mod(vr, big.NewInt(int64(len(nl))))
-				log.Info("fetchVolunteer-1.0.0", "len(nl)", len(nl), "idx", idx.String(), "vrf", vr.String())
+				i := new(big.Int).SetBytes(vrfnp[:32])
+				idx := new(big.Int).Mod(i, big.NewInt(int64(len(nl))))
+				log.Info("fetchVolunteer-1.0.0", "len(nl)", len(nl), "idx", idx.String(), "vrfn", i)
 				return nl[idx.Int64()]
 			}
 		}
 	}
 	return common.Address{}
+}
+
+func (self *TribeService) _getVRF(hash common.Hash) ([]byte, error) {
+	if i, ok := self.vrfcache.Get(hash.Hex()); ok {
+		log.Info("[TribeService.GetVRF]", "fromCache", true, "vrfnp", i.([]byte)[:32])
+		return i.([]byte), nil
+	} else {
+		vrfnp, err := crypto.SimpleVRF2Bytes(self.server.PrivateKey, hash.Bytes())
+		if err != nil {
+			return nil, err
+		} else {
+			self.vrfcache.Add(hash.Hex(), vrfnp)
+			log.Info("[TribeService.GetVRF]", "fromCache", false, "vrfnp", vrfnp[:32])
+			return vrfnp, nil
+		}
+	}
+}
+
+func (self *TribeService) getVRF(mbox params.Mbox) {
+	var (
+		blockHash *common.Hash = nil
+	)
+	// hash and number can not nil
+	if h, ok := mbox.Params["hash"]; ok {
+		bh := h.(common.Hash)
+		blockHash = &bh
+	}
+	success := params.MBoxSuccess{Success: true}
+	vrfnp, err := self._getVRF(*blockHash)
+	if err == nil {
+		success.Entity = vrfnp
+	} else {
+		success.Success = false
+		success.Entity = err
+	}
+	mbox.Rtn <- success
 }
 
 func (self *TribeService) getMiners(mbox params.Mbox) {
