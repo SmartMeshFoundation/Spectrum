@@ -1,7 +1,7 @@
 pragma solidity ^0.5.3;
 
 //import "github.com/SmartMeshFoundation/Spectrum/contracts/chief/src/chief_abs_0.5.sol"; // for remix
-import "./chief_abs_0.5.sol"; // local
+import "./chief_abs_s0.5.sol"; // local
 
 //TODO
 contract TribeChief_0_0_7 is Chief {

@@ -6,8 +6,8 @@ import "github.com/SmartMeshFoundation/Spectrum/contracts/chief/src/chief_base_0
 */
 
 /* local */
-import "./chief_abs_0.5.sol";
-import "./chief_base_0.5_v0.0.1.sol";
+import "./chief_abs_s0.5.sol";
+import "./chief_base_s0.5_v0.0.1.sol";
 
 contract TribeChief_1_0_0 is Chief {
 
