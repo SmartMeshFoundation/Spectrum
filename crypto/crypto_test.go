@@ -148,15 +148,6 @@ func TestVRF1(t *testing.T) {
 
 }
 
-func TestSign4(t *testing.T) {
-	e := "0xd88301000083736d6388676f312e31322e348664617277696e000000000000003e4d2c4b22f5c8174e8876f75e1a1ed47d023fc48001992b3a7a3b5c308cf5a21de7f4ae348e55353215a57fbd5252b5fa2a715d60c3ba92a195fe5c46a06b2701"
-	b := []byte(e)
-	t.Log(len(b), b)
-	r := b[len(b)-65:]
-	i := new(big.Int).SetBytes(r)
-	t.Log(i)
-}
-
 /*
 私钥 : 0bcd616498bf7aa08be3aacf5a8e9396dce2977c7e475269c47aa869c1743009
 原文 : 0xCA35b7d915458EF540aDe6068dFe2F44E8fa733c
@@ -400,4 +391,35 @@ func TestFromECDSA(t *testing.T) {
 	t.Log("key", s)
 	t.Log(PubkeyToAddress(prv.PublicKey).Hex())
 	//0xd91c07c6be04111aecc721e57e11a8a0b1c73fc1
+}
+
+func TestForPOCDepositArgs(t *testing.T) {
+	key, _ := HexToECDSA("507fd083b5c5af7e645e77a3a3a82708f3af304164e02612ab4b1d5b36c627c6")
+	msg := Keccak256(common.HexToAddress("0xca35b7d915458ef540ade6068dfe2f44e8fa733c").Bytes())
+
+	sig, _ := Sign(msg, key)
+	sigHex := hex.EncodeToString(sig)
+	pubAddr := PubkeyToAddress(key.PublicKey)
+	t.Log("addr =", pubAddr.Hex())
+	t.Log("msg =", hex.EncodeToString(msg))
+	t.Log("Sign =", sigHex)
+	r, _ := hex.DecodeString(sigHex[:64])
+
+	var r32 [32]byte
+	copy(r32[:], r)
+	fmt.Println(len(r32), "r32=", r32)
+
+	fmt.Println(sig[:32])
+	R := "0x" + sigHex[:64]
+	S := "0x" + sigHex[64:128]
+	V := 27
+	switch sigHex[128:] {
+	case "01":
+		V = 28
+	}
+	t.Log("-----------------------------------------")
+	t.Log("R:", R)
+	t.Log("S:", S)
+	t.Log("V:", V)
+
 }

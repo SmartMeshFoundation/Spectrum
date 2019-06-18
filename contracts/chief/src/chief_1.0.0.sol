@@ -1,8 +1,8 @@
 pragma solidity ^0.5.3;
 
 /* for remix
-import "github.com/SmartMeshFoundation/Spectrum/contracts/chief/src/chief_abs_0.5.sol"; // for remix
-import "github.com/SmartMeshFoundation/Spectrum/contracts/chief/src/chief_base_0.5_v0.0.1.sol"; // for remix
+import "github.com/SmartMeshFoundation/Spectrum/contracts/chief/src/chief_abs_s0.5.sol"; // for remix
+import "github.com/SmartMeshFoundation/Spectrum/contracts/chief/src/chief_base_s0.5_v0.0.1.sol"; // for remix
 */
 
 /* local */

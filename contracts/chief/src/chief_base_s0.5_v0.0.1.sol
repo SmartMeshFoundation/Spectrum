@@ -1,11 +1,11 @@
 pragma solidity ^0.5.3;
 
 /* for remix
-import "github.com/SmartMeshFoundation/Spectrum/contracts/chief/src/poc.sol"; // for remix
+import "github.com/SmartMeshFoundation/Spectrum/contracts/chief/src/poc_s0.5.sol"; // for remix
 */
 
 /* local */
-import "./poc.sol";
+import "./poc_s0.5.sol";
 
 contract ChiefBase {
 
