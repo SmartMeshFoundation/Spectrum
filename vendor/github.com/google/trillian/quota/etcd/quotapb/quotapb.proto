@@ -1,0 +1,218 @@
+// Copyright 2017 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package quotapb;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/field_mask.proto";
+
+// Configuration of a quota.
+//
+// Quotas contain a certain number of tokens that get applied to their
+// corresponding entities. Global quotas apply to all operations, tree and user
+// quotas to certain trees and users, respectively.
+//
+// Performing an operation costs a certain number of tokens (usually one). Once
+// a quota has no more tokens available, requests that would subtract from it
+// are denied with a resource_exhausted error.
+//
+// Tokens may be replenished in two different ways: either by passage of time or
+// sequencing progress. Time-based replenishment adds a fixed amount of tokens
+// after a certain interval. Sequencing-based adds a token for each leaf
+// processed by the sequencer. Sequencing-based replenishment may only be used
+// with global and tree quotas.
+//
+// A quota may be disabled or removed at any time. The effect is the same: a
+// disabled or non-existing quota is considered infinite by the quota system.
+// (Disabling is handy if you plan to re-enable a quota later on.)
+message Config {
+  // Possible states of a quota configuration.
+  enum State {
+    // Unknown quota state. Invalid.
+    UNKNOWN_CONFIG_STATE = 0;
+
+    // Quota is enabled.
+    ENABLED = 1;
+
+    // Quota is disabled (considered infinite).
+    DISABLED = 2;
+  }
+
+  // Name of the config, eg, “quotas/trees/1234/read/config”.
+  // Readonly.
+  string name = 1;
+
+  // State of the config.
+  State state = 2;
+
+  // Max number of tokens available for the config.
+  int64 max_tokens = 3;
+
+  // Replenishment strategy used by the config.
+  oneof replenishment_strategy {
+    // Sequencing-based replenishment settings.
+    SequencingBasedStrategy sequencing_based = 4;
+
+    // Time-based replenishment settings.
+    TimeBasedStrategy time_based = 5;
+  }
+
+  // Current number of tokens available for the config.
+  // May be higher than max_tokens for DISABLED configs, which are considered to
+  // have "infinite" tokens.
+  // Readonly.
+  int64 current_tokens = 6;
+}
+
+// Sequencing-based replenishment strategy settings.
+//
+// Only global/write and trees/write quotas may use sequencing-based
+// replenishment.
+message SequencingBasedStrategy {}
+
+// Time-based replenishment strategy settings.
+message TimeBasedStrategy {
+  // Number of tokens to replenish at every replenish_interval_seconds.
+  int64 tokens_to_replenish = 1;
+
+  // Interval at which tokens_to_replenish get replenished.
+  int64 replenish_interval_seconds = 2;
+}
+
+// CreateConfig request.
+message CreateConfigRequest {
+  // Name of the config to create.
+  // For example, "quotas/global/read/config" (global/read quota) or
+  // "quotas/trees/1234/write/config" (write quota for tree 1234).
+  string name = 1;
+
+  // Config to be created.
+  Config config = 2;
+}
+
+// DeleteConfig request.
+message DeleteConfigRequest {
+  // Name of the config to delete.
+  string name = 1;
+}
+
+// GetConfig request.
+message GetConfigRequest {
+  // Name of the config to retrieve.
+  // For example, "quotas/global/read/config".
+  string name = 1;
+}
+
+// ListConfig request.
+message ListConfigsRequest {
+  // Possible views for ListConfig.
+  enum ListView {
+    // Only the Config name gets returned.
+    BASIC = 0;
+
+    // Complete Config.
+    FULL = 1;
+  }
+
+  // Names of the config to retrieve. For example, "quotas/global/read/config".
+  // If empty, all configs are listed.
+  // Name components may be substituted by "-" to search for all variations of
+  // that component. For example:
+  // - "quotas/global/-/config" (both read and write global quotas)
+  // - "quotas/trees/-/-/config" (all tree quotas)
+  repeated string names = 1;
+
+  // View specifies how much data to return.
+  ListView view = 2;
+}
+
+// ListConfig response.
+message ListConfigsResponse {
+  // Configs matching the request filter.
+  repeated Config configs = 1;
+}
+
+// Updates a quota config according to the update_mask provided.
+//
+// Some config changes will cause the current number of tokens to be updated, as
+// listed below:
+//
+// * If max_tokens is reduced and the current number of tokens is greater than
+//   the new max_tokens, the current number of tokens is reduced to max_tokens.
+//   This happens so the quota is immediately conformant to the new
+//   configuration.
+//
+// * A state transition from disabled to enabled causes the quota to be fully
+//   replenished. This happens so the re-enabled quota will enter in action in a
+//   known, predictable state.
+//
+// A "full replenish", also called "reset", may be forced via the reset_quota
+// parameter, regardless of any other changes. For convenience, reset only
+// requests (name and reset_quota = true) are allowed.
+message UpdateConfigRequest {
+  // Name of the config to update.
+  string name = 1;
+
+  // Config to update. Only the fields specified by update_mask need to be
+  // filled.
+  Config config = 2;
+
+  // Fields modified by the update request.
+  // For example: "state" or "max_tokens".
+  google.protobuf.FieldMask update_mask = 3;
+
+  // If true the updated quota is reset, regardless of the update's contents.
+  // A reset quota is replenished to its maximum number of tokens.
+  bool reset_quota = 4;
+}
+
+// Quota administrative interface.
+//
+// Allows creation and management of quotas.
+service Quota {
+  // Creates a new quota.
+  rpc CreateConfig(CreateConfigRequest) returns (Config) {
+    option (google.api.http) = {
+      post: "/v1beta1/{name=quotas/**/config}"
+      body: "*"
+    };
+  }
+
+  // Deletes an existing quota. Non-existing quotas are considered infinite by
+  // the quota system.
+  rpc DeleteConfig(DeleteConfigRequest) returns (google.protobuf.Empty) {
+    option (google.api.http).delete = "/v1beta1/{name=quotas/**/config}";
+  }
+
+  // Retrieves a quota by name.
+  rpc GetConfig(GetConfigRequest) returns (Config) {
+    option (google.api.http).get = "/v1beta1/{name=quotas/**/config}";
+  }
+
+  // Lists quotas according to the specified criteria.
+  rpc ListConfigs(ListConfigsRequest) returns (ListConfigsResponse) {
+    option (google.api.http).get = "/v1beta1/quotas";
+  }
+
+  // Updates a quota.
+  rpc UpdateConfig(UpdateConfigRequest) returns (Config) {
+    option (google.api.http) = {
+      patch: "/v1beta1/{name=quotas/**/config}"
+      body: "*"
+    };
+  }
+}

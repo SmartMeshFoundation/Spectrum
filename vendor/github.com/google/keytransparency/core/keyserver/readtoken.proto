@@ -1,0 +1,42 @@
+// Copyright 2018 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package google.keytransparency.v1;
+
+option go_package = "github.com/google/keytransparency/core/keyserver/readtoken_go_proto";
+
+import "v1/keytransparency.proto";
+
+// ReadToken can be serialized and handed to users for pagination.
+message ReadToken {
+  // slice_index identifies the source for reading.
+  int64 slice_index = 1;
+  // low_watemark identifies the lowest (exclusive) row to return.
+  int64 low_watermark = 2;
+}
+
+// ListUserRevisions token can be serialized and handed to users for pagination
+// when listing revisions.
+message ListUserRevisionsToken {
+  // request is the query being paginated over, used for validation of
+  // subsequent requests. Fields that are allowed to change between requests
+  // (such as page_token or last_verified_tree_size) will not be validated and
+  // should be omitted for brevity.
+  ListUserRevisionsRequest request = 1;
+  // revisions_returned is a running tally of the number of revisions that have
+  // been returned across paginated requests in this query.
+  int64 revisions_returned = 2;
+}

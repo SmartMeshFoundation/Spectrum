@@ -1,0 +1,43 @@
+// Copyright 2016 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package google.keytransparency.impl;
+
+option go_package = "github.com/google/keytransparency/impl/authorization/authz_go_proto";
+
+// AuthorizationPolicy contains an authorization policy.
+message AuthorizationPolicy {
+  // Resource contains the resource being accessed.
+  message Resource {
+    // directory_id contains the Key Transparency directory of this entry.
+    string directory_id = 1;
+    // Used to be app_id.
+    reserved 2;
+  }
+  // Role contains a specific identity of an authorization entry.
+  message Role {
+    // principals contains an application specific identifier for this entry.
+    repeated string principals = 1;
+  }
+  // RoleLabels contains a lot of role labels identifying each role.
+  message RoleLabels {
+    repeated string labels = 1;
+  }
+  // roles is a map of roles keyed by labels used in RoleLabels.
+  map<string, Role> roles = 2;
+  // resource_to_role_labels specifies the authorization policy keyed by resource directory_id.
+  map<string, RoleLabels> resource_to_role_labels = 3;
+}

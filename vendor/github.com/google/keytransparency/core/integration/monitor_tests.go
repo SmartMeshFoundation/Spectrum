@@ -1,0 +1,153 @@
+// Copyright 2017 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package integration
+
+import (
+	"context"
+	"sync"
+	"testing"
+	"time"
+
+	"github.com/google/keytransparency/core/client"
+	"github.com/google/keytransparency/core/fake"
+	"github.com/google/keytransparency/core/monitor"
+	"github.com/google/keytransparency/core/testdata"
+	"github.com/google/keytransparency/core/testutil"
+	"github.com/google/tink/go/tink"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
+	"github.com/google/trillian/crypto"
+	"github.com/google/trillian/crypto/keys/pem"
+	"github.com/google/trillian/types"
+
+	spb "github.com/google/keytransparency/core/sequencer/sequencer_go_proto"
+)
+
+const (
+	monitorPrivKey = `-----BEGIN EC PRIVATE KEY-----
+MHcCAQEEIAV7H3qRi/cj/w04vEQBFjLdhcXRbZR4ouT5zaAy1XUHoAoGCCqGSM49
+AwEHoUQDQgAEqUDbATN2maGIm6YQLpjx67bYN1hxPPdF0VrPTZe36yQhH+GCwZQV
+amFdON6OhjYnBmJWe4fVnbxny0PfpkvXtg==
+-----END EC PRIVATE KEY-----`
+)
+
+// TestMonitor verifies that the monitor correctly verifies transitions between revisions.
+func TestMonitor(ctx context.Context, env *Env, t *testing.T) []testdata.ResponseVector {
+	// setup monitor:
+	privKey, err := pem.UnmarshalPrivateKey(monitorPrivKey, "")
+	if err != nil {
+		t.Fatalf("Couldn't create signer: %v", err)
+	}
+	signer := crypto.NewSHA256Signer(privKey)
+	store := fake.NewMonitorStorage()
+	mon, err := monitor.NewFromDirectory(env.Cli, env.Directory, signer, store)
+	if err != nil {
+		t.Fatalf("Couldn't create monitor: %v", err)
+	}
+
+	// Setup a bunch of revisions with data to verify.
+	for _, e := range []struct {
+		revision    int64
+		signers     []tink.Signer
+		userUpdates []*client.User
+	}{
+		{
+			revision: 1,
+		},
+		{
+			revision: 2,
+			signers:  testutil.SignKeysetsFromPEMs(testPrivKey1),
+			userUpdates: []*client.User{
+				{
+					UserID:         "alice@test.com",
+					PublicKeyData:  []byte("alice-key1"),
+					AuthorizedKeys: testutil.VerifyKeysetFromPEMs(testPubKey1),
+				},
+			},
+		},
+		{
+			revision: 3,
+			signers:  testutil.SignKeysetsFromPEMs(testPrivKey1),
+			userUpdates: []*client.User{
+				{
+					UserID:         "bob@test.com",
+					PublicKeyData:  []byte("bob-key1"),
+					AuthorizedKeys: testutil.VerifyKeysetFromPEMs(testPubKey1),
+				},
+				{
+					UserID:         "carol@test.com",
+					PublicKeyData:  []byte("carol-key1"),
+					AuthorizedKeys: testutil.VerifyKeysetFromPEMs(testPubKey1),
+				},
+			},
+		},
+	} {
+
+		for _, u := range e.userUpdates {
+			cctx, cancel := context.WithTimeout(ctx, env.Timeout)
+			defer cancel()
+			m, err := env.Client.CreateMutation(cctx, u)
+			if err != nil {
+				t.Fatalf("CreateMutation(%v): %v", u.UserID, err)
+			}
+			if err := env.Client.QueueMutation(ctx, m, e.signers,
+				env.CallOpts(u.UserID)...); err != nil {
+				t.Errorf("QueueMutation(): %v", err)
+			}
+		}
+		batchReq := &spb.RunBatchRequest{
+			DirectoryId: env.Directory.DirectoryId,
+			MinBatch:    int32(len(e.userUpdates)),
+			MaxBatch:    int32(len(e.userUpdates)) * 2,
+		}
+		if _, err := env.Sequencer.RunBatch(ctx, batchReq); err != nil {
+			t.Errorf("sequencer.RunBatch(): %v", err)
+		}
+		pubReq := &spb.PublishRevisionsRequest{
+			DirectoryId: env.Directory.DirectoryId,
+		}
+		if _, err := env.Sequencer.PublishRevisions(ctx, pubReq); err != nil {
+			t.Errorf("sequencer.PublishRevisions(): %v", err)
+		}
+	}
+
+	trusted := types.LogRootV1{}
+	cctx, cancel := context.WithCancel(ctx)
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		err = mon.ProcessLoop(cctx, env.Directory.DirectoryId, trusted)
+	}()
+	time.Sleep(env.Timeout)
+	cancel()
+	wg.Wait()
+	if err != context.Canceled && status.Code(err) != codes.Canceled {
+		t.Errorf("Monitor could not process mutations: %v", err)
+	}
+
+	for i := int64(1); i < 4; i++ {
+		mresp, err := store.Get(i)
+		if err != nil {
+			t.Errorf("Could not read monitoring response for revision %v: %v", i, err)
+			continue
+		}
+		for _, err := range mresp.Errors {
+			t.Errorf("Got error: %v", err)
+		}
+	}
+	return nil
+}

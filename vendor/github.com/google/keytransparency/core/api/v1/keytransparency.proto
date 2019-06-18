@@ -1,0 +1,520 @@
+// Copyright 2016 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+// Key Transparency
+//
+// The Key Transparency API consists of a map of user names to public
+// keys. Each user name also has a history of public keys that have been
+// associated with it.
+package google.keytransparency.v1;
+
+option go_package = "github.com/google/keytransparency/core/api/v1/keytransparency_go_proto";
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "trillian.proto";
+import "trillian_map_api.proto";
+import "v1/admin.proto";
+
+// Committed represents the data committed to in a cryptographic commitment.
+// commitment = HMAC_SHA512_256(key, data)
+message Committed {
+  // key is the 16 byte random commitment key.
+  bytes key = 1;
+  // data is the data being committed to.
+  bytes data = 2;
+}
+
+// EntryUpdate contains the user entry update(s).
+// EntryUpdate will be placed in a Log of mutations.
+message EntryUpdate {
+  // user_id specifies the id for the user whose profile is being updated.
+  string user_id = 1;
+  // mutation authorizes the change to entry.
+  SignedEntry mutation = 2;
+  // committed contains the data committed to in mutation.commitment.
+  Committed committed = 3;
+}
+
+//
+// Verifiable Map Leaf Data and Mutation Data.
+//
+
+// Entry is a signed change to a map entry.
+// Entry contains a commitment to profile and a set of authorized update keys.
+// Entry is placed in the verifiable map as leaf data.
+message Entry {
+  // index is the location of this leaf in the sparse merkle tree.
+  bytes index = 3;
+  // commitment is a cryptographic commitment to arbitrary data.
+  bytes commitment = 6;
+  // authorized_keys is the tink keyset that validates the signatures on the next entry.
+  bytes authorized_keyset = 9;
+  // previous contains the SHA256 hash of SignedEntry.Entry the last time it was modified.
+  bytes previous = 8;
+  // Deprecated tag numbers, do not reuse.
+  reserved 1, 2, 4, 5, 7;
+}
+
+// SignedEntry is a cryptographically signed Entry.
+// SignedEntry will be storead as a trillian.Map leaf.
+message SignedEntry {
+  // entry contains a serialized Entry.
+  bytes entry = 1;
+  // signatures on entry. Must be signed by keys from both previous and
+  // current revisions. The first proves ownership of new revision key, and the
+  // second proves that the correct owner is making this change.
+  // The signature scheme is specified by the authorized_keys tink.Keyset.
+  repeated bytes signatures = 2;
+}
+
+// MutationProof contains the information necessary to compute the new leaf
+// value. It contains a) the old leaf value with it's inclusion proof and b) the
+// mutation. The new leaf value is computed via:
+//       Mutate(leaf_value, mutation)
+message MutationProof {
+  // mutation contains the information needed to modify the old leaf.
+  // The format of a mutation is specific to the particular Mutate function
+  // being used.
+  SignedEntry mutation = 1;
+  // leaf_proof contains the leaf and its inclusion proof for a particular map
+  // revision.
+  trillian.MapLeafInclusion leaf_proof = 2;
+}
+
+// MapperMetadata tracks the mutations that have been mapped so far. It is
+// embedded in the Trillian SignedMapHead.
+message MapperMetadata {
+  int64 highest_fully_completed_seq = 1;
+}
+
+// Gets the leaf entry for a user.
+message GetUserRequest {
+  // directory_id identifies the directory in which the user lives.
+  string directory_id = 1;
+  // user_id is the user identifier, the format for which is defined by the
+  // application.
+  string user_id = 2;
+  // last_verified_tree_size is the tree_size of the last log root the client
+  // verified. Omitting this field will omit the log consistency proof from the
+  // response.
+  int64 last_verified_tree_size = 3;
+}
+
+// Leaf entry for a user.
+message MapLeaf {
+  // vrf_proof is the proof for the VRF on user_id.
+  bytes vrf_proof = 1;
+  // map_inclusion is an inclusion proof for the map leaf in an accompanying
+  // trillian.SignedMapRoot. If the leaf is non-empty, its leaf.leaf_value
+  // stores a serialized Entry proto.
+  trillian.MapLeafInclusion map_inclusion = 2;
+  // committed contains the data and nonce used to make a cryptographic
+  // commitment, which is stored in the commitment field of the serialized Entry
+  // proto from map_inclusion.
+  // Note: committed can also be found serialized in
+  // map_inclusion.leaf.extra_data.
+  Committed committed = 3;
+}
+
+// Contains the leaf entry for a user at the most recently published revision.
+message GetUserResponse {
+  // revision is the most recently published revision.
+  Revision revision = 1;
+  // leaf is the leaf entry for the requested user.
+  MapLeaf leaf = 2;
+}
+
+// BatchGetUserRequest contains multiple user_ids to fetch.
+message BatchGetUserRequest {
+  // directory_id identifies the directory in which the users live.
+  string directory_id = 1;
+  // user_ids are the user identifiers, the format for which is defined by the
+  // application.
+  repeated string user_ids = 2;
+  // last_verified_tree_size is the tree_size of the last log root the client
+  // verified. Omitting this field will omit the log consistency proof from the
+  // response.
+  int64 last_verified_tree_size = 3;
+}
+
+// BatchGetUserIndexRequest identifies a set of users.
+message BatchGetUserIndexRequest {
+  // directory_id identifies the directory in which the users live.
+  string directory_id = 1;
+  // user_ids are the user identifiers
+  repeated string user_ids = 2;
+}
+
+// BatchGetUserIndexRequest identifies a single user.
+message BatchGetUserIndexResponse {
+  // proofs is a map from user_id to its VRF proof.
+  // Clients get the index by verifying the VRF proof.
+  map<string, bytes> proofs = 1;
+}
+
+// BatchGetUserResponse contains the leaf entries for a set of users at the most
+// recently published revision.
+message BatchGetUserResponse {
+  // revision is the most recently published revision.
+  Revision revision = 1;
+  // map_leaves_by_user_id is a map from user_id to the map leaf at the most
+  // recently published revision.
+  map<string, MapLeaf> map_leaves_by_user_id = 2;
+}
+
+// ListEntryHistoryRequest gets a list of historical keys for a user.
+message ListEntryHistoryRequest {
+  // directory_id identifies the directory in which the user lives.
+  string directory_id = 6;
+  // user_id is the user identifier.
+  string user_id = 1;
+  // start is the starting revision.
+  int64 start = 2;
+  // page_size is the maximum number of entries to return.
+  int32 page_size = 3;
+  // Used to be app_id. Applications can define their own hierarchy for user_id
+  // if desired.
+  reserved 4;
+  // last_verified_tree_size is the tree_size of the last log root the client
+  // verified. Omitting this field will omit the log consistency proof from the
+  // response.
+  int64 last_verified_tree_size = 5;
+}
+
+// ListEntryHistoryResponse requests a paginated history of keys for a user.
+message ListEntryHistoryResponse {
+  // values represents the list of keys this user_id has contained over time.
+  repeated GetUserResponse values = 1;
+  // next_start is the next page token to query for pagination.
+  // next_start is 0 when there are no more results to fetch.
+  int64 next_start = 2;
+}
+
+// ListUserRevisionsRequest gets a list of historical keys for a user.
+message ListUserRevisionsRequest {
+  // directory_id identifies the directory in which the user lives.
+  string directory_id = 1;
+  // user_id is the user identifier.
+  string user_id = 2;
+  // start_revision is the starting epoch.
+  int64 start_revision = 3;
+  // end_revision is the ending epoch.
+  int64 end_revision = 4;
+  // page_size is the maximum number of entries to return. If page_size is
+  // unspecified, the server will decide how to paginate results.
+  int32 page_size = 5;
+  // page_token is a continuation token for paginating through results.
+  string page_token = 6;
+  // last_verified_tree_size is the tree_size of the last log root the client
+  // verified. Omitting this field will omit the log consistency proof from the
+  // response.
+  int64 last_verified_tree_size = 7;
+}
+
+// MapRevision contains a map leaf at a speific revision.
+message MapRevision {
+  // map_root contains the map root and its inclusion in the log.
+  MapRoot map_root = 1;
+  // map_leaf contains a leaf and its inclusion proof to map_root.
+  MapLeaf map_leaf = 2;
+}
+
+// ListUserRevisionsResponse requests a paginated history of keys for a user.
+message ListUserRevisionsResponse {
+  // latest_log_root contains the latest log root and its consistency proof.
+  LogRoot latest_log_root = 1;
+  // map_revisions represents the list of keys this user_id has contained over
+  // time. At most page_size results will be returned.
+  repeated MapRevision map_revisions = 2;
+  // next_page_token is a pagination token which will be set if more than
+  // page_size results are available. Clients can pass this value as
+  // the page_token in the next request in order to continue pagination.
+  string next_page_token = 3;
+}
+
+// BatchListUserRevisionsRequest contains a list of users and a range of revisions.
+message BatchListUserRevisionsRequest {
+  // directory_id identifies the directory in which the users live.
+  string directory_id = 1;
+  // user_ids are the user identifiers.
+  repeated string user_ids = 2;
+  // start_revision is the starting revision.
+  int64 start_revision = 3;
+  // end_revision is the ending epoch.
+  int64 end_revision = 4;
+  // page_size is the maximum number of entries to return. If page_size is
+  // unspecified, the server will decide how to paginate results.
+  int32 page_size = 5;
+  // page_token is a continuation token for paginating through results.
+  string page_token = 6;
+  // last_verified_tree_size is the tree_size of the last log root the client
+  // verified. Omitting this field will omit the log consistency proof from the
+  // response.
+  int64 last_verified_tree_size = 7;
+}
+
+// BatchMapRevision contains a set of map leaves at a speific revision.
+message BatchMapRevision {
+  // map_root contains the map root and its inclusion in the log.
+  MapRoot map_root = 1;
+  // map_leaves_by_user_id contains a mapping from user_id to the map leaf at
+  // this revision.
+  map<string, MapLeaf> map_leaves_by_user_id = 2;
+}
+
+// BatchListUserRevisionsResponse contains multiple map leaves across multiple revisions.
+message BatchListUserRevisionsResponse {
+  // latest_log_root contains the latest log root and its consistency proof.
+  LogRoot latest_log_root = 1;
+  // map_revisions is a list of map revisions.  At most page_size revisions will be returned.
+  repeated BatchMapRevision map_revisions = 2;
+}
+
+// UpdateEntryRequest updates a user's profile.
+message UpdateEntryRequest {
+  // directory_id identifies the directory in which the user lives.
+  string directory_id = 5;
+  // Used to be user_id. user_id now lives in EntryUpdate.
+  reserved 1;
+  // Used to be app_id. Applications can define their own hierarchy for user_id
+  // if desired.
+  reserved 2;
+  // Used to be first_tree_size. QueueEntryUpdate no longer returns any data.
+  reserved 3;
+  // entry_update contains the user submitted update.
+  EntryUpdate entry_update = 4;
+}
+
+// BatchQueueUserUpdateRequest enqueues multiple changes to user profiles.
+message BatchQueueUserUpdateRequest {
+  // directory_id identifies the directory in which the users live.
+  string directory_id = 1;
+  // updates contains user updates.
+  repeated EntryUpdate updates = 2;
+}
+
+// GetRevisionRequest identifies a particular revision.
+message GetRevisionRequest {
+  // directory_id is the directory for which revisions are being requested.
+  string directory_id = 5;
+  // revision specifies the revision number in which mutations will be returned.
+  int64 revision = 1;
+  // last_verified_tree_size is the tree_size of the last log root the client
+  // verified. Omitting this field will omit the log consistency proof from the
+  // response.
+  int64 last_verified_tree_size = 2;
+}
+
+// GetLatestRevisionRequest identifies a particular revision.
+message GetLatestRevisionRequest {
+  // directory_id is the directory for which revisions are being requested.
+  string directory_id = 1;
+  // last_verified_tree_size is the tree_size of the last log root the client
+  // verified. Omitting this field will omit the log consistency proof from the
+  // response.
+  int64 last_verified_tree_size = 2;
+}
+
+// MapRoot contains the map root and its inclusion proof in the log.
+message MapRoot {
+  // map_root contains the signed map root for the sparse Merkle Tree.
+  trillian.SignedMapRoot map_root = 1;
+  // log_inclusion proves that map_root is part of log_root at
+  // index=map_root.MapRevision.
+  repeated bytes log_inclusion = 2;
+}
+
+// LogRoot contains the latest log root and its consistency proof.
+message LogRoot {
+  // log_root is the latest globally consistent log root.
+  trillian.SignedLogRoot log_root = 1;
+  // log_consistency proves that log_root is consistent with previously seen
+  // roots.
+  repeated bytes log_consistency = 2;
+}
+
+// Revision represents a snapshot of the entire key directory and
+// a diff of what changed between this revision and the previous revision.
+message Revision {
+  // directory_id is the directory identifier.
+  string directory_id = 1;
+  // map_root contains the map root and its inclusion in the log.
+  MapRoot map_root = 5;
+  // latest_log_root contains the most recent log root and its consistency
+  // proof to the client's last seen log root.
+  LogRoot latest_log_root = 6;
+  // Deprecated tag numbers, do not reuse.
+  reserved 2, 3, 4;
+}
+
+// ListMutationsRequest requests the mutations that created a given revision.
+message ListMutationsRequest {
+  // directory_id is the directory identifier.
+  string directory_id = 5;
+  // revision specifies the revision number.
+  int64 revision = 1;
+  // page_token defines the starting point for pagination.
+  // To request the next page, pass next_page_token from the previous response.
+  // To start at the beginning, simply omit page_token from the request.
+  string page_token = 3;
+  // page_size is the maximum number of mutations to return in a single request.
+  // The server may choose a smaller page_size than the one requested.
+  int32 page_size = 4;
+  // TODO(gbelvin): Add field mask.
+
+}
+
+// ListMutationsResponse contains the mutations that produced an revision.
+message ListMutationsResponse {
+  // mutations contains the mutation object and the leaf value it operated on.
+  repeated MutationProof mutations = 6;
+  // next_page_token is the next page token to query for pagination.
+  // An empty value means there are no more results to fetch.
+  string next_page_token = 7;
+}
+
+// The KeyTransparency API represents a directory of public keys.
+//
+// The API has a collection of directories:
+// `/v1/directories/`
+//  * Each directory has a single sparse merkle tree, append only log,
+//    and other public key material that is needed to verify server responses.
+//
+// Each Directory has a collection of snapshots called revisions:
+// `/v1/directories/*/revisions/`
+//  * Each Revision contains the root of the sparse merkle tree and the changes
+//  that
+//    occurred that revision and the previous.
+//
+// Each Revision has a collection of mutations:
+// `/v1/directories/*/revisions/*/mutations/`.
+//  * Each mutation contains the leafvalue of the previous revision that it
+//  operated on.
+//  * The full set of mutations for an revision allows the receiver to compute the
+//     Merkle Tree Root of this revision from the previous revision.
+//
+// Each Directory has a collection of Users:
+// `/v1/directories/*/users/`
+//  * Each User contains public key material, permissions for who is allowed to
+//    change that user, and signatures indicating who made the last change.
+//
+// Each User also has a collection of historical values for user:
+// `/v1/directories/*/users/*/history`
+//
+service KeyTransparency {
+  // GetDirectory returns the information needed to verify the specified
+  // directory.
+  rpc GetDirectory(GetDirectoryRequest) returns (Directory) {
+    option (google.api.http) = {
+      get: "/v1/directories/{directory_id}"
+    };
+  }
+  // GetRevision returns a SignedMapRoot by the by the requested revision number
+  // along with its inclusion proof in the log and the log's consistency proofs.
+  rpc GetRevision(GetRevisionRequest) returns (Revision) {
+    option (google.api.http) = {
+      get: "/v1/directories/{directory_id}/revisions/{revision}"
+    };
+  }
+  // GetLatestRevision returns the latest SignedMapRoot along with its inclusion
+  // proof in the log and the log's consistency proofs.
+  rpc GetLatestRevision(GetLatestRevisionRequest) returns (Revision) {
+    option (google.api.http) = {
+      get: "/v1/directories/{directory_id}/revisions:latest"
+    };
+  }
+  // GetRevisionStream streams new revisions from a requested starting point
+  // and continues as new revisions are created.
+  rpc GetRevisionStream(GetRevisionRequest) returns (stream Revision) {
+    option (google.api.http) = {
+      get: "/v1/directories/{directory_id}/revisions:stream"
+    };
+  }
+  // ListMutations returns a list of mutations in a specific revision.
+  rpc ListMutations(ListMutationsRequest) returns (ListMutationsResponse) {
+    option (google.api.http) = {
+      get: "/v1/directories/{directory_id}/revisions/{revision}/mutations"
+    };
+  }
+  // ListMutationsStream is a streaming list of mutations in a specific revision.
+  rpc ListMutationsStream(ListMutationsRequest) returns (stream MutationProof) {
+    option (google.api.http) = {
+      get: "/v1/directories/{directory_id}/revisions/{revision}/mutations:stream"
+    };
+  }
+  // GetUser returns a user's leaf entry in the Merkle Tree.
+  rpc GetUser(GetUserRequest) returns (GetUserResponse) {
+    option (google.api.http) = {
+      get: "/v1/directories/{directory_id}/users/{user_id}"
+    };
+  }
+  // BatchGetUser returns a batch of user leaf entries in the Merkle tree at the same revision.
+  rpc BatchGetUser(BatchGetUserRequest) returns (BatchGetUserResponse) {
+    option (google.api.http) = {
+      get: "/v1/directories/{directory_id}/users:batchGet"
+    };
+  }
+  // BatchGetUserIndex returns the VRF proof for a set of userIDs.
+  rpc BatchGetUserIndex(BatchGetUserIndexRequest) returns (BatchGetUserIndexResponse) {
+    option (google.api.http) = {
+      get: "/v1/directories/{directory_id}/users:batchGetIndex"
+    };
+  }
+  // ListEntryHistory returns a list of historic GetUser values.
+  //
+  // Clients verify their account history by observing correct values for their
+  // account over time.
+  rpc ListEntryHistory(ListEntryHistoryRequest) returns (ListEntryHistoryResponse) {
+    option (google.api.http) = {
+      get: "/v1/directories/{directory_id}/users/{user_id}/history"
+    };
+  }
+  // ListUserRevisions returns a list of historic leaf values for a user.
+  //
+  // Clients verify their account history by observing correct values for their
+  // account over time.
+  rpc ListUserRevisions(ListUserRevisionsRequest) returns (ListUserRevisionsResponse) {
+    option (google.api.http) = {
+      post: "/v1/directories/{directory_id}/users/{user_id}/revisions"
+      body: "*"
+    };
+  }
+  // BatchListUserRevisions returns a list of revisions for multiple users.
+  rpc BatchListUserRevisions(BatchListUserRevisionsRequest) returns (BatchListUserRevisionsResponse) {
+    option (google.api.http) = {
+      post: "/v1/directories/{directory_id}/users:batchListRevisions"
+      body: "*"
+    };
+  }
+  // QueueUserUpdate enqueues an update to a user's profile.
+  //
+  // Clients should poll GetUser until the update appears, and retry if no
+  // update appears after a timeout.
+  rpc QueueEntryUpdate(UpdateEntryRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/directories/{directory_id}/users/{entry_update.user_id}:queue"
+      body: "entry_update"
+    };
+  }
+  // BatchQueueUserUpdate enqueues a list of user profiles.
+  rpc BatchQueueUserUpdate(BatchQueueUserUpdateRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/directories/{directory_id}:batchQueueUpdate"
+      body: "*"
+    };
+  }
+}

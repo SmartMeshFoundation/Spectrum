@@ -1,0 +1,191 @@
+// Copyright 2017 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+// Key Transparency Administration
+//
+// The Key Transparency API consists of a map of user names to public
+// keys. Each user name also has a history of public keys that have been
+// associated with it.
+package google.keytransparency.v1;
+
+option go_package = "github.com/google/keytransparency/core/api/v1/keytransparency_go_proto";
+
+import "crypto/keyspb/keyspb.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "trillian.proto";
+
+// Directory contains information on a single directory
+message Directory {
+  // DirectoryId can be any URL safe string.
+  string directory_id = 1;
+  // Log contains the Log-Tree's info.
+  trillian.Tree log = 2;
+  // Map contains the Map-Tree's info.
+  trillian.Tree map = 3;
+  // Vrf contains the VRF public key.
+  keyspb.PublicKey vrf = 4;
+  // min_interval is the minimum time between revisions.
+  google.protobuf.Duration min_interval = 5;
+  // max_interval is the maximum time between revisions.
+  google.protobuf.Duration max_interval = 6;
+  // Deleted indicates whether the directory has been marked as deleted.
+  // By its presence in a response, this directory has not been garbage
+  // collected.
+  bool deleted = 7;
+}
+
+// ListDirectories request.
+// No pagination options are provided.
+message ListDirectoriesRequest {
+  // showDeleted requests directories that have been marked for deletion
+  // but have not been garbage collected.
+  bool show_deleted = 1;
+}
+
+// ListDirectories response contains directories.
+message ListDirectoriesResponse {
+  repeated Directory directories = 1;
+}
+
+// GetDirectoryRequest specifies the directory to retrieve information for.
+message GetDirectoryRequest {
+  string directory_id = 1;
+  // showDeleted requests directories that have been marked for deletion
+  // but have not been garbage collected.
+  bool show_deleted = 2;
+}
+
+// CreateDirectoryRequest creates a new directory
+message CreateDirectoryRequest {
+  string directory_id = 1;
+  google.protobuf.Duration min_interval = 2;
+  google.protobuf.Duration max_interval = 3;
+  // The private_key fields allows callers to set the private key.
+  google.protobuf.Any vrf_private_key = 4;
+  google.protobuf.Any log_private_key = 5;
+  google.protobuf.Any map_private_key = 6;
+}
+
+// DeleteDirectoryRequest deletes a directory
+message DeleteDirectoryRequest {
+  string directory_id = 1;
+}
+
+// UndeleteDirectoryRequest deletes a directory
+message UndeleteDirectoryRequest {
+  string directory_id = 1;
+}
+
+message ListInputLogsRequest {
+  string directory_id = 1;
+  // filter_writable will only return writable logs when set.
+  bool filter_writable = 2;
+}
+
+message ListInputLogsResponse {
+  repeated InputLog logs = 1;
+}
+
+// InputLog is an input log for a directory.
+message InputLog {
+  string directory_id = 1;
+  int64 log_id = 2;
+  // writable controls whether new log items will be sent to this log.
+  // writable is not set by ListInputLogs.
+  bool writable = 3;
+}
+
+// GarbageCollect request.
+message GarbageCollectRequest {
+  // Soft-deleted directories with a deleted timestamp before this will be fully
+  // deleted.
+  google.protobuf.Timestamp before = 1;
+}
+
+message GarbageCollectResponse {
+  repeated Directory directories = 1;
+}
+
+// The KeyTransparencyAdmin API provides the following resources:
+// - Directories
+//   Namespaces on which which Key Transparency operates. A directory determines
+//   a unique Trillian map to use. It also determines the authentication
+//   policies for users and apps within a directory.
+//   - /v1/directories
+service KeyTransparencyAdmin {
+  // ListDirectories returns a list of all directories this Key Transparency
+  // server operates on.
+  rpc ListDirectories(ListDirectoriesRequest) returns (ListDirectoriesResponse) {
+    option (google.api.http) = {
+      get: "/v1/directories"
+    };
+  }
+  // GetDirectory returns the confiuration information for a given directory.
+  rpc GetDirectory(GetDirectoryRequest) returns (Directory) {
+    option (google.api.http) = {
+      get: "/v1/directories/{directory_id}"
+    };
+  }
+  // CreateDirectory creates a new Trillian log/map pair.  A unique directoryId
+  // must be provided.  To create a new directory with the same name as a
+  // previously deleted directory, a user must wait X days until the directory
+  // is garbage collected.
+  rpc CreateDirectory(CreateDirectoryRequest) returns (Directory) {
+    option (google.api.http) = {
+      post: "/v1/directories"
+      body: "*"
+    };
+  }
+  // DeleteDirectory marks a directory as deleted.  Directories will be garbage
+  // collected after X days.
+  rpc DeleteDirectory(DeleteDirectoryRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/directories/{directory_id}"
+    };
+  }
+  // UndeleteDirectory marks a previously deleted directory as active if it has
+  // not already been garbage collected.
+  rpc UndeleteDirectory(UndeleteDirectoryRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/directories/{directory_id}:undelete"
+    };
+  }
+  // ListInputLogs returns a list of input logs for a directory.
+  rpc ListInputLogs(ListInputLogsRequest) returns (ListInputLogsResponse) {
+    option (google.api.http) = {
+      get: "/v1/directories/{directory_id}/inputlogs"
+    };
+  }
+  // CreateInputLog returns a the created log.
+  rpc CreateInputLog(InputLog) returns (InputLog) {
+    option (google.api.http) = {
+      post: "/v1/directories/{directory_id}/inputlogs/{log_id}"
+    };
+  }
+  // UpdateInputLog updates the write bit for an input log.
+  rpc UpdateInputLog(InputLog) returns (InputLog) {
+    option (google.api.http) = {
+      put: "/v1/directories/{directory_id}/inputlogs/{log_id}"
+    };
+  }
+  // Fully delete soft-deleted directories that have been soft-deleted before
+  // the specified timestamp.
+  rpc GarbageCollect(GarbageCollectRequest) returns (GarbageCollectResponse);
+}
