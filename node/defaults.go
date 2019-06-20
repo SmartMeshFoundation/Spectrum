@@ -84,13 +84,13 @@ func TestDataDir() string {
 func DevDataDir() string {
 	home := homeDir()
 	if home != "" {
-		testnet := "devnet"
+		devnet := "devnet"
 		if runtime.GOOS == "darwin" {
-			return filepath.Join(home, "Library", "Spectrum", testnet)
+			return filepath.Join(home, "Library", "Spectrum", devnet)
 		} else if runtime.GOOS == "windows" {
-			return filepath.Join(home, "AppData", "Roaming", "Spectrum", testnet)
+			return filepath.Join(home, "AppData", "Roaming", "Spectrum", devnet)
 		} else {
-			return filepath.Join(home, ".spectrum", testnet)
+			return filepath.Join(home, ".spectrum", devnet)
 		}
 	}
 	return ""

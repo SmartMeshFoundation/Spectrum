@@ -9,6 +9,67 @@ import "github.com/SmartMeshFoundation/Spectrum/contracts/chief/src/chief_base_s
 import "./chief_abs_s0.5.sol";
 import "./chief_base_s0.5_v0.0.1.sol";
 
+/*
+----------
+| devnet |
+----------
+
+test nodes :
+
+    leader :
+
+        privatekey: 507fd083b5c5af7e645e77a3a3a82708f3af304164e02612ab4b1d5b36c627c6
+        address: 0x9944d0cc757cd9391ee320fc17d5b6f61693f2c5
+
+    deposit :
+
+        privatekey: 543e9d0ddcd02b4bbdb2cecd402da99e9532fface57d8ea74e833c5d413f2daa
+        address: 0xd3F50Dfd2887B3818aB9E6c6f846ED1d3bD90B29
+
+        privatekey: 9d7b3b8155ea429cb49cdc556aa7b3367feb91ccf51eb1e9c7e2bac67d939f03
+        address: 0x50bf23F1d844465AB69357aa08Af0fEA4B1E62D7
+
+
+
+f = "0xbf1736a65f8beadd71b321be585fd883503fdeaa"
+personal.unlockAccount(f,"123456")
+
+    sign(f):
+
+        addr: 0xd3F50Dfd2887B3818aB9E6c6f846ED1d3bD90B29
+        R: 0x99b087c99fceee44b15373847e38f485b31b5b779ce7b01081f2d61c00c77d19
+        S: 0x0f29d84ff759415e969e12a49cf2fc453c1b2aa386d59e0488b11627dcdbd261
+        V: 27
+
+        addr: 0x50bf23F1d844465AB69357aa08Af0fEA4B1E62D7
+        R: 0x2edbf406a13757485096ae35d85f1f881f17073e230454ad83a65e003ff2deb8
+        S: 0x4629840c12909009ad4092f8da67d53b57a7a2c8fa6abe024166982d65821fcb
+        V: 27
+
+
+ChiefBase :
+    epoch = 33, signerLimit = 6;
+    deploy args : 25,5
+    appendLeader args : "0x9944d0cc757cd9391ee320fc17d5b6f61693f2c5"
+
+POC :
+    deploy args : "0x7880adce4504fd39645aabb3efb53824d9b0c21b",10,10,50
+    deposit args :
+        "0x99b087c99fceee44b15373847e38f485b31b5b779ce7b01081f2d61c00c77d19","0x0f29d84ff759415e969e12a49cf2fc453c1b2aa386d59e0488b11627dcdbd261",27
+        "0x2edbf406a13757485096ae35d85f1f881f17073e230454ad83a65e003ff2deb8","0x4629840c12909009ad4092f8da67d53b57a7a2c8fa6abe024166982d65821fcb",27
+
+
+Tribe :
+    deploy args : "0x7880adce4504fd39645aabb3efb53824d9b0c21b","0xad61f1201f592fbf13d2645f9c59d8d5f82a1837"
+
+
+
+base : 0x7880adce4504fd39645aabb3efb53824d9b0c21b
+a    : 0x143084accd6472ad502b59c3197f9ed5f797b966
+b    :
+
+*/
+
 contract TribeChief_1_0_0 is Chief {
 
     string vsn = "1.0.0";
@@ -35,20 +96,20 @@ contract TribeChief_1_0_0 is Chief {
     mapping(address => BlackMember) public blMap;
 
     function getLeader() public view returns (address[] memory) {
-        return base.getLeaderList();
+        return base.takeLeaderList();
     }
 
     constructor(address baseAddress, address pocAddress) public {
         base = ChiefBase(baseAddress);
         base.init(pocAddress, address(this));
 
-        address[] memory leaderList = base.getLeaderList();
+        address[] memory leaderList = base.takeLeaderList();
         require(leaderList.length > 0);
 
         signersMap[leaderList[0]] = 1;
         _signerList.push(leaderList[0]);
 
-        for (uint i = _signerList.length; i < base.getSignerLimit(); i++) {
+        for (uint i = _signerList.length; i < base.takeSignerLimit(); i++) {
             // placeholder
             _signerList.push(address(0));
         }
@@ -64,12 +125,12 @@ contract TribeChief_1_0_0 is Chief {
 
     function pushVolunteer(address addr) public {
         /*
-        if ( _signerList.length < base.getSignerLimit() ) {
+        if ( _signerList.length < base.takeSignerLimit() ) {
             _signerList.push(addr);
             signersMap[addr] = 1;
         }
         */
-        if (_volunteerList.length < base.getVolunteerLimit()) {
+        if (_volunteerList.length < base.takeVolunteerLimit()) {
             _volunteerList.push(addr);
             volunteerMap[addr] = 1;
         }
@@ -124,8 +185,8 @@ contract TribeChief_1_0_0 is Chief {
 
     // append a signer
     function pushSigner(address signer, uint idx) private {
-        if (_signerList.length < base.getSignerLimit()) {
-            if (idx < base.getSignerLimit()) {
+        if (_signerList.length < base.takeSignerLimit()) {
+            if (idx < base.takeSignerLimit()) {
                 delete signersMap[_signerList[idx]];
                 _signerList[idx] = signer;
             } else {
@@ -180,7 +241,7 @@ contract TribeChief_1_0_0 is Chief {
 
     function genSigners_set_leader() public {
         address g = _signerList[0];
-        address[] memory leaders = base.getLeaderList();
+        address[] memory leaders = base.takeLeaderList();
         for (uint i = 0; i < leaders.length; i++) {
             address l = leaders[i];
             if (g == l) {
@@ -197,9 +258,9 @@ contract TribeChief_1_0_0 is Chief {
     function genSigners_v2s() public {
         for (uint i1 = 0; i1 < _volunteerList.length; i1++) {
             address v = _volunteerList[i1];
-            pushSigner(v, base.getSignerLimit() + 1);
+            pushSigner(v, base.takeSignerLimit() + 1);
         }
-        for (uint i2 = _signerList.length; i2 < base.getSignerLimit(); i2++) {
+        for (uint i2 = _signerList.length; i2 < base.takeSignerLimit(); i2++) {
             // placeholder
             _signerList.push(address(0));
         }
@@ -254,7 +315,7 @@ contract TribeChief_1_0_0 is Chief {
         }
 
         //2 : last block, reset signerList
-        if (l == base.getSignerLimit() && signerIdx == uint(base.getSignerLimit() - 1)) {
+        if (l == base.takeSignerLimit() && signerIdx == uint(base.takeSignerLimit() - 1)) {
             genSigners();
         }
 
@@ -286,11 +347,11 @@ contract TribeChief_1_0_0 is Chief {
 
     function version() public view returns (string memory) {return vsn;}
 
-    function getSignerLimit() public view returns (uint) {return base.getSignerLimit();}
+    function getSignerLimit() public view returns (uint) {return base.takeSignerLimit();}
 
-    function getEpoch() public view returns (uint) {return base.getEpoch();}
+    function getEpoch() public view returns (uint) {return base.takeEpoch();}
 
-    function getVolunteerLimit() public view returns (uint) {return base.getVolunteerLimit();}
+    function getVolunteerLimit() public view returns (uint) {return base.takeVolunteerLimit();}
 
     function getVolunteers() public view returns (
         address[] memory volunteerList,

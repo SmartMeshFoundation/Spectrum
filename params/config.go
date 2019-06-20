@@ -52,6 +52,7 @@ var (
 
 		Meshbox001Block:   big.NewInt(1870333),
 		Meshbox001Address: common.HexToAddress("0xf0ced0b1ce8738eeac06fdca51e0ff398328634b"),
+		// Note that : meshbox002 must is superset of meshbox001
 
 		Anmap001Block:   big.NewInt(0),
 		Anmap001Address: common.HexToAddress("0x"),
@@ -97,6 +98,7 @@ var (
 
 		Meshbox001Block:   big.NewInt(1976666),
 		Meshbox001Address: common.HexToAddress("0x0f15e1e44322b2946215705d2ed60cba899f0b38"),
+		// Note that : meshbox002 must is superset of meshbox001
 
 		Anmap001Block:   big.NewInt(2200050),
 		Anmap001Address: common.HexToAddress("0xffab698a4cead35a6f52569e328f9127e66413bb"),
@@ -107,9 +109,11 @@ var (
 		SIP001Block: big.NewInt(176222),
 		SIP002Block: big.NewInt(525233),
 		SIP003Block: big.NewInt(917013),
-		//SIP004Block: big.NewInt(2213022),
-		SIP004Block: big.NewInt(2212557), //2166666
-		Tribe:       &TribeConfig{},
+		SIP004Block: big.NewInt(2212557),
+
+		SIP005Block: big.NewInt(2588183),
+
+		Tribe: &TribeConfig{},
 	}
 
 	// DevnetChainConfig contains the chain parameters to run a node on the Ropsten test network.
@@ -130,18 +134,19 @@ var (
 		Chief007Address: common.HexToAddress("0x24bfadf2803638b26b653e1f94927052d4aa74eb"),
 
 		Chief100Block:   big.NewInt(0),
-		Chief100Address: common.HexToAddress("0x"),
+		Chief100Address: common.HexToAddress(""),
 
 		PocBlock:   big.NewInt(0),
-		PocAddress: common.HexToAddress("0x"),
+		PocAddress: common.HexToAddress(""),
 
-		Meshbox002Block:   nil,
-		Meshbox002Address: common.HexToAddress("0x"),
-		//MeshboxBlock:   nil,
-		//MeshboxAddress: common.HexToAddress("0x"),
+		//Meshbox001Block:   nil,
+		//Meshbox001Address: common.HexToAddress("0x"),
+		// Note that : meshbox002 must is superset of meshbox001
+		Meshbox002Block:   big.NewInt(9),
+		Meshbox002Address: common.HexToAddress("0x57d2bcd8d702999daf240793919675c90b12a17a"),
 
-		//AnmapBlock:   nil,
-		//AnmapAddress: common.HexToAddress("0x"),
+		Anmap001Block:   big.NewInt(9),
+		Anmap001Address: common.HexToAddress("0xc4a2d182fe92f0eadffbddea9a0977d5b95b31a5"),
 
 		MinMinerBalance: new(big.Int).Mul(big.NewInt(1), big.NewInt(Ether)),
 
@@ -152,7 +157,7 @@ var (
 		SIP004Block: big.NewInt(3),
 		SIP005Block: big.NewInt(7),
 
-		Tribe: &TribeConfig{},
+		Tribe: &TribeConfig{Period: 3},
 	}
 
 	// AllEthashProtocolChanges contains every protocol change (EIPs) introduced
@@ -281,7 +286,7 @@ type ChainConfig struct {
 
 	Meshbox001Block   *big.Int       `json:"meshbox001Block,omitempty"`
 	Meshbox001Address common.Address `json:"meshbox001Address,omitempty"`
-
+	// Note that : meshbox002 must is superset of meshbox001
 	Meshbox002Block   *big.Int       `json:"meshbox002Block,omitempty"`
 	Meshbox002Address common.Address `json:"meshbox002Address,omitempty"`
 

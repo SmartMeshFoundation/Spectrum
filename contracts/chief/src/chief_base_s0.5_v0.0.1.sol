@@ -36,17 +36,17 @@ contract ChiefBase {
 
     function setOwner(address newOwner) public payable owner() {_owner = newOwner;}
 
-    function getEpoch() public view returns (uint) {return epoch;}
+    function takeEpoch() public view returns (uint) {return epoch;}
 
-    function getSignerLimit() public view returns (uint) {return signerLimit;}
+    function takeSignerLimit() public view returns (uint) {return signerLimit;}
 
-    function getLeaderLimit() public view returns (uint) {return leaderLimit;}
+    function takeLeaderLimit() public view returns (uint) {return leaderLimit;}
 
-    function getVolunteerLimit() public view returns (uint) {return volunteerLimit;}
+    function takeVolunteerLimit() public view returns (uint) {return volunteerLimit;}
 
-    function getLeaderList() public view returns (address[] memory) {return leaderList;}
+    function takeLeaderList() public view returns (address[] memory) {return leaderList;}
 
-    function getOwner() public view returns (address) {return _owner;}
+    function takeOwner() public view returns (address) {return _owner;}
 
     constructor(uint _epoch, uint _signerLimit) public {
         _owner = msg.sender;
@@ -97,9 +97,13 @@ contract ChiefBase {
     }
 
     function init(address pocAddr, address tribeAddr) public {
-        require(address(poc) == address(0) && pocAddr != address(0) && tribeAddr != address(0));
-        initPoc(pocAddr);
-        initTribe(tribeAddr);
+        require(msg.sender == tribeAddr);
+        if (address(poc) == address(0) && pocAddr != address(0)) {
+            initPoc(pocAddr);
+        }
+        if (tribeAddr != address(0)) {
+            initTribe(tribeAddr);
+        }
     }
 
     // public for test >>>>

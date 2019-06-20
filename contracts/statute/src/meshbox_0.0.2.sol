@@ -1,5 +1,7 @@
 pragma solidity ^0.5.3;
 
+//import "github.com/SmartMeshFoundation/Spectrum/contracts/statute/src/owned.sol"; // for remix
+
 import "./owned.sol";
 
 contract MeshBox_0_0_2 is Owned {

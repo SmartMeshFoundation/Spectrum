@@ -5,8 +5,6 @@ import (
 	"errors"
 	"github.com/SmartMeshFoundation/Spectrum/contracts"
 	"github.com/SmartMeshFoundation/Spectrum/contracts/statute"
-	"github.com/hashicorp/golang-lru"
-
 	"github.com/SmartMeshFoundation/Spectrum/ethclient"
 	"math/big"
 	"time"
@@ -57,7 +55,6 @@ type TribeService struct {
 	server           *p2p.Server // peers and nodekey ...
 	ethereum         *eth.Ethereum
 	ctx              *node.ServiceContext
-	vrfcache         *lru.ARCCache
 }
 
 func NewTribeService(ctx *node.ServiceContext) (node.Service, error) {
@@ -65,10 +62,6 @@ func NewTribeService(ctx *node.ServiceContext) (node.Service, error) {
 		apiBackend ethapi.Backend
 		ethereum   *eth.Ethereum
 	)
-	vrfcache, err := lru.NewARC(2048)
-	if err != nil {
-		panic(err)
-	}
 	if err := ctx.Service(&ethereum); err == nil {
 		apiBackend = ethereum.ApiBackend
 	} else {
@@ -84,7 +77,6 @@ func NewTribeService(ctx *node.ServiceContext) (node.Service, error) {
 		quit:     make(chan int),
 		ethereum: ethereum,
 		ctx:      ctx,
-		vrfcache: vrfcache,
 	}
 	if v0_0_2 := params.GetChiefInfoByVsn("0.0.2"); v0_0_2 != nil {
 		contract_0_0_2, err := chieflib.NewTribeChief(v0_0_2.Addr, eth.NewContractBackend(apiBackend))
@@ -171,8 +163,8 @@ func (self *TribeService) loop() {
 				self.filterVolunteer(mbox)
 			case "GetVolunteers":
 				self.getVolunteers(mbox)
-			case "GetVRF": // for 1.0.0 generate vrf num and proof
-				self.getVRF(mbox)
+				/*			case "GetVRF": // for 1.0.0 generate vrf num and proof
+							self.getVRF(mbox)*/
 			case "GetMiners": // for 1.0.0 vrf selected
 				self.getMiners(mbox)
 			}
@@ -559,6 +551,40 @@ func (self *TribeService) getChiefStatus(blockNumber *big.Int, blockHash *common
 				VolunteerLimit: volunteerLimit,
 				TotalVolunteer: chiefStatus.TotalVolunteer,
 			}, nil
+		case "1.0.0":
+			fmt.Println("TODO =:> HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH", blockNumber)
+			chiefStatus, err := self.tribeChief_1_0_0.GetStatus(opts)
+			if err != nil {
+				fmt.Println("111", err)
+				return params.ChiefStatus{}, err
+			}
+			epoch, err := self.tribeChief_1_0_0.GetEpoch(opts)
+			if err != nil {
+				fmt.Println("222", err)
+				return params.ChiefStatus{}, err
+			}
+			signerLimit, err := self.tribeChief_1_0_0.GetSignerLimit(opts)
+			if err != nil {
+				fmt.Println("333", err)
+				return params.ChiefStatus{}, err
+			}
+			volunteerLimit, err := self.tribeChief_1_0_0.GetVolunteerLimit(opts)
+			if err != nil {
+				fmt.Println("444", err)
+				return params.ChiefStatus{}, err
+			}
+			return params.ChiefStatus{
+				VolunteerList:  nil,
+				SignerList:     chiefStatus.SignerList,
+				ScoreList:      chiefStatus.ScoreList,
+				NumberList:     chiefStatus.NumberList,
+				BlackList:      chiefStatus.BlackList,
+				Number:         chiefStatus.Number,
+				Epoch:          epoch,
+				SignerLimit:    signerLimit,
+				VolunteerLimit: volunteerLimit,
+				TotalVolunteer: chiefStatus.TotalVolunteer,
+			}, nil
 		}
 	}
 	return params.ChiefStatus{}, errors.New("status_not_found")
@@ -712,7 +738,7 @@ func (self *TribeService) fetchVolunteer(client *ethclient.Client, blockNumber *
 		case "1.0.0":
 			nl := self.minerList(ch.Number, ch.Hash())
 			if nl != nil && len(nl) > 0 {
-				vrfnp, err := self._getVRF(hash)
+				vrfnp, err := crypto.SimpleVRF2Bytes(self.server.PrivateKey, hash.Bytes())
 				if err != nil {
 					panic(err)
 				}
@@ -726,6 +752,7 @@ func (self *TribeService) fetchVolunteer(client *ethclient.Client, blockNumber *
 	return common.Address{}
 }
 
+/*
 func (self *TribeService) _getVRF(hash common.Hash) ([]byte, error) {
 	if i, ok := self.vrfcache.Get(hash.Hex()); ok {
 		log.Info("[TribeService.GetVRF]", "fromCache", true, "vrfnp", i.([]byte)[:32])
@@ -760,7 +787,7 @@ func (self *TribeService) getVRF(mbox params.Mbox) {
 		success.Entity = err
 	}
 	mbox.Rtn <- success
-}
+}*/
 
 func (self *TribeService) getMiners(mbox params.Mbox) {
 	var (

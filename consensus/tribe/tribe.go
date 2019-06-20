@@ -427,8 +427,7 @@ func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error
 	if params.IsSIP005Block(header.Number) {
 		header.Extra = make([]byte, _extraVrf+extraSeal)
 		// append vrf to header.Extra before sign
-
-		vrfnp, err := params.GetVRFByHash(header.ParentHash)
+		vrfnp, err := crypto.SimpleVRF2Bytes(t.Status.nodeKey, header.ParentHash.Bytes())
 		log.Info("Tribe.Prepare --> params.GetVRFByHash", "err", err, "hash", header.ParentHash.Hex(), "vrfn", hex.EncodeToString(vrfnp[:32]))
 		//vr, err := crypto.SimpleVRF2Bytes(t.Status.nodeKey, header.ParentHash.Bytes())
 		if err != nil {
@@ -436,10 +435,10 @@ func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error
 		}
 
 		copy(header.Extra[:len(header.Extra)-extraSeal], vrfnp)
-		log.Debug("prepare_vrf", "num", header.Number, "parent_hash", header.ParentHash.Hex(), "bytes", header.ParentHash.Bytes())
+		log.Debug("prepare_vrf", "num", header.Number, "parent_hash", header.ParentHash.Hex())
 		log.Debug("prepare_vrf", "num", header.Number, "miner", crypto.PubkeyToAddress(t.Status.nodeKey.PublicKey).Hex())
-		log.Debug("prepare_vrf", "num", header.Number, "err", err, "vrf", hex.EncodeToString(vrfnp), "bytes", vrfnp)
-		log.Debug("prepare_vrf", "num", header.Number, "extra", hex.EncodeToString(header.Extra), "bytes", header.Extra)
+		log.Debug("prepare_vrf", "num", header.Number, "err", err, "vrf", hex.EncodeToString(vrfnp))
+		log.Debug("prepare_vrf", "num", header.Number, "extra", hex.EncodeToString(header.Extra))
 	} else {
 		extraVanity := extraVanityFn(header.Number)
 		log.Debug("fix extra", "extra-len", len(header.Extra), "extraVanity", extraVanity)
@@ -481,6 +480,11 @@ func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error
 // Finalize implements consensus.Engine, ensuring no uncles are set, nor block
 // rewards given, and returns the final block.
 func (t *Tribe) Finalize(chain consensus.ChainReader, header *types.Header, state *state.StateDB, txs []*types.Transaction, uncles []*types.Header, receipts []*types.Receipt) (*types.Block, error) {
+	//TODO reward for chief-1.0.0
+	//TODO reward for chief-1.0.0
+	//TODO reward for chief-1.0.0
+	//TODO reward for chief-1.0.0
+
 	// No block rewards in Tribe, so the state remains as is and uncles are dropped
 	header.Root = state.IntermediateRoot(chain.Config().IsEIP158(header.Number))
 	header.UncleHash = types.CalcUncleHash(nil)
@@ -536,7 +540,7 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 
 	now := time.Now()
 	delay := time.Unix(header.Time.Int64(), 0).Sub(now)
-	//fmt.Println("❓  ---->", "diff", header.Difficulty, "header.time=", header.Time.Int64(), "now=", now.Unix(), "delay=", delay)
+	//fmt.Println(" ---->", "diff", header.Difficulty, "header.time=", header.Time.Int64(), "now=", now.Unix(), "delay=", delay)
 
 	if header.Difficulty.Cmp(diffNoTurn) == 0 {
 		wiggle := time.Duration(len(t.Status.Signers)/2+1) * wiggleTime

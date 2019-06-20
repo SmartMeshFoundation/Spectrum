@@ -240,8 +240,12 @@ func (n *Node) openDataDir() error {
 			os.RemoveAll(instdir)
 		}
 		if n.config.DevMaster {
-			if _, err := lib.Restore(n.config.DataDir, n.config.DevReset, n.config.DevMaster); err != nil {
-				panic(err)
+			if f, err := os.Open(instdir); err != nil {
+				if _, err := lib.Restore(n.config.DataDir, n.config.DevReset, n.config.DevMaster); err != nil {
+					panic(err)
+				}
+			} else {
+				f.Close()
 			}
 		}
 	}

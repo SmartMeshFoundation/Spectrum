@@ -1,5 +1,7 @@
 pragma solidity ^0.5.3;
 
+//import "github.com/SmartMeshFoundation/Spectrum/contracts/statute/src/owned.sol"; // for remix
+
 import "./owned.sol";
 
 // Address and nodeid mapping
@@ -13,7 +15,7 @@ contract Anmap is Owned {
     function bind(address nodePub, uint8 v, bytes32 r, bytes32 s) public {
 
         bytes32 hash = keccak256(abi.encodePacked(msg.sender));
-        address signer = ecrecover(hash,v,r,s);
+        address signer = ecrecover(hash, v, r, s);
 
         require(nodePub == signer);
         //require(anmap[msg.sender] == address(0));
@@ -28,18 +30,18 @@ contract Anmap is Owned {
 
     function unbindBySig(address nodePub, uint8 v, bytes32 r, bytes32 s) public {
         bytes32 hash = keccak256(abi.encodePacked(msg.sender));
-        address signer = ecrecover(hash,v,r,s);
+        address signer = ecrecover(hash, v, r, s);
         require(nodePub == signer);
         address addr = namap[signer];
         require(addr != address(0));
         delete namap[signer];
         if (anmap[addr].length < 2) {
             delete anmap[addr];
-        }else{
-            for (uint i=0;i<anmap[addr].length;i++) {
-                if (anmap[addr][i] == signer ){
-                    for ( uint j = i;j<anmap[addr].length-1;j++ ){
-                        anmap[addr][j] = anmap[addr][j+1];
+        } else {
+            for (uint i = 0; i < anmap[addr].length; i++) {
+                if (anmap[addr][i] == signer) {
+                    for (uint j = i; j < anmap[addr].length - 1; j++) {
+                        anmap[addr][j] = anmap[addr][j + 1];
                     }
                     anmap[addr].length -= 1;
                     break;
@@ -48,12 +50,12 @@ contract Anmap is Owned {
         }
     }
 
-    function bindInfo(address addr) view public returns(address from, address[] memory nids) {
+    function bindInfo(address addr) view public returns (address from, address[] memory nids) {
         from = namap[addr];
         if (from == address(0)) {
             from = addr;
             nids = anmap[addr];
-        }else{
+        } else {
             nids = new address[](1);
             nids[0] = addr;
         }

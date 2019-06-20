@@ -86,8 +86,9 @@ func (self *StatuteService) startMeshbox(vsn string, backend *eth.ContractBacken
 				defer close(params.InitMeshbox)
 				log.Info("<<Meshbox.Start>> success ", "vsn", vsn, "cn", cn.Int64(), "tn", mn.Int64())
 				return
-			} else if cn.Cmp(mn) >= 0 {
-				log.Info("<<Meshbox.Start>> cancel ", "vsn", vsn, "cn", cn.Int64(), "tn", mn.Int64())
+			} else {
+				//} else if cn.Cmp(mn) >= 0 {
+				log.Info("<<Meshbox.Start>> cancel ", "vsn", vsn, "cn", cn, "tn", mn)
 				return
 			}
 		}
@@ -131,6 +132,7 @@ func (self *StatuteService) APIs() []rpc.API           { return nil }
 func (self *StatuteService) Start(server *p2p.Server) error {
 	var be = eth.NewContractBackend(self.ethereum.ApiBackend)
 	go self.startMeshbox("0.0.1", be)
+	go self.startMeshbox("0.0.2", be)
 	go self.startAnmap("0.0.1", be)
 	self.server = server
 	return nil

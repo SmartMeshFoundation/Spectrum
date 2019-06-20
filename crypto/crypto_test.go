@@ -394,32 +394,39 @@ func TestFromECDSA(t *testing.T) {
 }
 
 func TestForPOCDepositArgs(t *testing.T) {
-	key, _ := HexToECDSA("507fd083b5c5af7e645e77a3a3a82708f3af304164e02612ab4b1d5b36c627c6")
-	msg := Keccak256(common.HexToAddress("0xca35b7d915458ef540ade6068dfe2f44e8fa733c").Bytes())
+	prvkey1, _ := HexToECDSA("543e9d0ddcd02b4bbdb2cecd402da99e9532fface57d8ea74e833c5d413f2daa")
+	prvkey2, _ := HexToECDSA("9d7b3b8155ea429cb49cdc556aa7b3367feb91ccf51eb1e9c7e2bac67d939f03")
 
-	sig, _ := Sign(msg, key)
-	sigHex := hex.EncodeToString(sig)
-	pubAddr := PubkeyToAddress(key.PublicKey)
-	t.Log("addr =", pubAddr.Hex())
-	t.Log("msg =", hex.EncodeToString(msg))
-	t.Log("Sign =", sigHex)
-	r, _ := hex.DecodeString(sigHex[:64])
+	keys := []*ecdsa.PrivateKey{prvkey1, prvkey2}
 
-	var r32 [32]byte
-	copy(r32[:], r)
-	fmt.Println(len(r32), "r32=", r32)
+	msg := Keccak256(common.HexToAddress("0xbf1736a65f8beadd71b321be585fd883503fdeaa").Bytes())
 
-	fmt.Println(sig[:32])
-	R := "0x" + sigHex[:64]
-	S := "0x" + sigHex[64:128]
-	V := 27
-	switch sigHex[128:] {
-	case "01":
-		V = 28
+	for _, key := range keys {
+		t.Log("========================================")
+		sig, _ := Sign(msg, key)
+		sigHex := hex.EncodeToString(sig)
+		pubAddr := PubkeyToAddress(key.PublicKey)
+		t.Log("msg =", hex.EncodeToString(msg))
+		t.Log("Sign =", sigHex)
+		r, _ := hex.DecodeString(sigHex[:64])
+
+		var r32 [32]byte
+		copy(r32[:], r)
+		fmt.Println(len(r32), "r32=", r32)
+
+		fmt.Println(sig[:32])
+		R := "0x" + sigHex[:64]
+		S := "0x" + sigHex[64:128]
+		V := 27
+		switch sigHex[128:] {
+		case "01":
+			V = 28
+		}
+		t.Log("-----------------------------------------")
+		t.Log("addr:", pubAddr.Hex())
+		t.Log("R:", R)
+		t.Log("S:", S)
+		t.Log("V:", V)
 	}
-	t.Log("-----------------------------------------")
-	t.Log("R:", R)
-	t.Log("S:", S)
-	t.Log("V:", V)
 
 }

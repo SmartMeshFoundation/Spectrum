@@ -287,7 +287,17 @@ func IsSIP005Block(num *big.Int) bool {
 }
 
 func IsReadyMeshbox(num *big.Int) bool {
-	n := MainnetChainConfig.Meshbox001Block
+	n := MainnetChainConfig.Meshbox002Block
+	if IsTestnet() {
+		n = TestnetChainConfig.Meshbox002Block
+	} else if IsDevnet() {
+		n = DevnetChainConfig.Meshbox002Block
+	}
+	if n != nil && n.Cmp(big.NewInt(0)) > 0 && n.Cmp(num) <= 0 {
+		return true
+	}
+
+	n = MainnetChainConfig.Meshbox001Block
 	if IsTestnet() {
 		n = TestnetChainConfig.Meshbox001Block
 	} else if IsDevnet() {
@@ -478,10 +488,13 @@ func MeshboxExistAddress(addr common.Address) bool {
 		if success.Success && success.Entity.(int64) > 0 {
 			return true
 		}
+	default:
+		return false
 	}
 	return false
 }
 
+/*
 func GetVRFByHash(hash common.Hash) ([]byte, error) {
 	rtn := make(chan MBoxSuccess)
 	m := Mbox{
@@ -499,7 +512,7 @@ func GetVRFByHash(hash common.Hash) ([]byte, error) {
 		return success.Entity.([]byte), nil
 	}
 	return nil, success.Entity.(error)
-}
+}*/
 
 func SetChiefContractCode(addr common.Address, code []byte) {
 	chiefContractCodeCache.Store(addr, code)

@@ -386,3 +386,14 @@ func TestBlockReceiptStorage(t *testing.T) {
 		t.Fatalf("deleted receipts returned: %v", rs)
 	}
 }
+
+// Tests that canonical numbers can be mapped to hashes and retrieved.
+func TestCanonicalMappingStorageDevnet(t *testing.T) {
+	dbdir := "/Users/liangc/Library/Spectrum/devnet/smc/chaindata"
+	db, _ := ethdb.NewLDBDatabase(dbdir, 10, 10)
+	for i := 0; i < 100; i++ {
+		h := GetCanonicalHash(db, uint64(i))
+		t.Log(i, h.Hex())
+	}
+
+}

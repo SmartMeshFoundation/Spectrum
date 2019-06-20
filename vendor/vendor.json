@@ -59,14 +59,14 @@
 		{
 			"checksumSHA1": "9/twRX9Zn9lONdxX582YRLx27no=",
 			"path": "github.com/cc14514/smc-devnet/lib",
-			"revision": "b5d25e3941ced95d210a40d5ad928c3e4228b526",
-			"revisionTime": "2019-06-11T07:35:47Z"
+			"revision": "7372145bccdd025edad9427d29a4003134b4d70c",
+			"revisionTime": "2019-06-18T08:23:37Z"
 		},
 		{
-			"checksumSHA1": "bapY/Kgis4/q5YQFvIRSVQjs2zU=",
+			"checksumSHA1": "0YZkzo8KilLWPFOmBuxSMNfNBFA=",
 			"path": "github.com/cc14514/smc-devnet/statics/statik",
-			"revision": "b5d25e3941ced95d210a40d5ad928c3e4228b526",
-			"revisionTime": "2019-06-11T07:35:47Z"
+			"revision": "7372145bccdd025edad9427d29a4003134b4d70c",
+			"revisionTime": "2019-06-18T08:23:37Z"
 		},
 		{
 			"checksumSHA1": "cDMtzKmdTx4CcIpP4broa+16X9g=",
@@ -122,7 +122,6 @@
 			"revision": "23def4e6c14b4da8ac2ed8007337bc5eb5007998",
 			"revisionTime": "2016-01-25T20:49:56Z"
 		},
-
 		{
 			"checksumSHA1": "CGj8VcI/CpzxaNqlqpEVM7qElD4=",
 			"path": "github.com/golang/protobuf/proto",
