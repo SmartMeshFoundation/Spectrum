@@ -526,9 +526,31 @@ func GetChiefContractCode(addr common.Address) ([]byte, error) {
 	return val.([]byte), nil
 }
 
-func IsChiefAddress(addr common.Address) bool {
-	return isChiefAddress(chiefAddressList(), addr)
+var chiefCalledMap = map[string]string{
+	TestnetChainConfig.Chief100Address.Hex():  TestnetChainConfig.ChiefBaseAddress.Hex(),
+	TestnetChainConfig.ChiefBaseAddress.Hex(): TestnetChainConfig.PocAddress.Hex(),
+
+	MainnetChainConfig.Chief100Address.Hex():  MainnetChainConfig.ChiefBaseAddress.Hex(),
+	MainnetChainConfig.ChiefBaseAddress.Hex(): MainnetChainConfig.PocAddress.Hex(),
+
+	DevnetChainConfig.Chief100Address.Hex():  DevnetChainConfig.ChiefBaseAddress.Hex(),
+	DevnetChainConfig.ChiefBaseAddress.Hex(): DevnetChainConfig.PocAddress.Hex(),
 }
+
+func IsChiefCalled(from, to common.Address) (yes bool) {
+	if t, ok := chiefCalledMap[from.Hex()]; ok && t == to.Hex() {
+		yes = true
+	}
+	//fmt.Println("params.IsChiefCalled", from.Hex(), "->", to.Hex(), yes)
+	return
+}
+
+func IsChiefAddress(addr common.Address) (yes bool) {
+	yes = isChiefAddress(chiefAddressList(), addr)
+	//t := stack.Trace()
+	return
+}
+
 func isChiefAddress(list ChiefInfoList, addr common.Address) bool {
 	if addr == common.HexToAddress("0x") {
 		return false

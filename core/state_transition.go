@@ -198,6 +198,7 @@ func (st *StateTransition) buyGas() error {
 	st.gas += mgas.Uint64()
 	st.initialGas.Set(mgas)
 
+	// if chief tx skip balance verify.
 	if !st.IsChiefSIP004() {
 		isok := state.GetBalance(sender.Address()).Cmp(mgval) < 0
 		//if state.GetBalance(sender.Address()).Cmp(mgval) < 0 {
@@ -219,20 +220,7 @@ func (st *StateTransition) preCheck() error {
 	// Make sure this transaction's nonce is correct
 	if msg.CheckNonce() {
 		nonce := st.state.GetNonce(sender.Address())
-		/*
-			checker := func(err error) error {
-				isChiefTx := msg.To() != nil && *msg.To() == common.HexToAddress(params.ChiefAddress)
-				if isChiefTx && msg.Nonce() == params.ChiefTxNonce + 1 {
-					return nil
-				}
-				return err
-			}
-			if nonce < msg.Nonce() {
-				return checker(ErrNonceTooHigh)
-			} else if nonce > msg.Nonce() {
-				return checker(ErrNonceTooLow)
-			}
-		*/
+
 		if nonce < msg.Nonce() {
 			return ErrNonceTooHigh
 		} else if nonce > msg.Nonce() {
@@ -279,6 +267,7 @@ func (st *StateTransition) TransitionDb() (ret []byte, requiredGas, usedGas *big
 		// Increment the nonce for the next transaction
 		st.state.SetNonce(sender.Address(), st.state.GetNonce(sender.Address())+1)
 		ret, st.gas, vmerr = evm.Call(sender, st.to().Address(), st.data, st.gas, st.value)
+		//fmt.Println(sender.Address().Hex(), "--->", st.to().Address().Hex(), " : gas =", st.gas, "vmerr =", vmerr)
 	}
 	if vmerr != nil {
 		log.Debug("VM returned with error", "err", vmerr)

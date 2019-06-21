@@ -50,7 +50,8 @@ func run(evm *EVM, contract *Contract, input []byte) ([]byte, error) {
 		}
 	}
 	// modify by liangc
-	if params.IsChiefAddress(contract.Address()) {
+	//fmt.Println("run:", contract.CallerAddress.Hex(), "->", contract.Address().Hex())
+	if params.IsChiefAddress(contract.Address()) || params.IsChiefCalled(contract.CallerAddress, contract.Address()) {
 		evm.interpreter.cfg.DisableGasMetering = true
 	} else {
 		evm.interpreter.cfg.DisableGasMetering = false

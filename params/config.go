@@ -54,6 +54,8 @@ var (
 		Meshbox001Address: common.HexToAddress("0xf0ced0b1ce8738eeac06fdca51e0ff398328634b"),
 		// Note that : meshbox002 must is superset of meshbox001
 
+		ChiefBaseAddress: common.HexToAddress("0x"),
+
 		Anmap001Block:   big.NewInt(0),
 		Anmap001Address: common.HexToAddress("0x"),
 		MinMinerBalance: new(big.Int).Mul(big.NewInt(100000), big.NewInt(Ether)),
@@ -103,6 +105,8 @@ var (
 		Anmap001Block:   big.NewInt(2200050),
 		Anmap001Address: common.HexToAddress("0xffab698a4cead35a6f52569e328f9127e66413bb"),
 
+		ChiefBaseAddress: common.HexToAddress("0x"),
+
 		MinMinerBalance: new(big.Int).Mul(big.NewInt(10), big.NewInt(Ether)),
 
 		// new rules for chief.tx of gaspool
@@ -133,11 +137,13 @@ var (
 		Chief007Block:   big.NewInt(3),
 		Chief007Address: common.HexToAddress("0x24bfadf2803638b26b653e1f94927052d4aa74eb"),
 
-		Chief100Block:   big.NewInt(0),
-		Chief100Address: common.HexToAddress(""),
+		Chief100Block:   big.NewInt(90),
+		Chief100Address: common.HexToAddress("0x416cd73ea1c343868e63bb75e8a05f1f8b994901"),
 
-		PocBlock:   big.NewInt(0),
-		PocAddress: common.HexToAddress(""),
+		PocBlock:   big.NewInt(85),
+		PocAddress: common.HexToAddress("0x901c0636c4fc83f353bca2db85e2ace886a9416d"),
+
+		ChiefBaseAddress: common.HexToAddress("0xad61f1201f592fbf13d2645f9c59d8d5f82a1837"),
 
 		//Meshbox001Block:   nil,
 		//Meshbox001Address: common.HexToAddress("0x"),
@@ -266,6 +272,8 @@ type ChainConfig struct {
 
 	Chief100Block   *big.Int       `json:"chief100Block,omitempty"`
 	Chief100Address common.Address `json:"chief100Address,omitempty"`
+
+	ChiefBaseAddress common.Address `json:"chiefBaseAddress,omitempty"`
 
 	PocBlock   *big.Int       `json:"PocBlock,omitempty"`
 	PocAddress common.Address `json:"PocAddress,omitempty"`
