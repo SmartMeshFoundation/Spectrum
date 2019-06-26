@@ -20,6 +20,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"github.com/SmartMeshFoundation/Spectrum/contracts/chief"
 	"github.com/SmartMeshFoundation/Spectrum/contracts/statute"
 	"io"
 	"os"
@@ -29,7 +30,6 @@ import (
 	"gopkg.in/urfave/cli.v1"
 
 	"github.com/SmartMeshFoundation/Spectrum/cmd/utils"
-	"github.com/SmartMeshFoundation/Spectrum/contracts/chief"
 	"github.com/SmartMeshFoundation/Spectrum/dashboard"
 	"github.com/SmartMeshFoundation/Spectrum/eth"
 	"github.com/SmartMeshFoundation/Spectrum/node"
@@ -155,18 +155,19 @@ func makeFullNode(ctx *cli.Context) *node.Node {
 	stack, cfg := makeConfigNode(ctx)
 
 	utils.RegisterEthService(stack, &cfg.Eth)
-	// add by liangc : add chief service
-	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-		return chief.NewTribeService(ctx)
-	}); err != nil {
-		fmt.Println("error", err)
-	}
 
 	// add by liangc : add meshbox service
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
 		return statute.NewStatuteService(ctx)
 	}); err != nil {
 		utils.Fatalf("Meshbox Service Start Fail : %v", err)
+	}
+
+	// add by liangc : add chief service
+	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
+		return chief.NewTribeService(ctx)
+	}); err != nil {
+		fmt.Println("error", err)
 	}
 
 	if ctx.GlobalBool(utils.DashboardEnabledFlag.Name) {

@@ -163,10 +163,9 @@ func (self *TribeService) loop() {
 				self.filterVolunteer(mbox)
 			case "GetVolunteers":
 				self.getVolunteers(mbox)
-				/*			case "GetVRF": // for 1.0.0 generate vrf num and proof
-							self.getVRF(mbox)*/
-			case "GetMiners": // for 1.0.0 vrf selected
-				self.getMiners(mbox)
+			case "VerifyMiner": // for 1.0.0 vrf selected
+				self.VerifyMiner(mbox)
+
 			}
 		}
 	}
@@ -177,63 +176,70 @@ func (self *TribeService) Stop() error {
 	return nil
 }
 
-func (self *TribeService) getVolunteers(mbox params.Mbox) {
+func (self *TribeService) _getVolunteers(blockNumber *big.Int, blockHash common.Hash) (params.ChiefVolunteers, error) {
 	var (
-		blockNumber *big.Int
-		blockHash   *common.Hash
-		success     = params.MBoxSuccess{Success: true}
+		empty     = params.ChiefVolunteers{}
+		chiefInfo = params.GetChiefInfo(blockNumber)
 	)
-	// hash and number can not nil
-	if h, ok := mbox.Params["hash"]; ok {
-		bh := h.(common.Hash)
-		blockHash = &bh
-	}
-	if n, ok := mbox.Params["number"]; ok {
-		blockNumber = n.(*big.Int)
-	}
-
-	chiefInfo := params.GetChiefInfo(blockNumber)
 	if chiefInfo == nil {
 		log.Debug("=>TribeService.getVolunteers", "empty_chief", chiefInfo.Version, "blockNumber", blockNumber, "blockHash", blockHash.Hex())
-		success.Success = false
-		success.Entity = errors.New("can_not_empty_chiefInfo")
+		return empty, errors.New("can_not_empty_chiefInfo")
 	} else {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 		defer cancel()
 		opts := new(bind.CallOptsWithNumber)
 		opts.Context = ctx
-		opts.Hash = blockHash
+		opts.Hash = &blockHash
 		switch chiefInfo.Version {
 		case "0.0.6":
 			v, err := self.tribeChief_0_0_6.GetVolunteers(opts)
 			if err != nil {
 				log.Error("=>TribeService.getVolunteers", "err", err, "blockNumber", blockNumber, "blockHash", blockHash.Hex())
-				success.Success = false
-				success.Entity = err
+				return empty, err
 			}
-			success.Entity = params.ChiefVolunteers{v.VolunteerList, v.WeightList, v.Length}
+			return params.ChiefVolunteers{v.VolunteerList, v.WeightList, v.Length}, nil
 		case "0.0.7":
 			v, err := self.tribeChief_0_0_7.GetVolunteers(opts)
 			if err != nil {
 				log.Error("=>TribeService.getVolunteers", "err", err, "blockNumber", blockNumber, "blockHash", blockHash.Hex())
-				success.Success = false
-				success.Entity = err
+				return empty, err
 			}
-			success.Entity = params.ChiefVolunteers{v.VolunteerList, v.WeightList, v.Length}
+			return params.ChiefVolunteers{v.VolunteerList, v.WeightList, v.Length}, nil
 		case "1.0.0":
-			//TODO
+			// TODO
 			v, err := self.tribeChief_1_0_0.GetVolunteers(opts)
 			if err != nil {
 				log.Error("=>TribeService.getVolunteers", "err", err, "blockNumber", blockNumber, "blockHash", blockHash.Hex())
-				success.Success = false
-				success.Entity = err
+				return empty, err
 			}
-			success.Entity = params.ChiefVolunteers{v.VolunteerList, v.WeightList, v.Length}
+			return params.ChiefVolunteers{v.VolunteerList, v.WeightList, v.Length}, nil
 		default:
 			log.Error("=>TribeService.getVolunteers", "fail_vsn", chiefInfo.Version, "blockNumber", blockNumber, "blockHash", blockHash.Hex())
-			success.Success = false
-			success.Entity = errors.New("fail_vsn_now")
+			return empty, errors.New("fail_vsn_now")
 		}
+	}
+}
+
+func (self *TribeService) getVolunteers(mbox params.Mbox) {
+	var (
+		blockNumber *big.Int
+		blockHash   common.Hash
+		success     = params.MBoxSuccess{Success: true}
+	)
+	// hash and number can not nil
+	if h, ok := mbox.Params["hash"]; ok {
+		bh := h.(common.Hash)
+		blockHash = bh
+	}
+	if n, ok := mbox.Params["number"]; ok {
+		blockNumber = n.(*big.Int)
+	}
+	entity, err := self._getVolunteers(blockNumber, blockHash)
+	if err == nil {
+		success.Entity = entity
+	} else {
+		success.Success = false
+		success.Entity = err
 	}
 	mbox.Rtn <- success
 }
@@ -552,25 +558,20 @@ func (self *TribeService) getChiefStatus(blockNumber *big.Int, blockHash *common
 				TotalVolunteer: chiefStatus.TotalVolunteer,
 			}, nil
 		case "1.0.0":
-			fmt.Println("TODO =:> HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH", blockNumber)
 			chiefStatus, err := self.tribeChief_1_0_0.GetStatus(opts)
 			if err != nil {
-				fmt.Println("111", err)
 				return params.ChiefStatus{}, err
 			}
 			epoch, err := self.tribeChief_1_0_0.GetEpoch(opts)
 			if err != nil {
-				fmt.Println("222", err)
 				return params.ChiefStatus{}, err
 			}
 			signerLimit, err := self.tribeChief_1_0_0.GetSignerLimit(opts)
 			if err != nil {
-				fmt.Println("333", err)
 				return params.ChiefStatus{}, err
 			}
 			volunteerLimit, err := self.tribeChief_1_0_0.GetVolunteerLimit(opts)
 			if err != nil {
-				fmt.Println("444", err)
 				return params.ChiefStatus{}, err
 			}
 			return params.ChiefStatus{
@@ -718,10 +719,25 @@ func (self *TribeService) fetchVolunteer_0_0_6__0_0_7(client *ethclient.Client, 
 
 //0.0.6 : volunteerList is nil on vsn0.0.6
 func (self *TribeService) fetchVolunteer(client *ethclient.Client, blockNumber *big.Int, vsn string) common.Address {
-	ch := self.ethereum.BlockChain().CurrentHeader()
-	hash := ch.Hash()
-	TD := self.ethereum.BlockChain().GetTd(hash, ch.Number.Uint64())
-	min := new(big.Int).Sub(TD, min_td)
+	var (
+		ch   = self.ethereum.BlockChain().CurrentHeader()
+		hash = ch.Hash()
+		TD   = self.ethereum.BlockChain().GetTd(hash, ch.Number.Uint64())
+		min  = new(big.Int).Sub(TD, min_td)
+	)
+
+	switch vsn {
+	case "1.0.0":
+		nl := self.minerList(ch.Number, ch.Hash())
+		vrfnp, err := crypto.SimpleVRF2Bytes(self.server.PrivateKey, hash.Bytes())
+		if err != nil {
+			panic(err)
+		}
+		v := self.takeMiner(nl, hash, vrfnp[:32])
+		log.Info("fetchVolunteer ->", "num", ch.Number, "nl", len(nl), "v", v.Hex())
+		return v
+	}
+
 	vs := self.ethereum.FetchVolunteers(min, func(pk *ecdsa.PublicKey) bool {
 		log.Debug("fetchVolunteer_callback", "vsn", vsn)
 		if vsn == "0.0.6" || vsn == "0.0.7" {
@@ -729,89 +745,46 @@ func (self *TribeService) fetchVolunteer(client *ethclient.Client, blockNumber *
 		}
 		return true
 	})
+
 	if len(vs) > 0 {
 		switch vsn {
 		case "0.0.2", "0.0.3", "0.0.4", "0.0.5":
 			return self.fetchVolunteer_0_0_2__0_0_5(client, blockNumber, vsn, vs, ch)
 		case "0.0.6", "0.0.7":
 			return self.fetchVolunteer_0_0_6__0_0_7(client, blockNumber, vsn, vs, ch)
-		case "1.0.0":
-			nl := self.minerList(ch.Number, ch.Hash())
-			if nl != nil && len(nl) > 0 {
-				vrfnp, err := crypto.SimpleVRF2Bytes(self.server.PrivateKey, hash.Bytes())
-				if err != nil {
-					panic(err)
-				}
-				i := new(big.Int).SetBytes(vrfnp[:32])
-				idx := new(big.Int).Mod(i, big.NewInt(int64(len(nl))))
-				log.Info("fetchVolunteer-1.0.0", "len(nl)", len(nl), "idx", idx.String(), "vrfn", i)
-				return nl[idx.Int64()]
-			}
 		}
 	}
+
 	return common.Address{}
 }
 
-/*
-func (self *TribeService) _getVRF(hash common.Hash) ([]byte, error) {
-	if i, ok := self.vrfcache.Get(hash.Hex()); ok {
-		log.Info("[TribeService.GetVRF]", "fromCache", true, "vrfnp", i.([]byte)[:32])
-		return i.([]byte), nil
-	} else {
-		vrfnp, err := crypto.SimpleVRF2Bytes(self.server.PrivateKey, hash.Bytes())
-		if err != nil {
-			return nil, err
-		} else {
-			self.vrfcache.Add(hash.Hex(), vrfnp)
-			log.Info("[TribeService.GetVRF]", "fromCache", false, "vrfnp", vrfnp[:32])
-			return vrfnp, nil
-		}
-	}
-}
-
-func (self *TribeService) getVRF(mbox params.Mbox) {
+func (self *TribeService) VerifyMiner(mbox params.Mbox) {
 	var (
-		blockHash *common.Hash = nil
+		blockHash common.Hash
+		addr      common.Address
+		vrfn      []byte
 	)
 	// hash and number can not nil
 	if h, ok := mbox.Params["hash"]; ok {
 		bh := h.(common.Hash)
-		blockHash = &bh
+		blockHash = bh
+	}
+	if a, ok := mbox.Params["addr"]; ok {
+		addr = a.(common.Address)
+	}
+	if a, ok := mbox.Params["vrfn"]; ok {
+		vrfn = a.([]byte)
 	}
 	success := params.MBoxSuccess{Success: true}
-	vrfnp, err := self._getVRF(*blockHash)
-	if err == nil {
-		success.Entity = vrfnp
-	} else {
-		success.Success = false
-		success.Entity = err
-	}
-	mbox.Rtn <- success
-}*/
-
-func (self *TribeService) getMiners(mbox params.Mbox) {
-	var (
-		blockHash *common.Hash = nil
-		num       *big.Int
-	)
-	// hash and number can not nil
-	if h, ok := mbox.Params["hash"]; ok {
-		bh := h.(common.Hash)
-		blockHash = &bh
-	}
-	if n, ok := mbox.Params["number"]; ok {
-		num = n.(*big.Int)
-	}
-	success := params.MBoxSuccess{Success: true}
-	success.Entity = self.minerList(num, *blockHash)
-	log.Info("getMiners", "num", num, "hash", blockHash.Hex(), "miners", success.Entity)
+	success.Entity = self.verifyMiner(addr, blockHash, vrfn)
+	log.Debug("VerifyMiner", "hash", blockHash.Hex(), "miners", success.Entity)
 	mbox.Rtn <- success
 }
 
 // poc normalList and meshboxList
 func (self *TribeService) minerList(num *big.Int, hash common.Hash) []common.Address {
 	var (
-		ss   statute.StatuteService
+		ss   *statute.StatuteService
 		nl   = make([]common.Address, 0)
 		opts = new(bind.CallOptsWithNumber)
 	)
@@ -840,4 +813,66 @@ func (self *TribeService) minerList(num *big.Int, hash common.Hash) []common.Add
 		nl = append(nl, mbs...)
 	}
 	return nl
+}
+
+func (self *TribeService) takeMiner(nl []common.Address, hash common.Hash, _vrfn []byte) common.Address {
+	if nl != nil && len(nl) > 0 {
+		/*		vrfnp, err := crypto.SimpleVRF2Bytes(self.server.PrivateKey, hash.Bytes())
+				if err != nil {
+					panic(err)
+				}*/
+		var (
+			block = self.ethereum.BlockChain().GetBlockByHash(hash)
+			vrfn  = new(big.Int).SetBytes(_vrfn[:])
+			fn    func(_vrfn *big.Int) common.Address
+		)
+		if block == nil {
+			panic(errors.New("get block by hash fail"))
+		}
+		fn = func(_vrfn *big.Int) common.Address {
+			m := big.NewInt(int64(len(nl)))
+			x := new(big.Int).Sub(_vrfn, vrfn)
+			if x.Cmp(m) >= 0 {
+				return common.Address{}
+			}
+			idx := new(big.Int).Mod(_vrfn, m)
+			addrLog := make([]string, 0)
+			for _, n := range nl {
+				addrLog = append(addrLog[:], n.Hex())
+			}
+			log.Info("fetchVolunteer-1.0.0-volunteers", "num", block.Number(), "addrList", addrLog)
+			// skip if `n` in volunteer list
+			v := nl[idx.Int64()]
+			vl, err := self._getVolunteers(block.Number(), block.Hash())
+			if err != nil {
+				log.Warn("tribeservice_getVolunteers_fail", "err", err)
+			} else if vl.Length != nil && vl.Length.Int64() > 0 {
+				for _, vol := range vl.VolunteerList {
+					if vol == v {
+						return fn(new(big.Int).Add(_vrfn, big.NewInt(1)))
+					}
+				}
+			}
+			log.Info("fetchVolunteer-1.0.0-final", "num", block.Number(), "idx", idx.String(), "addr", v.Hex(), "vrfn", _vrfn)
+			return v
+		}
+		return fn(vrfn)
+	}
+	return common.Address{}
+}
+
+func (self *TribeService) verifyMiner(vol common.Address, hash common.Hash, vrfn []byte) bool {
+	block := self.ethereum.BlockChain().GetBlockByHash(hash)
+	ci := params.GetChiefInfo(block.Number())
+	switch ci.Version {
+	case "1.0.0":
+		m := self.takeMiner(self.minerList(block.Number(), block.Hash()), hash, vrfn)
+		log.Info("<<TribeService.verifyMiner>>", "result", vol == m, "c", vol.Hex(), "t", m.Hex())
+		if vol == m {
+			return true
+		}
+	default:
+		return true
+	}
+	return false
 }

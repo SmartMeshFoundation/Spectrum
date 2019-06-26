@@ -433,7 +433,7 @@ func (self *TribeStatus) Update(currentNumber *big.Int, hash common.Hash) {
 
 func verifyVrfNum(header *types.Header, signer common.Address) (err error) {
 	var (
-		n   = header.Extra[:extraVanityFn(header.Number)]
+		np  = header.Extra[:extraVanityFn(header.Number)]
 		sig = header.Extra[len(header.Extra)-extraSeal:]
 	)
 	pubbuf, err := ecrecoverPubkey(header, sig)
@@ -442,8 +442,8 @@ func verifyVrfNum(header *types.Header, signer common.Address) (err error) {
 	}
 	x, y := elliptic.Unmarshal(crypto.S256(), pubbuf)
 	pubkey := ecdsa.PublicKey{crypto.S256(), x, y}
-	err = crypto.SimpleVRFVerify(&pubkey, header.ParentHash.Bytes(), n)
-	log.Debug("[verifyVrfNum]", "err", err, "num", header.Number, "vrfn", n, "parent", header.ParentHash.Bytes())
+	err = crypto.SimpleVRFVerify(&pubkey, header.ParentHash.Bytes(), np)
+	log.Debug("[verifyVrfNum]", "err", err, "num", header.Number, "vrfn", new(big.Int).SetBytes(np[:32]), "parent", header.ParentHash.Bytes())
 	return
 }
 
@@ -634,7 +634,11 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 				if params.IsSIP005Block(header.Number) {
 					// TODO SIP005 check volunteer by vrfnp
 					volunteerHex := common.Bytes2Hex(tx.Data()[4:])
-					log.Warn("⚠️ TODO SIP005 check volunteer by vrfnp", "arg1", volunteerHex)
+					volunteer := common.HexToAddress(volunteerHex)
+					vrfn := header.Extra[:32]
+					if !params.VerifyMiner(header.ParentHash, volunteer, vrfn) {
+						return errors.New("verify_volunteer_fail")
+					}
 				} else {
 					volunteerHex := common.Bytes2Hex(tx.Data()[4:])
 					volunteer := common.HexToAddress(volunteerHex)

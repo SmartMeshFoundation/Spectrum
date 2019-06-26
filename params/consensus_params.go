@@ -644,6 +644,27 @@ func SendToMsgBox(method string) chan MBoxSuccess {
 	return rtn
 }
 
+func VerifyMiner(hash common.Hash, addr common.Address, vrfn []byte) bool {
+	rtn := make(chan MBoxSuccess)
+	m := Mbox{
+		Method: "VerifyMiner",
+		Rtn:    rtn,
+	}
+	if hash == common.HexToHash("0x") {
+		panic(errors.New("hash can not nil"))
+	}
+	if vrfn == nil {
+		panic(errors.New("vrfn can not nil"))
+	}
+	m.Params = map[string]interface{}{"hash": hash, "addr": addr, "vrfn": vrfn}
+	MboxChan <- m
+	success := <-rtn
+	if success.Success {
+		return success.Entity.(bool)
+	}
+	return false
+}
+
 // clone from chief.getStatus return struct
 // for return to tribe by channel
 type ChiefStatus struct {
@@ -678,4 +699,15 @@ func IsTestnet() bool {
 
 func IsDevnet() bool {
 	return os.Getenv("DEVNET") == "1"
+}
+
+func TribePeriod() uint64 {
+	if IsTestnet() && TestnetChainConfig.Tribe.Period > 0 {
+		return TestnetChainConfig.Tribe.Period
+	} else if IsDevnet() && DevnetChainConfig.Tribe.Period > 0 {
+		return DevnetChainConfig.Tribe.Period
+	} else if MainnetChainConfig.Tribe.Period > 0 {
+		return MainnetChainConfig.Tribe.Period
+	}
+	return 14
 }

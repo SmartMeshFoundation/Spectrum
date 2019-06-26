@@ -64,6 +64,7 @@ func (self *StatuteService) startMeshbox(vsn string, backend *eth.ContractBacken
 			log.Warn("ignore_this_err", r)
 		}
 	}()
+	var period = params.TribePeriod()
 	for {
 		var cn = self.ethereum.BlockChain().CurrentBlock().Number()
 		if params.IsReadyMeshbox(cn) {
@@ -84,15 +85,15 @@ func (self *StatuteService) startMeshbox(vsn string, backend *eth.ContractBacken
 					statuteService.meshbox_0_0_2 = contract
 				}
 				defer close(params.InitMeshbox)
-				log.Info("<<Meshbox.Start>> success ", "vsn", vsn, "cn", cn.Int64(), "tn", mn.Int64())
+				log.Info("<<Meshbox.Start>> success ", "period", period, "vsn", vsn, "cn", cn.Int64(), "tn", mn.Int64())
 				return
 			} else {
 				//} else if cn.Cmp(mn) >= 0 {
-				log.Info("<<Meshbox.Start>> cancel ", "vsn", vsn, "cn", cn, "tn", mn)
+				log.Info("<<Meshbox.Start>> cancel ", "period", period, "vsn", vsn, "cn", cn, "tn", mn)
 				return
 			}
 		}
-		<-time.After(14 * time.Second)
+		<-time.After(time.Duration(period) * time.Second)
 	}
 }
 
@@ -102,6 +103,7 @@ func (self *StatuteService) startAnmap(vsn string, backend *eth.ContractBackend)
 			log.Warn("ignore_this_err", r)
 		}
 	}()
+	var period = params.TribePeriod()
 	for {
 		var cn = self.ethereum.BlockChain().CurrentBlock().Number()
 		if params.IsReadyAnmap(cn) {
@@ -116,14 +118,14 @@ func (self *StatuteService) startAnmap(vsn string, backend *eth.ContractBackend)
 					statuteService.anmap_0_0_1 = contract
 				}
 				defer close(params.InitAnmap)
-				log.Info("<<Anmap.Start>> success ", "vsn", vsn, "cn", cn.Int64(), "tn", mn.Int64())
+				log.Info("<<Anmap.Start>> success ", "period", period, "vsn", vsn, "cn", cn.Int64(), "tn", mn.Int64())
 				return
 			} else if cn.Cmp(mn) >= 0 {
-				log.Info("<<Anmap.Start>> cancel ", "vsn", vsn, "cn", cn.Int64(), "tn", mn.Int64())
+				log.Info("<<Anmap.Start>> cancel ", "period", period, "vsn", vsn, "cn", cn.Int64(), "tn", mn.Int64())
 				return
 			}
 		}
-		<-time.After(14 * time.Second)
+		<-time.After(time.Duration(period) * time.Second)
 	}
 }
 

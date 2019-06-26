@@ -134,25 +134,33 @@ var (
 
 		// if skip this vsn please set 0 or nil to block and set common.Address{} to address
 		// 0.0.6 : ready for release
+		// before block 2 gas used : 2631756
+		// after gas used : 2892524
 		Chief007Block:   big.NewInt(3),
 		Chief007Address: common.HexToAddress("0x24bfadf2803638b26b653e1f94927052d4aa74eb"),
 
-		Chief100Block:   big.NewInt(90),
-		Chief100Address: common.HexToAddress("0x416cd73ea1c343868e63bb75e8a05f1f8b994901"),
+		// ############
+		// # DEBUG >>>>
+		// ############
 
-		PocBlock:   big.NewInt(85),
-		PocAddress: common.HexToAddress("0x901c0636c4fc83f353bca2db85e2ace886a9416d"),
-
-		ChiefBaseAddress: common.HexToAddress("0xad61f1201f592fbf13d2645f9c59d8d5f82a1837"),
-
-		//Meshbox001Block:   nil,
-		//Meshbox001Address: common.HexToAddress("0x"),
 		// Note that : meshbox002 must is superset of meshbox001
-		Meshbox002Block:   big.NewInt(9),
-		Meshbox002Address: common.HexToAddress("0x57d2bcd8d702999daf240793919675c90b12a17a"),
+		Meshbox002Block:   big.NewInt(6),
+		Meshbox002Address: common.HexToAddress("0xc4a2d182fe92f0eadffbddea9a0977d5b95b31a5"),
 
-		Anmap001Block:   big.NewInt(9),
-		Anmap001Address: common.HexToAddress("0xc4a2d182fe92f0eadffbddea9a0977d5b95b31a5"),
+		Anmap001Block:   big.NewInt(6),
+		Anmap001Address: common.HexToAddress("0x57d2bcd8d702999daf240793919675c90b12a17a"),
+
+		ChiefBaseAddress: common.HexToAddress("0x7880adce4504fd39645aabb3efb53824d9b0c21b"),
+
+		PocBlock:   big.NewInt(20),
+		PocAddress: common.HexToAddress("0xad61f1201f592fbf13d2645f9c59d8d5f82a1837"),
+
+		Chief100Block:   big.NewInt(22),
+		Chief100Address: common.HexToAddress("0x0f91c3f2e10a0b53d6b3b4d6c7b41ab77c7d0674"),
+
+		// ############
+		// # DEBUG <<<<
+		// ############
 
 		MinMinerBalance: new(big.Int).Mul(big.NewInt(1), big.NewInt(Ether)),
 
