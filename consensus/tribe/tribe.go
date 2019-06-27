@@ -482,8 +482,12 @@ func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error
 func (t *Tribe) Finalize(chain consensus.ChainReader, header *types.Header, state *state.StateDB, txs []*types.Transaction, uncles []*types.Header, receipts []*types.Receipt) (*types.Block, error) {
 	//TODO reward for chief-1.0.0
 	if params.IsDevnet() {
-		//for dev and debug
-		state.AddBalance(header.Coinbase, big.NewInt(9e+18))
+		ci := params.GetChiefInfo(header.Number)
+		if ci != nil && ci.Version == "1.0.0" {
+			//for dev and debug
+			state.AddBalance(header.Coinbase, big.NewInt(9e+18))
+			log.Info("💰 reward", "coinbase", header.Coinbase.Hex(), "amount", "9")
+		}
 	}
 
 	// No block rewards in Tribe, so the state remains as is and uncles are dropped
