@@ -9,16 +9,18 @@ import (
 	"io"
 	"os"
 	"path"
-	"runtime"
 	"strings"
 )
 
 var (
-	UrlMap = map[string]map[string]string{
-		"amd64": {
-			"darwin": "/devnet.tar.gz",
-		},
-	}
+	/*
+		UrlMap = map[string]map[string]string{
+			"amd64": {
+				"darwin": "/devnet.tar.gz",
+			},
+		}*/
+
+	dataUrl = "/devnet.tar.gz"
 
 	ErrorGoarchNotSupport = errors.New("goarch not support")
 	ErrorGoosNotSupport   = errors.New("goos not support")
@@ -37,17 +39,15 @@ func Restore(dir string, reset, masterNode bool) (string, error) {
 }
 
 func restore() (string, error) {
-	var (
-		binUrl string
-	)
+	var binUrl = dataUrl
 
-	if m, ok := UrlMap[runtime.GOARCH]; !ok {
-		return "", ErrorGoarchNotSupport
-	} else if url, ok := m[runtime.GOOS]; !ok {
-		return "", ErrorGoosNotSupport
-	} else {
-		binUrl = url[:]
-	}
+	/*	if m, ok := UrlMap[runtime.GOARCH]; !ok {
+			return "", ErrorGoarchNotSupport
+		} else if url, ok := m[runtime.GOOS]; !ok {
+			return "", ErrorGoosNotSupport
+		} else {
+			binUrl = url[:]
+		}*/
 
 	if strings.LastIndex(binUrl, "tar.gz") != -1 {
 		err := opentargz(dataDir, binUrl)
