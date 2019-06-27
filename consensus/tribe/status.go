@@ -486,6 +486,10 @@ func (self *TribeStatus) ValidateSigner(parentHeader, header *types.Header, sign
 }
 
 func (self *TribeStatus) VerifySignerBalance(state *state.StateDB, addr common.Address, header *types.Header) error {
+	// SIP005 skip this verify
+	if params.IsSIP005Block(header.Number) {
+		return nil
+	}
 	var (
 		pnum, num *big.Int
 		f         common.Address
