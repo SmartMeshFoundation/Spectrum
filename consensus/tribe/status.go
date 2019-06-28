@@ -291,6 +291,7 @@ func (self *TribeStatus) LoadSignersFromChief(hash common.Hash, number *big.Int)
 		score := scores[i]
 		sl = append(sl, &Signer{signer, score.Int64()})
 	}
+	self.Leaders = cs.LeaderList
 	self.TotalVolunteer = cs.TotalVolunteer
 	self.Volunteers = cs.VolunteerList
 	self.Number = cs.Number.Int64()
@@ -477,8 +478,25 @@ func (self *TribeStatus) ValidateSigner(parentHeader, header *types.Header, sign
 		return false
 	}
 
-	_, _, err = self.fetchOnSigners(signer, signers)
-	if err == nil {
+	idx, _, err := self.fetchOnSigners(signer, signers)
+	if params.IsSIP005Block(header.Number) && err == nil {
+		// first
+		idx_m := number % int64(len(signers))
+		if idx_m == idx.Int64() {
+			return true
+		}
+		// second
+		if idx.Int64() == 0 {
+			return true
+		}
+		// other leader
+		for _, leader := range self.Leaders {
+			if signer == leader {
+				return true
+			}
+		}
+
+	} else if err == nil {
 		return true
 	}
 

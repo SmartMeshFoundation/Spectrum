@@ -159,7 +159,8 @@ type History struct {
 
 type TribeStatus struct {
 	Signers        []*Signer        `json:"signers"`
-	Volunteers     []common.Address `json:"volunteers"`     // Discarded on vsn 0.0.6
+	Volunteers     []common.Address `json:"volunteers"` // Discarded on vsn 0.0.6
+	Leaders        []common.Address `json:"leaders"`
 	TotalVolunteer *big.Int         `json:"totalVolunteer"` // add by vsn 0.0.6
 	SignerLevel    string           `json:"signerLevel"`    // None -> Volunteer -> Signer
 	Number         int64            `json:"number"`         // last block.number

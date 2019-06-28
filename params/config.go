@@ -150,8 +150,10 @@ var (
 		Anmap001Block:   big.NewInt(6),
 		Anmap001Address: common.HexToAddress("0x57d2bcd8d702999daf240793919675c90b12a17a"),
 
+		// base block link to Chief100Block
 		ChiefBaseAddress: common.HexToAddress("0x7880adce4504fd39645aabb3efb53824d9b0c21b"),
 
+		// PocBlock must less than Chief100Block
 		PocBlock:   big.NewInt(20),
 		PocAddress: common.HexToAddress("0xad61f1201f592fbf13d2645f9c59d8d5f82a1837"),
 

@@ -51,6 +51,7 @@ type TribeService struct {
 	tribeChief_0_0_7 *chieflib.TribeChief_0_0_7
 	tribeChief_1_0_0 *chieflib.TribeChief_1_0_0
 	poc              *chieflib.POC
+	base             *chieflib.ChiefBase
 	quit             chan int
 	server           *p2p.Server // peers and nodekey ...
 	ethereum         *eth.Ethereum
@@ -126,12 +127,20 @@ func NewTribeService(ctx *node.ServiceContext) (node.Service, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		ts.tribeChief_1_0_0 = contract_1_0_0
 		poc, err := chieflib.NewPOC(v1_0_0.PocAddr, ab)
 		if err != nil {
 			return nil, err
 		}
 		ts.poc = poc
+
+		base, err := chieflib.NewChiefBase(v1_0_0.BaseAddr, ab)
+		if err != nil {
+			return nil, err
+		}
+		ts.base = base
+
 		log.Info("<<TribeService>> chief-1.0.0 and poc init success.")
 	}
 	return ts, nil
@@ -574,7 +583,12 @@ func (self *TribeService) getChiefStatus(blockNumber *big.Int, blockHash *common
 			if err != nil {
 				return params.ChiefStatus{}, err
 			}
+			leaderList, err := self.GetLeaders(blockNumber, blockHash)
+			if err != nil {
+				return params.ChiefStatus{}, err
+			}
 			return params.ChiefStatus{
+				LeaderList:     leaderList,
 				VolunteerList:  nil,
 				SignerList:     chiefStatus.SignerList,
 				ScoreList:      chiefStatus.ScoreList,
@@ -875,4 +889,27 @@ func (self *TribeService) verifyMiner(vol common.Address, hash common.Hash, vrfn
 		return true
 	}
 	return false
+}
+
+func (self *TribeService) GetLeaders(num *big.Int, hash *common.Hash) ([]common.Address, error) {
+	ci := params.GetChiefInfo(num)
+	if ci != nil {
+		switch ci.Version {
+		case "1.0.0":
+			var (
+				leaders = make([]common.Address, 0)
+				opts    = new(bind.CallOptsWithNumber)
+			)
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+			defer cancel()
+			opts.Context = ctx
+			opts.Hash = hash
+			leaders, err := self.base.TakeLeaderList(opts)
+			if err != nil {
+				return nil, err
+			}
+			return leaders, nil
+		}
+	}
+	return nil, errors.New(fmt.Sprintf("not_support_vsn : %s", ci.Version))
 }

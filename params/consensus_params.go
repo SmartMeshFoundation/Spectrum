@@ -15,7 +15,7 @@ import (
 type ChiefInfo struct {
 	StartNumber, PocStartNumber *big.Int // 0 is nil
 	Version                     string
-	Addr, PocAddr               common.Address
+	Addr, PocAddr, BaseAddr     common.Address
 	Abi                         string
 }
 type ChiefInfoList []*ChiefInfo
@@ -33,16 +33,18 @@ func (self *ChiefInfo) String() string {
 }
 
 func newChiefInfo(num *big.Int, vsn string, addr common.Address, abi string) *ChiefInfo {
-	return newChiefInfoWithPoc(num, nil, vsn, addr, common.HexToAddress("0x"), abi)
+	empty := common.HexToAddress("0x")
+	return newChiefInfoWithPocBase(num, nil, vsn, addr, empty, empty, abi)
 }
 
-func newChiefInfoWithPoc(num, pocNum *big.Int, vsn string, addr, pocAddr common.Address, abi string) *ChiefInfo {
+func newChiefInfoWithPocBase(num, pocNum *big.Int, vsn string, addr, pocAddr, baseAddr common.Address, abi string) *ChiefInfo {
 	return &ChiefInfo{
 		StartNumber: num,
 		Version:     vsn,
 		Addr:        addr,
 		Abi:         abi,
 		PocAddr:     pocAddr,
+		BaseAddr:    baseAddr,
 	}
 }
 
@@ -335,17 +337,19 @@ func chiefAddressList() (list ChiefInfoList) {
 			newChiefInfo(TestnetChainConfig.Chief004Block, "0.0.4", TestnetChainConfig.Chief004Address, TribeChief_0_0_4ABI),
 			newChiefInfo(TestnetChainConfig.Chief005Block, "0.0.5", TestnetChainConfig.Chief005Address, TribeChief_0_0_5ABI),
 			newChiefInfo(TestnetChainConfig.Chief006Block, "0.0.6", TestnetChainConfig.Chief006Address, TribeChief_0_0_6ABI),
+			//newChiefInfoWithPocBase(TestnetChainConfig.Chief100Block, TestnetChainConfig.PocBlock, "1.0.0", TestnetChainConfig.Chief100Address, TestnetChainConfig.PocAddress, TestnetChainConfig.ChiefBaseAddress, TribeChief_1_0_0ABI),
 		}
 	} else if IsDevnet() {
 		list = ChiefInfoList{
 			newChiefInfo(DevnetChainConfig.Chief007Block, "0.0.7", DevnetChainConfig.Chief007Address, TribeChief_0_0_7ABI),
-			newChiefInfoWithPoc(DevnetChainConfig.Chief100Block, DevnetChainConfig.PocBlock, "1.0.0", DevnetChainConfig.Chief100Address, DevnetChainConfig.PocAddress, TribeChief_1_0_0ABI),
+			newChiefInfoWithPocBase(DevnetChainConfig.Chief100Block, DevnetChainConfig.PocBlock, "1.0.0", DevnetChainConfig.Chief100Address, DevnetChainConfig.PocAddress, DevnetChainConfig.ChiefBaseAddress, TribeChief_1_0_0ABI),
 		}
 	} else {
 		list = ChiefInfoList{
 			// at same account and block number to deploy this contract can be get the same address
 			newChiefInfo(MainnetChainConfig.Chief005Block, "0.0.5", MainnetChainConfig.Chief005Address, TribeChief_0_0_5ABI),
 			newChiefInfo(MainnetChainConfig.Chief006Block, "0.0.6", MainnetChainConfig.Chief006Address, TribeChief_0_0_6ABI),
+			//newChiefInfoWithPocBase(MainnetChainConfig.Chief100Block, MainnetChainConfig.PocBlock, "1.0.0", MainnetChainConfig.Chief100Address, MainnetChainConfig.PocAddress, MainnetChainConfig.ChiefBaseAddress, TribeChief_1_0_0ABI),
 		}
 	}
 	chiefInfoList = list
@@ -668,6 +672,7 @@ func VerifyMiner(hash common.Hash, addr common.Address, vrfn []byte) bool {
 // clone from chief.getStatus return struct
 // for return to tribe by channel
 type ChiefStatus struct {
+	LeaderList     []common.Address
 	VolunteerList  []common.Address
 	SignerList     []common.Address
 	BlackList      []common.Address // append by vsn 0.0.3

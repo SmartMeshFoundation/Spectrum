@@ -588,7 +588,69 @@ func (t *Tribe) APIs(chain consensus.ChainReader) []rpc.API {
 	}}
 }
 
+func (t *Tribe) GetPeriodSIP005(header *types.Header, signers []*Signer) (p uint64) {
+	var (
+		// 14 , 18 , 22(random add 0~4.5s)
+		signature               = header.Extra[len(header.Extra)-extraSeal:]
+		err                     error
+		miner                   common.Address
+		empty                   = make([]byte, len(signature))
+		Main, Subs, Other, Else = t.config.Period - 1, t.config.Period + 3, t.config.Period + 7, uint64(86400 * 7)
+		number, parentHash      = header.Number, header.ParentHash
+	)
+
+	p = Else
+	if bytes.Equal(signature, empty) {
+		miner = t.Status.GetMinerAddress()
+	} else {
+		miner, _ = ecrecover(header, t)
+	}
+
+	if signers == nil {
+		signers, err = t.Status.GetSignersFromChiefByHash(parentHash, number)
+	}
+
+	if err != nil {
+		log.Error("GetPeriod_getsigners_err", "err", err)
+		return
+	}
+
+	sl := len(signers)
+	if sl == 0 {
+		log.Error("GetPeriod_signers_cannot_empty")
+		return
+	}
+
+	// normal
+	idx_m := number.Int64() % int64(sl)
+	if miner == signers[idx_m].Address {
+		p = Main
+		return
+	}
+
+	// first leader
+	if miner == signers[0].Address {
+		p = Subs
+		return
+	}
+
+	// other leader
+	for i, leader := range t.Status.Leaders {
+		if miner == leader {
+			p = Other * uint64(i)
+			return
+		}
+	}
+
+	return
+}
+
 func (t *Tribe) GetPeriod(header *types.Header, signers []*Signer) (p uint64) {
+	if params.IsSIP005Block(header.Number) {
+		p = t.GetPeriodSIP005(header, signers)
+		log.Info("<<GetPeriodSIP005>>", "num", header.Number, "period", p)
+		return
+	}
 	// 14 , 18 , 22(random add 0~4.5s)
 	signature := header.Extra[len(header.Extra)-extraSeal:]
 	var (
