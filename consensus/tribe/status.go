@@ -594,41 +594,46 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 		return ErrTribeNotAllowEmptyTxList
 	}
 
-	// add by liangc 190412 : if the sender in signerList now refuse and skip this tx
+	// add by liangc 190412 : SIP004 if the sender in signerList now refuse and skip this tx
 	signerMap := make(map[common.Address]struct{})
-	for _, signer := range self.Signers {
-		signerMap[signer.Address] = struct{}{}
+	if params.IsSIP004Block(header.Number) && !params.IsSIP005Block(header.Number) {
+		for _, signer := range self.Signers {
+			signerMap[signer.Address] = struct{}{}
+		}
 	}
 
 	var total = 0
 	for i, tx := range block.Transactions() {
-		from := types.GetFromByTx(tx)
-		//verify by anmap bindinfo
-		_, nl, err := params.AnmapBindInfo(*from, parent.Hash())
 
-		verifyBySignerMap := func(addr common.Address) error {
-			if _, ok := signerMap[addr]; i > 0 && ok {
-				return ErrTribeValdateTxSenderCannotInSignerList
-			}
-			return nil
-		}
-		if err == nil && len(nl) > 0 {
-			// exclude meshbox first
-			fnl := make([]common.Address, 0)
-			for _, n := range nl {
-				if !params.MeshboxExistAddress(n) {
-					fnl = append(fnl[:], n)
+		if params.IsSIP004Block(header.Number) && !params.IsSIP005Block(header.Number) {
+			from := types.GetFromByTx(tx)
+			//verify by anmap bindinfo
+			_, nl, err := params.AnmapBindInfo(*from, parent.Hash())
+
+			verifyBySignerMap := func(addr common.Address) error {
+				if _, ok := signerMap[addr]; i > 0 && ok {
+					return ErrTribeValdateTxSenderCannotInSignerList
 				}
+				return nil
 			}
-			log.Debug("TODO<<TribeStatus.ValidateBlock>> exclude_meshbox_first", "num", number, "i", i, "from", from.Hex(), "to", tx.To(), "nl.len", len(nl), "fnl.len", len(fnl))
-			for _, n := range fnl {
-				if err := verifyBySignerMap(n); err != nil {
+			if err == nil && len(nl) > 0 {
+				// exclude meshbox first
+				fnl := make([]common.Address, 0)
+				for _, n := range nl {
+					if !params.MeshboxExistAddress(n) {
+						fnl = append(fnl[:], n)
+					}
+				}
+				log.Debug("TODO<<TribeStatus.ValidateBlock>> exclude_meshbox_first", "num", number, "i", i, "from", from.Hex(), "to", tx.To(), "nl.len", len(nl), "fnl.len", len(fnl))
+				for _, n := range fnl {
+					if err := verifyBySignerMap(n); err != nil {
+						return err
+					}
+				}
+			} else {
+				if err := verifyBySignerMap(*from); err != nil {
 					return err
 				}
-			}
-		} else {
-			if err := verifyBySignerMap(*from); err != nil {
-				return err
 			}
 		}
 
