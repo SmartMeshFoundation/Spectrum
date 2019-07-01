@@ -41,3 +41,18 @@ func TestAddr(t *testing.T) {
 	t.Log(common.HexToAddress("0x") == addr)
 	t.Log(common.HexToAddress("0x") == common.HexToAddress(""))
 }
+
+func TestLeaderSort(t *testing.T) {
+	f := common.HexToAddress("0x3")
+	list := []common.Address{
+		common.HexToAddress("0x1"),
+		common.HexToAddress("0x2"),
+		common.HexToAddress("0x3"),
+		common.HexToAddress("0x4"),
+		common.HexToAddress("0x5"),
+	}
+	r, err := leaderSort(f, list)
+	t.Log(err)
+	t.Log(list)
+	t.Log(r)
+}

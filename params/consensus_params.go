@@ -680,6 +680,7 @@ type ChiefStatus struct {
 	NumberList     []*big.Int
 	Number         *big.Int
 	Epoch          *big.Int
+	LeaderLimit    *big.Int
 	SignerLimit    *big.Int
 	VolunteerLimit *big.Int
 	TotalVolunteer *big.Int

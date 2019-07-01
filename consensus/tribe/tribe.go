@@ -264,9 +264,20 @@ func (t *Tribe) verifyHeader(chain consensus.ChainReader, header *types.Header, 
 	}
 	// Ensure that the block's difficulty is meaningful (may not be correct at this point)
 	if number > 0 && !params.IsChiefBlock(header.Number) {
-		if header.Difficulty == nil || (header.Difficulty.Cmp(diffInTurnMain) != 0 && header.Difficulty.Cmp(diffInTurn) != 0 && header.Difficulty.Cmp(diffNoTurn) != 0) {
-			log.Error("** verifyHeader ERROR **", "diff", header.Difficulty.String(), "err", errInvalidDifficulty)
-			return errInvalidDifficulty
+		if ci := params.GetChiefInfo(header.Number); ci != nil {
+			switch ci.Version {
+			case "1.0.0":
+				//TODO max value is a var ???
+				if header.Difficulty == nil || header.Difficulty.Cmp(big.NewInt(6)) > 0 || header.Difficulty.Cmp(diffNoTurn) < 0 {
+					log.Error("** verifyHeader ERROR CHIEF.v1.0.0 **", "diff", header.Difficulty.String(), "err", errInvalidDifficulty)
+					return errInvalidDifficulty
+				}
+			default:
+				if header.Difficulty == nil || (header.Difficulty.Cmp(diffInTurnMain) != 0 && header.Difficulty.Cmp(diffInTurn) != 0 && header.Difficulty.Cmp(diffNoTurn) != 0) {
+					log.Error("** verifyHeader ERROR **", "diff", header.Difficulty.String(), "err", errInvalidDifficulty)
+					return errInvalidDifficulty
+				}
+			}
 		}
 	}
 	// If all checks passed, validate any special fields for hard forks
@@ -574,6 +585,12 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 // current signer.
 func (t *Tribe) CalcDifficulty(chain consensus.ChainReader, time uint64, parent *types.Header) *big.Int {
 	log.Debug("CalcDifficulty", "ParentNumber", parent.Number.Int64(), "CurrentNumber:", chain.CurrentHeader().Number.Int64())
+	if ci := params.GetChiefInfo(chain.CurrentHeader().Number); ci != nil {
+		switch ci.Version {
+		case "1.0.0":
+			return t.Status.InTurnForCalcChief100(t.Status.GetMinerAddress(), parent)
+		}
+	}
 	return t.Status.InTurnForCalc(t.Status.GetMinerAddress(), parent)
 }
 
@@ -588,7 +605,7 @@ func (t *Tribe) APIs(chain consensus.ChainReader) []rpc.API {
 	}}
 }
 
-func (t *Tribe) GetPeriodSIP005(header *types.Header, signers []*Signer) (p uint64) {
+func (t *Tribe) GetPeriodChief100(header *types.Header, signers []*Signer) (p uint64) {
 	var (
 		// 14 , 18 , 22(random add 0~4.5s)
 		signature               = header.Extra[len(header.Extra)-extraSeal:]
@@ -635,10 +652,12 @@ func (t *Tribe) GetPeriodSIP005(header *types.Header, signers []*Signer) (p uint
 	}
 
 	// other leader
-	for i, leader := range t.Status.Leaders {
-		if miner == leader {
-			p = Other * uint64(i)
-			return
+	if leaders, err := leaderSort(signers[0].Address, t.Status.Leaders); err == nil {
+		for i, leader := range leaders {
+			if miner == leader {
+				p = Other * uint64(i)
+				return
+			}
 		}
 	}
 
@@ -646,10 +665,13 @@ func (t *Tribe) GetPeriodSIP005(header *types.Header, signers []*Signer) (p uint
 }
 
 func (t *Tribe) GetPeriod(header *types.Header, signers []*Signer) (p uint64) {
-	if params.IsSIP005Block(header.Number) {
-		p = t.GetPeriodSIP005(header, signers)
-		log.Info("<<GetPeriodSIP005>>", "num", header.Number, "period", p)
-		return
+	if ci := params.GetChiefInfo(header.Number); ci != nil {
+		switch ci.Version {
+		case "1.0.0":
+			p = t.GetPeriodChief100(header, signers)
+			log.Info("<<GetPeriodSIP005>>", "num", header.Number, "period", p)
+			return
+		}
 	}
 	// 14 , 18 , 22(random add 0~4.5s)
 	signature := header.Extra[len(header.Extra)-extraSeal:]

@@ -583,11 +583,12 @@ func (self *TribeService) getChiefStatus(blockNumber *big.Int, blockHash *common
 			if err != nil {
 				return params.ChiefStatus{}, err
 			}
-			leaderList, err := self.GetLeaders(blockNumber, blockHash)
+			leaderList, leaderLimit, err := self.GetLeaders(blockNumber, blockHash)
 			if err != nil {
 				return params.ChiefStatus{}, err
 			}
 			return params.ChiefStatus{
+				LeaderLimit:    leaderLimit,
 				LeaderList:     leaderList,
 				VolunteerList:  nil,
 				SignerList:     chiefStatus.SignerList,
@@ -891,7 +892,7 @@ func (self *TribeService) verifyMiner(vol common.Address, hash common.Hash, vrfn
 	return false
 }
 
-func (self *TribeService) GetLeaders(num *big.Int, hash *common.Hash) ([]common.Address, error) {
+func (self *TribeService) GetLeaders(num *big.Int, hash *common.Hash) ([]common.Address, *big.Int, error) {
 	ci := params.GetChiefInfo(num)
 	if ci != nil {
 		switch ci.Version {
@@ -906,10 +907,14 @@ func (self *TribeService) GetLeaders(num *big.Int, hash *common.Hash) ([]common.
 			opts.Hash = hash
 			leaders, err := self.base.TakeLeaderList(opts)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
-			return leaders, nil
+			limit, err := self.base.TakeLeaderLimit(opts)
+			if err != nil {
+				return nil, nil, err
+			}
+			return leaders, limit, nil
 		}
 	}
-	return nil, errors.New(fmt.Sprintf("not_support_vsn : %s", ci.Version))
+	return nil, nil, errors.New(fmt.Sprintf("not_support_vsn : %s", ci.Version))
 }

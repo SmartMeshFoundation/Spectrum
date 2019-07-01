@@ -291,6 +291,7 @@ func (self *TribeStatus) LoadSignersFromChief(hash common.Hash, number *big.Int)
 		score := scores[i]
 		sl = append(sl, &Signer{signer, score.Int64()})
 	}
+	self.LeaderLimit = cs.LeaderLimit
 	self.Leaders = cs.LeaderList
 	self.TotalVolunteer = cs.TotalVolunteer
 	self.Volunteers = cs.VolunteerList
@@ -349,6 +350,43 @@ func (self *TribeStatus) GetSigners() []*Signer {
 	return self.Signers
 }
 
+func (self *TribeStatus) InTurnForCalcChief100(signer common.Address, parent *types.Header) *big.Int {
+	var (
+		number  = parent.Number.Int64() + 1
+		signers = self.GetSigners()
+		sl      = len(signers)
+	)
+	if idx, _, err := self.fetchOnSigners(signer, signers); err == nil {
+		// main
+		if sl > 0 && number%int64(sl) == idx.Int64() {
+			return big.NewInt(diff)
+		}
+		// second
+		if idx.Int64() == 0 {
+			return big.NewInt(diff - 1)
+		}
+
+	} else if sl > 0 {
+		if leaders, err := leaderSort(signers[0].Address, self.Leaders); err == nil {
+			for i, leader := range leaders {
+				if signer == leader {
+					return big.NewInt(diff - int64(i))
+				}
+			}
+		}
+	}
+	return diffNoTurn
+}
+
+func leaderSort(first common.Address, list []common.Address) ([]common.Address, error) {
+	for i, o := range list {
+		if first == o {
+			return append(list[i:], list[:i]...), nil
+		}
+	}
+	return nil, errors.New("header not found")
+}
+
 func (self *TribeStatus) InTurnForCalc(signer common.Address, parent *types.Header) *big.Int {
 	number := parent.Number.Int64() + 1
 	signers := self.GetSigners()
@@ -369,7 +407,51 @@ func (self *TribeStatus) InTurnForCalc(signer common.Address, parent *types.Head
 
 	return diffNoTurn
 }
+func (self *TribeStatus) InTurnForVerifyChief100(number int64, parentHash common.Hash, signer common.Address) *big.Int {
+	// TODO TODO TODO TODO
+	var (
+		signers []*Signer
+	)
+	if number > 3 {
+		var err error
+		signers, err = self.GetSignersFromChiefByHash(parentHash, big.NewInt(number))
+		if err != nil {
+			log.Warn("InTurn:GetSignersFromChiefByNumber:", "err", err)
+		}
+	} else {
+		return diffInTurn
+	}
+
+	if idx, _, err := self.fetchOnSigners(signer, signers); err == nil {
+		sl := len(signers)
+		// main
+		if sl > 0 && number%int64(sl) == idx.Int64() {
+			return big.NewInt(diff)
+		}
+		// second
+		if idx.Int64() == 0 {
+			return big.NewInt(diff - 1)
+		}
+	} else if leaders, err := leaderSort(signers[0].Address, self.Leaders); err == nil {
+		for i, leader := range leaders {
+			if signer == leader {
+				return big.NewInt(diff - int64(i))
+			}
+		}
+	}
+	return diffNoTurn
+}
+
 func (self *TribeStatus) InTurnForVerify(number int64, parentHash common.Hash, signer common.Address) *big.Int {
+
+	if ci := params.GetChiefInfo(big.NewInt(number)); ci != nil {
+		switch ci.Version {
+		case "1.0.0":
+			//TODO max value is a var ???
+			return self.InTurnForVerifyChief100(number, parentHash, signer)
+		}
+	}
+
 	var signers []*Signer
 	if number > 3 {
 		var err error
@@ -588,6 +670,7 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 				log.Error("** verifySeal ERROR **", "head.diff", header.Difficulty.String(), "target.diff", difficulty.String(), "err", errInvalidDifficulty)
 				return errInvalidDifficulty
 			}
+
 		}
 		// verify signer
 		if err != nil {
