@@ -654,7 +654,10 @@ func (t *Tribe) GetPeriodChief100(header *types.Header, signers []*Signer) (p ui
 	// other leader
 	if leaders, err := leaderSort(signers[0].Address, t.Status.Leaders); err == nil {
 		for i, leader := range leaders {
-			if miner == leader {
+			if miner == leader && number.Int64()%int64(sl) == 0 {
+				p = Subs + uint64(i)*(Subs-Main)
+				return
+			} else if miner == leader {
 				p = Other + uint64(i)*(Subs-Main)
 				return
 			}

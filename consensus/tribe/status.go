@@ -377,8 +377,10 @@ func (self *TribeStatus) InTurnForCalcChief100(signer common.Address, parent *ty
 	} else if sl > 0 {
 		if leaders, err := leaderSort(signers[0].Address, self.Leaders); err == nil {
 			for i, leader := range leaders {
-				if signer == leader {
-					return big.NewInt(diff - int64(i))
+				if signer == leader && number%int64(sl) == 0 {
+					return big.NewInt(diff - int64(i+1))
+				} else if signer == leader {
+					return big.NewInt(diff - int64(i+2))
 				}
 			}
 		}
@@ -569,7 +571,7 @@ func (self *TribeStatus) ValidateSigner(parentHeader, header *types.Header, sign
 	}
 
 	idx, _, _ := self.fetchOnSigners(signer, signers)
-	if params.IsSIP005Block(header.Number) /*&& err == nil */{
+	if params.IsSIP005Block(header.Number) /*&& err == nil */ {
 		// first
 		idx_m := number % int64(len(signers))
 		if idx != nil && idx_m == idx.Int64() {
