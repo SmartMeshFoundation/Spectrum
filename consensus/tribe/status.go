@@ -7,14 +7,16 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"github.com/SmartMeshFoundation/Spectrum/accounts"
-	"github.com/SmartMeshFoundation/Spectrum/accounts/keystore"
-	"github.com/SmartMeshFoundation/Spectrum/core/state"
 	"math/big"
 	"sync/atomic"
 	"time"
 
+	"github.com/SmartMeshFoundation/Spectrum/accounts"
+	"github.com/SmartMeshFoundation/Spectrum/accounts/keystore"
+	"github.com/SmartMeshFoundation/Spectrum/core/state"
+
 	"fmt"
+
 	"github.com/SmartMeshFoundation/Spectrum/common"
 	"github.com/SmartMeshFoundation/Spectrum/core/types"
 	"github.com/SmartMeshFoundation/Spectrum/crypto"
@@ -358,6 +360,16 @@ func (self *TribeStatus) GetSigners() []*Signer {
 	return self.Signers
 }
 
+/*
+InTurnForCalcChief100 计算如果当前出块节点是signer的话,它对应的难度是多少.
+signers:[0,...,16] 0号对应的是常委会节点,1-16对应的是普通出块节点
+场景1:
+1. 当前应该出块节点应该是3,如果signer是3,那么难度就是6.
+2. 如果singers[0]对应的是常委2, 这时候常委2出块,难度是5,常委3出块难度是4,...,常委1出块难度则是1
+场景2:当前出块节点应该是singers[0],也就是某个常委会节点
+1. 如果signers[0] 出块,那么难度就是6
+2. 假设signers[0]是常委2,那么常委3替他出块难度是5,常委4出块就是4,...常委1出块难度则是2
+*/
 func (self *TribeStatus) InTurnForCalcChief100(signer common.Address, parent *types.Header) *big.Int {
 	var (
 		number  = parent.Number.Int64() + 1
@@ -378,7 +390,7 @@ func (self *TribeStatus) InTurnForCalcChief100(signer common.Address, parent *ty
 		if leaders, err := leaderSort(signers[0].Address, self.Leaders); err == nil {
 			for i, leader := range leaders {
 				if signer == leader {
-					return big.NewInt(diff - int64(i))
+					return big.NewInt(diff - int64(i+2))
 				}
 			}
 		}
@@ -386,6 +398,12 @@ func (self *TribeStatus) InTurnForCalcChief100(signer common.Address, parent *ty
 	return diffNoTurn
 }
 
+/*
+假设list=[1,2,3,4,5]
+first=3,那么返回[4,5,1,2]
+如果first=2,返回[3,4,5,1]
+如果first=5,返回[1,2,3,4]
+*/
 func leaderSort(first common.Address, list []common.Address) ([]common.Address, error) {
 	for i, o := range list {
 		if first == o {
@@ -495,6 +513,7 @@ func (self *TribeStatus) genesisSigner(header *types.Header) (common.Address, er
 	return signer, nil
 }
 
+//address对应的signer以及其在signers中的下标
 func (self *TribeStatus) fetchOnSigners(address common.Address, signers []*Signer) (*big.Int, *Signer, error) {
 	if signers == nil {
 		signers = self.Signers
@@ -569,7 +588,7 @@ func (self *TribeStatus) ValidateSigner(parentHeader, header *types.Header, sign
 	}
 
 	idx, _, _ := self.fetchOnSigners(signer, signers)
-	if params.IsSIP005Block(header.Number) /*&& err == nil */{
+	if params.IsSIP005Block(header.Number) /*&& err == nil */ {
 		// first
 		idx_m := number % int64(len(signers))
 		if idx != nil && idx_m == idx.Int64() {
