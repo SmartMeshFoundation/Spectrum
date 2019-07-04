@@ -461,9 +461,12 @@ func (self *TribeStatus) InTurnForVerifyChief100(number int64, parentHash common
 			return big.NewInt(diff - 1)
 		}
 	} else if leaders, err := leaderSort(signers[0].Address, self.Leaders); err == nil {
+		sl := len(signers)
 		for i, leader := range leaders {
-			if signer == leader {
-				return big.NewInt(diff - int64(i))
+			if signer == leader && number%int64(sl) == 0 {
+				return big.NewInt(diff - int64(i+1))
+			} else if signer == leader {
+				return big.NewInt(diff - int64(i+2))
 			}
 		}
 	}
