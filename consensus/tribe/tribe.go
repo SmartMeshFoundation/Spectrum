@@ -28,7 +28,7 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/params"
 	"github.com/SmartMeshFoundation/Spectrum/rlp"
 	"github.com/SmartMeshFoundation/Spectrum/rpc"
-	"github.com/hashicorp/golang-lru"
+	lru "github.com/hashicorp/golang-lru"
 )
 
 // sigHash returns the hash which is used as input for the proof-of-authority
@@ -655,7 +655,7 @@ func (t *Tribe) GetPeriodChief100(header *types.Header, signers []*Signer) (p ui
 	if leaders, err := leaderSort(signers[0].Address, t.Status.Leaders); err == nil {
 		for i, leader := range leaders {
 			if miner == leader {
-				p = Other * uint64(i)
+				p = Other + uint64(i)*(Subs-Main)
 				return
 			}
 		}
