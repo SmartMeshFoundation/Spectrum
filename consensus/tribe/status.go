@@ -324,6 +324,14 @@ func (self *TribeStatus) resetSignersLevel(hash common.Hash, number *big.Int) {
 			return
 		}
 	}
+
+	for _, s := range self.Leaders {
+		if s == m {
+			self.SignerLevel = LevelSigner
+			return
+		}
+	}
+
 	ci := params.GetChiefInfo(number)
 	switch ci.Version {
 	case "0.0.6":
@@ -560,15 +568,15 @@ func (self *TribeStatus) ValidateSigner(parentHeader, header *types.Header, sign
 		return false
 	}
 
-	idx, _, err := self.fetchOnSigners(signer, signers)
-	if params.IsSIP005Block(header.Number) && err == nil {
+	idx, _, _ := self.fetchOnSigners(signer, signers)
+	if params.IsSIP005Block(header.Number) /*&& err == nil */{
 		// first
 		idx_m := number % int64(len(signers))
-		if idx_m == idx.Int64() {
+		if idx != nil && idx_m == idx.Int64() {
 			return true
 		}
 		// second
-		if idx.Int64() == 0 {
+		if idx != nil && idx.Int64() == 0 {
 			return true
 		}
 		// other leader
@@ -581,7 +589,6 @@ func (self *TribeStatus) ValidateSigner(parentHeader, header *types.Header, sign
 	} else if err == nil {
 		return true
 	}
-
 	return false
 }
 
