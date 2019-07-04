@@ -409,7 +409,7 @@ first=3,那么返回[4,5,1,2]
 func leaderSort(first common.Address, list []common.Address) ([]common.Address, error) {
 	for i, o := range list {
 		if first == o {
-			return append(list[i:], list[:i]...), nil
+			return append(list[i+1:], list[:i]...), nil
 		}
 	}
 	return nil, errors.New("header not found")

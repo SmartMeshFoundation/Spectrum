@@ -624,7 +624,7 @@ signers:[0,...,16] 0号对应的是常委会节点,1-16对应的是普通出块�
 */
 func (t *Tribe) GetPeriodChief100(header *types.Header, signers []*Signer) (p uint64) {
 	var (
-		// 14 , 18 , 22(random add 0~4.5s)
+		// 14 , 18 , 22
 		signature               = header.Extra[len(header.Extra)-extraSeal:]
 		err                     error
 		miner                   common.Address
