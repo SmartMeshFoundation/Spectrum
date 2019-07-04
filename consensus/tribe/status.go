@@ -389,7 +389,9 @@ func (self *TribeStatus) InTurnForCalcChief100(signer common.Address, parent *ty
 	} else if sl > 0 {
 		if leaders, err := leaderSort(signers[0].Address, self.Leaders); err == nil {
 			for i, leader := range leaders {
-				if signer == leader {
+				if signer == leader && number%int64(sl) == 0 {
+					return big.NewInt(diff - int64(i+1))
+				} else if signer == leader {
 					return big.NewInt(diff - int64(i+2))
 				}
 			}
