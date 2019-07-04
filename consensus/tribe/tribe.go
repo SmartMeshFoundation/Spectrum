@@ -28,7 +28,7 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/params"
 	"github.com/SmartMeshFoundation/Spectrum/rlp"
 	"github.com/SmartMeshFoundation/Spectrum/rpc"
-	"github.com/hashicorp/golang-lru"
+	lru "github.com/hashicorp/golang-lru"
 )
 
 // sigHash returns the hash which is used as input for the proof-of-authority
