@@ -592,24 +592,26 @@ func (self *TribeStatus) ValidateSigner(parentHeader, header *types.Header, sign
 		return false
 	}
 
-	idx, _, _ := self.fetchOnSigners(signer, signers)
-	if params.IsSIP005Block(header.Number) /*&& err == nil */ {
-		// first
-		idx_m := number % int64(len(signers))
-		if idx != nil && idx_m == idx.Int64() {
-			return true
-		}
-		// second
-		if idx != nil && idx.Int64() == 0 {
-			return true
-		}
-		// other leader
-		for _, leader := range self.Leaders {
-			if signer == leader {
+	idx, _, err := self.fetchOnSigners(signer, signers)
+	if params.IsSIP005Block(header.Number) {
+		if err == nil {
+			// first
+			idx_m := number % int64(len(signers))
+			if idx_m == idx.Int64() {
 				return true
 			}
+			// second
+			if idx.Int64() == 0 {
+				return true
+			}
+		} else {
+			// other leader
+			for _, leader := range self.Leaders {
+				if signer == leader {
+					return true
+				}
+			}
 		}
-
 	} else if err == nil {
 		return true
 	}
