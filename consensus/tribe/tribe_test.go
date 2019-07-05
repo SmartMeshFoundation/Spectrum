@@ -5,11 +5,20 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"encoding/hex"
-	"github.com/SmartMeshFoundation/Spectrum/accounts/keystore"
-	"github.com/SmartMeshFoundation/Spectrum/crypto"
+	"math/big"
 	mrand "math/rand"
 	"testing"
 	"time"
+
+	"github.com/SmartMeshFoundation/Spectrum/core/types"
+
+	"github.com/SmartMeshFoundation/Spectrum/core/state"
+	"github.com/SmartMeshFoundation/Spectrum/params"
+
+	"github.com/SmartMeshFoundation/Spectrum/accounts/keystore"
+	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/SmartMeshFoundation/Spectrum/crypto"
+	"github.com/SmartMeshFoundation/Spectrum/ethdb"
 )
 
 func TestNormal(t *testing.T) {
@@ -94,4 +103,55 @@ func TestKeyAddressExange(t *testing.T) {
 func TestExtra(t *testing.T) {
 	extra := []byte("0xd68301000083736d6386676f312e31328664617277696e00000000000000000009b5bd71d0cababfc178e89f63210d322675d53d16bdb58ce5741e06d78f60bd4e2e517089c35d9e278bd6bbf52b6f77746ff314c6cf3237a27209a3e922035300")
 	t.Log(len(extra))
+}
+
+func TestAccumulateRewards(t *testing.T) {
+	db, _ := ethdb.NewMemDatabase()
+	state, _ := state.New(common.Hash{}, state.NewDatabase(db))
+	config := params.DevnetChainConfig
+	header := &types.Header{
+		Coinbase: common.HexToAddress("0x01"),
+	}
+	//noreward
+	expectReward := big.NewInt(0)
+	header.Number = new(big.Int).Set(config.Chief100Block)
+	header.Number.Sub(header.Number, big.NewInt(1))
+	accumulateRewards(config, state, header)
+	if state.GetBalance(header.Coinbase).Cmp(expectReward) != 0 {
+		t.Error("should no reward before chief100Block")
+		return
+	}
+
+	//full reward
+	expectReward.Add(expectReward, Chief100BlockReward)
+	header.Number = new(big.Int).Set(config.Chief100Block)
+	accumulateRewards(config, state, header)
+	if state.GetBalance(header.Coinbase).Cmp(expectReward) != 0 {
+		t.Errorf("should get total reward=%s,but got=%s", expectReward, state.GetBalance(header.Coinbase))
+		return
+	}
+
+	//half reward
+	currentReward := new(big.Int).Set(Chief100BlockReward)
+	currentReward = currentReward.Div(currentReward, big.NewInt(2))
+	expectReward = expectReward.Add(expectReward, currentReward)
+	header.Number = new(big.Int).Set(config.Chief100Block)
+	header.Number = header.Number.Add(header.Number, big.NewInt(int64(BlockRewardReducedInterval)))
+	accumulateRewards(config, state, header)
+	if state.GetBalance(header.Coinbase).Cmp(expectReward) != 0 {
+		t.Errorf("should get total reward=%s,but got=%s", expectReward, state.GetBalance(header.Coinbase))
+		return
+	}
+
+	//1/4 reward
+	currentReward = new(big.Int).Set(Chief100BlockReward)
+	currentReward.Div(currentReward, big.NewInt(4))
+	expectReward.Add(expectReward, currentReward)
+	header.Number = new(big.Int).Set(config.Chief100Block)
+	header.Number = header.Number.Add(header.Number, big.NewInt(int64(BlockRewardReducedInterval*2)))
+	accumulateRewards(config, state, header)
+	if state.GetBalance(header.Coinbase).Cmp(expectReward) != 0 {
+		t.Errorf("should get total reward=%s,but got=%s", expectReward, state.GetBalance(header.Coinbase))
+		return
+	}
 }

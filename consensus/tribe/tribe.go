@@ -491,18 +491,10 @@ func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error
 // Finalize implements consensus.Engine, ensuring no uncles are set, nor block
 // rewards given, and returns the final block.
 func (t *Tribe) Finalize(chain consensus.ChainReader, header *types.Header, state *state.StateDB, txs []*types.Transaction, uncles []*types.Header, receipts []*types.Receipt) (*types.Block, error) {
-	//TODO reward for chief-1.0.0
-	if params.IsDevnet() {
-		ci := params.GetChiefInfo(header.Number)
-		if ci != nil && ci.Version == "1.0.0" {
-			//for dev and debug
-			state.AddBalance(header.Coinbase, big.NewInt(9e+18))
-			log.Info("💰 reward", "coinbase", header.Coinbase.Hex(), "amount", "9")
-		}
-	}
-
-	// No block rewards in Tribe, so the state remains as is and uncles are dropped
+	// Accumulate any block and uncle rewards and commit the final state root
+	accumulateRewards(chain.Config(), state, header)
 	header.Root = state.IntermediateRoot(chain.Config().IsEIP158(header.Number))
+	//there is no uncle in triple
 	header.UncleHash = types.CalcUncleHash(nil)
 	return types.NewBlock(header, txs, nil, receipts), nil
 }
@@ -745,4 +737,23 @@ func (t *Tribe) GetPeriod(header *types.Header, signers []*Signer) (p uint64) {
 	}
 
 	return
+}
+
+// AccumulateRewards credits the coinbase of the given block with the mining
+// reward. The total reward consists of the static block reward and rewards for
+// included uncles. The coinbase of each uncle block is also rewarded.
+// add by liangc : no reward
+func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header *types.Header) {
+	if config.Chief100Block == nil || header.Number.Cmp(config.Chief100Block) < 0 {
+		return
+	}
+	// Select the correct block reward based on chain progression
+	blockReward := new(big.Int).Set(Chief100BlockReward)
+
+	// Accumulate the rewards for the miner and any included uncles
+	number := new(big.Int).Set(header.Number)
+	number = number.Sub(number, config.Chief100Block)
+	number = number.Div(number, big.NewInt(int64(BlockRewardReducedInterval)))
+	blockReward = blockReward.Rsh(blockReward, uint(number.Int64()))
+	state.AddBalance(header.Coinbase, blockReward)
 }
