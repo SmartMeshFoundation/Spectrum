@@ -5,6 +5,7 @@ import "github.com/SmartMeshFoundation/Spectrum/contracts/chief/src/poc_s0.5.sol
 */
 
 
+
 /* local */
 import "./poc_s0.5.sol";
 
@@ -131,12 +132,12 @@ contract ChiefBase {
         poc.ownerPushBlackList(minerAddress);
     }
 
-    function pocDelBlackList(address minerAddress) public returns (int8) {
-        return poc.ownerPopBlackList(minerAddress);
-    }
-
     function pocCleanBlackList() public {
         poc.ownerEmptyBlackList();
+    }
+
+    function pocGetBlackList() public view returns(address[] memory) {
+        return poc.getBlackList();
     }
 
     // chief -> base -> poc : blacklist options <<<<
@@ -151,9 +152,4 @@ contract ChiefBase {
     }
     // chief -> base -> poc : locklist options <<<<
 
-    /*
-    function destroy() public owner() {
-        selfdestruct(msg.sender);
-    }
-    */
 }

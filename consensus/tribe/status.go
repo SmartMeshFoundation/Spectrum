@@ -412,7 +412,7 @@ func leaderSort(first common.Address, list []common.Address) ([]common.Address, 
 			return append(list[i+1:], list[:i]...), nil
 		}
 	}
-	return nil, errors.New("header not found")
+	return nil, errors.New("leader not found")
 }
 
 func (self *TribeStatus) InTurnForCalc(signer common.Address, parent *types.Header) *big.Int {
@@ -546,18 +546,22 @@ func (self *TribeStatus) Update(currentNumber *big.Int, hash common.Hash) {
 	}
 }
 
-func verifyVrfNum(header *types.Header, signer common.Address) (err error) {
+func verifyVrfNum(parent, header *types.Header) (err error) {
 	var (
 		np  = header.Extra[:extraVanityFn(header.Number)]
 		sig = header.Extra[len(header.Extra)-extraSeal:]
+		msg = parent.Number.Bytes()
 	)
+	if len(parent.Extra) >= _extraVrf {
+		msg = append(msg, parent.Extra[:32]...)
+	}
 	pubbuf, err := ecrecoverPubkey(header, sig)
 	if err != nil {
 		panic(err)
 	}
 	x, y := elliptic.Unmarshal(crypto.S256(), pubbuf)
 	pubkey := ecdsa.PublicKey{crypto.S256(), x, y}
-	err = crypto.SimpleVRFVerify(&pubkey, header.ParentHash.Bytes(), np)
+	err = crypto.SimpleVRFVerify(&pubkey, msg, np)
 	log.Debug("[verifyVrfNum]", "err", err, "num", header.Number, "vrfn", new(big.Int).SetBytes(np[:32]), "parent", header.ParentHash.Bytes())
 	return
 }
@@ -715,7 +719,7 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 
 		// verify vrf num
 		if params.IsSIP005Block(header.Number) {
-			err = verifyVrfNum(header, signer)
+			err = verifyVrfNum(parent.Header(), header)
 			if err != nil {
 				log.Error("vrf_num_fail", "num", number, "err", err)
 				return err

@@ -28,7 +28,7 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/params"
 	"github.com/SmartMeshFoundation/Spectrum/rlp"
 	"github.com/SmartMeshFoundation/Spectrum/rpc"
-	lru "github.com/hashicorp/golang-lru"
+	"github.com/hashicorp/golang-lru"
 )
 
 // sigHash returns the hash which is used as input for the proof-of-authority
@@ -438,7 +438,9 @@ func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error
 	if params.IsSIP005Block(header.Number) {
 		header.Extra = make([]byte, _extraVrf+extraSeal)
 		// append vrf to header.Extra before sign
-		vrfnp, err := crypto.SimpleVRF2Bytes(t.Status.nodeKey, header.ParentHash.Bytes())
+		parentHeader := chain.GetHeaderByHash(header.ParentHash)
+		msg := append(parentHeader.Number.Bytes(), parentHeader.Extra[:32]...)
+		vrfnp, err := crypto.SimpleVRF2Bytes(t.Status.nodeKey, msg)
 		log.Info("Tribe.Prepare --> params.GetVRFByHash", "err", err, "hash", header.ParentHash.Hex(), "vrfn", hex.EncodeToString(vrfnp[:32]))
 		//vr, err := crypto.SimpleVRF2Bytes(t.Status.nodeKey, header.ParentHash.Bytes())
 		if err != nil {

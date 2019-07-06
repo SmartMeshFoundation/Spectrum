@@ -744,7 +744,8 @@ func (self *TribeService) fetchVolunteer(client *ethclient.Client, blockNumber *
 	switch vsn {
 	case "1.0.0":
 		nl := self.minerList(ch.Number, ch.Hash())
-		vrfnp, err := crypto.SimpleVRF2Bytes(self.server.PrivateKey, hash.Bytes())
+		msg := append(ch.Number.Bytes(), ch.Extra[:32]...)
+		vrfnp, err := crypto.SimpleVRF2Bytes(self.server.PrivateKey, msg)
 		if err != nil {
 			panic(err)
 		}
