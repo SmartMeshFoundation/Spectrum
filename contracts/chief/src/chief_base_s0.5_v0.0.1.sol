@@ -4,6 +4,7 @@ pragma solidity ^0.5.3;
 import "github.com/SmartMeshFoundation/Spectrum/contracts/chief/src/poc_s0.5.sol"; // for remix
 */
 
+
 /* local */
 import "./poc_s0.5.sol";
 
@@ -124,6 +125,31 @@ contract ChiefBase {
         //require(msg.sender == _tribe);
         return poc.ownerStop(minerAddress);
     }
+
+    // chief -> base -> poc : blacklist options >>>>
+    function pocAddBlackList(address minerAddress) public {
+        poc.ownerPushBlackList(minerAddress);
+    }
+
+    function pocDelBlackList(address minerAddress) public returns (int8) {
+        return poc.ownerPopBlackList(minerAddress);
+    }
+
+    function pocCleanBlackList() public {
+        poc.ownerEmptyBlackList();
+    }
+
+    // chief -> base -> poc : blacklist options <<<<
+
+    // chief -> base -> poc : locklist options >>>>
+    function pocAddLockList(address minerAddress) public {
+        poc.ownerPushLockList(minerAddress);
+    }
+
+    function pocDelLockList(address minerAddress) public returns (int8) {
+        return poc.ownerPopLockList(minerAddress);
+    }
+    // chief -> base -> poc : locklist options <<<<
 
     /*
     function destroy() public owner() {
