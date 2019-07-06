@@ -5,6 +5,7 @@ import "github.com/SmartMeshFoundation/Spectrum/contracts/chief/src/chief_abs_s0
 import "github.com/SmartMeshFoundation/Spectrum/contracts/chief/src/chief_base_s0.5_v0.0.1.sol"; // for remix
 */
 
+
 /* local */
 import "./chief_abs_s0.5.sol";
 import "./chief_base_s0.5_v0.0.1.sol";
@@ -79,6 +80,8 @@ contract TribeChief_1_0_0 is Chief {
     address[] public _signerList;
     address[] public _volunteerList;
     uint public blockNumber;
+
+
 
     // the mapping of the signer score and the block number
     mapping(address => uint) public signersMap;
@@ -266,6 +269,10 @@ contract TribeChief_1_0_0 is Chief {
         }
     }
 
+    function genSigners_clean_blackList() public {
+        base.pocCleanBlackList();
+    }
+
     function genSigners() public {
         genSigners_clean_all_signer();
         // generate
@@ -274,6 +281,8 @@ contract TribeChief_1_0_0 is Chief {
         genSigners_v2s();
         // clean volunteerList
         genSigners_clean_volunteer();
+        // clean blackList
+        genSigners_clean_blackList();
     }
 
     function update(address volunteer) public allow() {
@@ -294,7 +303,10 @@ contract TribeChief_1_0_0 is Chief {
 
             if (si != address(0) && msg.sender != si) {
                 // move si to stopList in POC contract
-                if (base.pocAddStop(si) == - 1) {
+                if (base.pocAddStop(si) > 0) {
+                    // move to blackList
+                    base.pocAddBlackList(si);
+                }else{
                     // TODO move to meshbox stopList
                     // TODO move to meshbox stopList
                     // TODO move to meshbox stopList
@@ -329,7 +341,7 @@ contract TribeChief_1_0_0 is Chief {
             numberList[i] = signersMap[_signerList[i]];
         }
         // TODO
-        blackList = _blackList;
+        blackList = base.pocGetBlackList();
 
         signerList = _signerList;
         // vsn 0.0.3
