@@ -3,9 +3,9 @@ pragma solidity ^0.5.3;
 contract POC{
 
     struct minerInfo {
-        address owner;//该矿工的出资人地址
+        address owner;//该矿工的owner地址
         uint256 amount;//抵押金额
-        uint256 stop_block;//暂停出块时停止出块块号
+        uint256 stop_block;//暂停出块时的区块号
     }
 
     //矿工地址对应的状态信息
@@ -22,6 +22,19 @@ contract POC{
 
     //stopList下标索引
     mapping (address => uint256) stopListIndex;
+
+    //黑名单列表
+    address[] blackList;
+
+    //blackList下标索引
+    mapping (address => uint256) blackListIndex;
+
+    //锁定名单列表
+    address[] lockList;
+
+    //lockList下标索引
+    mapping (address => uint) lockListIndex;
+
 
     //合约owner地址
     address[] owner;
@@ -196,12 +209,17 @@ contract POC{
     }
 
 
-    //添加启动出块入口 -1 不存在此地址 0 此地址已经在出块列表 1 设置成功
+    //添加启动出块入口 -1 不存在此地址 0 此地址已经在出块列表或不被允许启动 1 设置成功
     function addStart(address minerAddress) private returns(int8) {
 
         //是否存在此地址
         if (minerMap[minerAddress].amount == 0){
             return -1;
+        }
+
+        //是否在黑名单或者锁定状态
+        if (blackAndLockStatus(minerAddress) > 0){
+            return 0;
         }
 
         //是否已经在正常出块
@@ -238,6 +256,123 @@ contract POC{
     }
 
 
+    //获取黑名单和锁定状态
+    function blackAndLockStatus(address minerAddress) public view returns(int8) {
+
+        int8 value = 0;
+
+        //是否在黑名单内
+        if (blackList.length > 0 && blackList[blackListIndex[minerAddress]] == minerAddress){
+            value += 1;
+        }
+
+        //是否在锁定名单内
+        if (lockList.length > 0 && lockList[lockListIndex[minerAddress]] == minerAddress){
+            value += 2;
+        }
+
+        return value;
+    }
+
+
+    //owner 新增地址到黑名单列表
+    function ownerPushBlackList(address minerAddress) public onlyOwner {
+
+        //是否已经在黑名单列表
+        if (blackList.length > 0 && blackList[blackListIndex[minerAddress]] == minerAddress){
+            return;
+        }
+
+        //加入黑名单列表
+        blackList.push(minerAddress);
+
+        //更新黑名单列表索引
+        blackListIndex[minerAddress] = blackList.length - 1;
+    }
+
+
+    //owner 从黑名单列表剔除一个地址 -1 不存在此地址 1 设置成功
+    function ownerPopBlackList(address minerAddress) public onlyOwner returns(int8){
+
+        //获取位置下标
+        uint256 index = blackListIndex[minerAddress];
+
+        //是否存在此地址
+        if (blackList.length < 1 || blackList[index] != minerAddress){
+            return -1;
+        }
+
+        //使用最后一个地址覆盖
+        blackList[index] = blackList[blackList.length - 1];
+        blackList.length -= 1;
+
+        //更新blackList索引
+        delete blackListIndex[minerAddress];
+        if (index < blackList.length){
+            blackListIndex[blackList[index]] = index;
+        }
+
+        return 1;
+    }
+
+
+    //owner 清空黑名单列表
+    function ownerEmptyBlackList() public onlyOwner {
+
+        //清空索引
+        for(uint256 i = 0; i < blackList.length; i++){
+            delete blackListIndex[blackList[i]];
+        }
+
+        //删除数据
+        blackList.length = 0;
+
+    }
+
+
+    //owner 新增地址到锁定列表
+    function ownerPushLockList(address minerAddress) public onlyOwner {
+
+        //是否已经在锁定列表
+        if (lockList.length > 0 && lockList[lockListIndex[minerAddress]] == minerAddress){
+            return;
+        }
+
+        //加入锁定列表
+        lockList.push(minerAddress);
+
+        //更新锁定列表索引
+        lockListIndex[minerAddress] = lockList.length - 1;
+
+    }
+
+
+    //owner 从锁定列表中删除一个地址 -1 不存在此地址 1 设置成功
+    function ownerPopLockList(address minerAddress) public onlyOwner returns(int8){
+
+        //获取位置下标
+        uint256 index = lockListIndex[minerAddress];
+
+        //是否存在此地址
+        if (lockList.length < 1 || lockList[index] != minerAddress){
+            return -1;
+        }
+
+        //使用最后一个覆盖
+        lockList[index] = lockList[lockList.length - 1];
+        lockList.length -= 1;
+
+        //更新locklist索引
+        delete lockListIndex[minerAddress];
+        if (index < lockList.length){
+            lockListIndex[lockList[index]] = index;
+        }
+
+        return 1;
+
+    }
+
+
     //修改owner
     function changeOwner(address _newOwner, uint256 _number) onlyOwner public {
 
@@ -262,6 +397,9 @@ contract POC{
 
         //暂停等待期是否完成
         require (block.number - minerMap[minerAddress].stop_block > withdrawWaitNumber);
+
+        //是否在黑名单或者锁定状态
+        require (blackAndLockStatus(minerAddress) == 0);
 
         uint256 amount = minerMap[minerAddress].amount;
 
@@ -332,10 +470,23 @@ contract POC{
     }
 
 
+    //获取所有黑名单地址
+    function getBlackList () public view returns(address[] memory) {
+        return blackList;
+    }
+
+
+    //获取所有锁定名单地址
+    function getLockList () public view returns(address[] memory) {
+        return lockList;
+    }
+
+
     //获取所有owner地址
     function getOwnerList() public view returns(address[] memory) {
         return owner;
     }
+
 
     //获取所有信息
     function getAll() public view returns(
