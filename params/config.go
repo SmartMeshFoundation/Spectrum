@@ -137,7 +137,7 @@ var (
 		// before block 2 gas used : 2631756
 		// after gas used : 2892524
 		Chief007Block:   big.NewInt(3),
-		Chief007Address: common.HexToAddress("0x24bfadf2803638b26b653e1f94927052d4aa74eb"),
+		Chief007Address: common.HexToAddress("0x57d2bcd8d702999daf240793919675c90b12a17a"),
 
 		// ############
 		// # DEBUG >>>>
@@ -145,21 +145,39 @@ var (
 
 		// Note that : meshbox002 must is superset of meshbox001
 		Meshbox002Block:   big.NewInt(6),
-		Meshbox002Address: common.HexToAddress("0xc4a2d182fe92f0eadffbddea9a0977d5b95b31a5"),
+		Meshbox002Address: common.HexToAddress("0x7880adce4504fd39645aabb3efb53824d9b0c21b"),
 
 		Anmap001Block:   big.NewInt(6),
-		Anmap001Address: common.HexToAddress("0x57d2bcd8d702999daf240793919675c90b12a17a"),
+		Anmap001Address: common.HexToAddress("0x143084accd6472ad502b59c3197f9ed5f797b966"),
 
 		// base block link to Chief100Block
-		ChiefBaseAddress: common.HexToAddress("0x7880adce4504fd39645aabb3efb53824d9b0c21b"),
+		ChiefBaseAddress: common.HexToAddress("0xad61f1201f592fbf13d2645f9c59d8d5f82a1837"),
 
 		// PocBlock must less than Chief100Block
 		PocBlock:   big.NewInt(20),
-		PocAddress: common.HexToAddress("0xad61f1201f592fbf13d2645f9c59d8d5f82a1837"),
+		PocAddress: common.HexToAddress("0x901c0636c4fc83f353bca2db85e2ace886a9416d"),
 
-		Chief100Block:   big.NewInt(22),
-		Chief100Address: common.HexToAddress("0x0f91c3f2e10a0b53d6b3b4d6c7b41ab77c7d0674"),
+		Chief100Block: big.NewInt(22),
+		//Chief100Address: common.HexToAddress("0x"),
+		Chief100Address: common.HexToAddress("0x6d05f6aa4e19e20cd781fa3def97bbfd0b980534"),
+		/*
+			Meshbox002Block:   big.NewInt(6),
+			Meshbox002Address: common.HexToAddress("0xc4a2d182fe92f0eadffbddea9a0977d5b95b31a5"),
 
+			Anmap001Block:   big.NewInt(6),
+			Anmap001Address: common.HexToAddress("0x57d2bcd8d702999daf240793919675c90b12a17a"),
+
+			// base block link to Chief100Block
+			ChiefBaseAddress: common.HexToAddress("0x7880adce4504fd39645aabb3efb53824d9b0c21b"),
+
+			// PocBlock must less than Chief100Block
+			PocBlock:   big.NewInt(20),
+			PocAddress: common.HexToAddress("0xad61f1201f592fbf13d2645f9c59d8d5f82a1837"),
+
+			Chief100Block:   big.NewInt(22),
+			Chief100Address: common.HexToAddress("0x0f91c3f2e10a0b53d6b3b4d6c7b41ab77c7d0674"),
+
+		*/
 		// ############
 		// # DEBUG <<<<
 		// ############

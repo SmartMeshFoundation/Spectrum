@@ -261,6 +261,7 @@ func (st *StateTransition) TransitionDb() (ret []byte, requiredGas, usedGas *big
 		// error.
 		vmerr error
 	)
+
 	if contractCreation {
 		ret, _, st.gas, vmerr = evm.Create(sender, st.data, st.gas, st.value)
 	} else {
@@ -282,7 +283,6 @@ func (st *StateTransition) TransitionDb() (ret []byte, requiredGas, usedGas *big
 	requiredGas = new(big.Int).Set(st.gasUsed())
 
 	st.refundGas()
-	// TODO : 这里有问题！！！ 当 coinbase 和 signer 不相等时，会出现错误的 state
 	_m := st.evm.Coinbase
 	_r := new(big.Int).Mul(st.gasUsed(), st.gasPrice)
 	if params.IsChiefAddress(st.to().Address()) {

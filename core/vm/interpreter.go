@@ -138,9 +138,10 @@ func (in *Interpreter) Run(contract *Contract, input []byte) (ret []byte, err er
 		pc   = uint64(0) // program counter
 		cost uint64
 		// copies used by tracer
-		pcCopy  uint64 // needed for the deferred Tracer
-		gasCopy uint64 // for Tracer to log gas remaining before execution
-		logged  bool   // deferred Tracer should ignore already logged steps
+		pcCopy       uint64 // needed for the deferred Tracer
+		gasCopy      uint64 // for Tracer to log gas remaining before execution
+		logged       bool   // deferred Tracer should ignore already logged steps
+		debugCounter = 0
 	)
 	contract.Input = input
 
@@ -160,6 +161,7 @@ func (in *Interpreter) Run(contract *Contract, input []byte) (ret []byte, err er
 	// the execution of one of the operations or until the done flag is set by the
 	// parent context.
 	for atomic.LoadInt32(&in.evm.abort) == 0 {
+		debugCounter++
 		if in.cfg.Debug {
 			// Capture pre-execution values for tracing.
 			logged, pcCopy, gasCopy = false, pc, contract.Gas
@@ -168,6 +170,7 @@ func (in *Interpreter) Run(contract *Contract, input []byte) (ret []byte, err er
 		// Get the operation from the jump table and validate the stack to ensure there are
 		// enough stack items available to perform the operation.
 		op = contract.GetOp(pc)
+
 		operation := in.cfg.JumpTable[op]
 		if !operation.valid {
 			return nil, fmt.Errorf("invalid opcode 0x%x", int(op))
@@ -202,6 +205,7 @@ func (in *Interpreter) Run(contract *Contract, input []byte) (ret []byte, err er
 			if err != nil || !contract.UseGas(cost) {
 				return nil, ErrOutOfGas
 			}
+			//fmt.Println(debugCounter, "<><><>", codehash.Hex(), " op = ", op, ", cost = ", cost, " , contract.Gas = ", contract.Gas)
 		}
 		if memorySize > 0 {
 			mem.Resize(memorySize)
@@ -231,6 +235,7 @@ func (in *Interpreter) Run(contract *Contract, input []byte) (ret []byte, err er
 		case operation.reverts:
 			return res, errExecutionReverted
 		case operation.halts:
+			//fmt.Println("<2><.><.>", codehash.Hex(), "op = ", op, ", cost = ", cost, " , final.contract.Gas = ", contract.Gas)
 			return res, nil
 		case !operation.jumps:
 			pc++

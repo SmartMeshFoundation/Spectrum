@@ -550,11 +550,8 @@ func verifyVrfNum(parent, header *types.Header) (err error) {
 	var (
 		np  = header.Extra[:extraVanityFn(header.Number)]
 		sig = header.Extra[len(header.Extra)-extraSeal:]
-		msg = parent.Number.Bytes()
+		msg = append(parent.Number.Bytes(), parent.Extra[:32]...)
 	)
-	if len(parent.Extra) >= _extraVrf {
-		msg = append(msg, parent.Extra[:32]...)
-	}
 	pubbuf, err := ecrecoverPubkey(header, sig)
 	if err != nil {
 		panic(err)
@@ -584,8 +581,12 @@ func (self *TribeStatus) ValidateSigner(parentHeader, header *types.Header, sign
 	}
 
 	if params.IsSIP002Block(header.Number) {
+
 		// second time of verification block time
-		if parentHeader.Time.Uint64()+self.tribe.GetPeriod(header, signers) > header.Time.Uint64() {
+		period := self.tribe.GetPeriod(header, signers)
+		pt := parentHeader.Time.Uint64()
+		if pt+period > header.Time.Uint64() {
+			log.Error("[ValidateSigner] second time verification block time error", "num", header.Number, "pt", pt, "period", period, ", pt+period=", pt+period, " , ht=", header.Time.Uint64())
 			log.Error("[ValidateSigner] second time verification block time error", "err", ErrInvalidTimestampSIP002)
 			return false
 		}

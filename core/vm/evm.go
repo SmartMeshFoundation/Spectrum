@@ -18,6 +18,7 @@ package vm
 
 import (
 	"math/big"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -28,7 +29,10 @@ import (
 
 // emptyCodeHash is used by create to ensure deployment is disallowed to already
 // deployed contract addresses (relevant after the account abstraction).
-var emptyCodeHash = crypto.Keccak256Hash(nil)
+var (
+	emptyCodeHash = crypto.Keccak256Hash(nil)
+	createSync    = new(sync.Map)
+)
 
 type (
 	CanTransferFunc func(StateDB, common.Address, *big.Int) bool
@@ -51,7 +55,11 @@ func run(evm *EVM, contract *Contract, input []byte) ([]byte, error) {
 	}
 	// modify by liangc
 	//fmt.Println("run:", contract.CallerAddress.Hex(), "->", contract.Address().Hex())
-	if params.IsChiefAddress(contract.Address()) || params.IsChiefCalled(contract.CallerAddress, contract.Address()) {
+	var byCreate = false
+	if contract != nil && contract.CallerAddress != common.HexToAddress("0x") {
+		_, byCreate = createSync.Load(contract.CallerAddress)
+	}
+	if !byCreate && (params.IsChiefAddress(contract.Address()) || params.IsChiefCalled(contract.CallerAddress, contract.Address())) {
 		evm.interpreter.cfg.DisableGasMetering = true
 	} else {
 		evm.interpreter.cfg.DisableGasMetering = false
@@ -71,6 +79,8 @@ func createRun(evm *EVM, contract *Contract, input []byte) ([]byte, error) {
 			return RunPrecompiledContract(p, input, contract)
 		}
 	}
+	createSync.Store(*contract.CodeAddr, struct{}{})
+	defer createSync.Delete(contract.CodeAddr)
 	return evm.interpreter.Run(contract, input)
 }
 
@@ -379,7 +389,6 @@ func (evm *EVM) Create(caller ContractRef, code []byte, gas uint64, value *big.I
 		evm.vmConfig.Tracer.CaptureStart(caller.Address(), contractAddr, true, code, gas, value)
 	}
 	start := time.Now()
-
 	ret, err = createRun(evm, contract, nil)
 
 	// check whether the max code size has been exceeded
