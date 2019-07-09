@@ -325,6 +325,36 @@ func IsReadyAnmap(num *big.Int) bool {
 }
 
 // startNumber and address must from chain's config
+// 针对老的分叉版本在检测时跳过，从1.0.0版本开始不再跳过
+func beforechief100AddressList() (list ChiefInfoList) {
+	if chiefInfoList != nil {
+		return chiefInfoList
+	}
+	if IsTestnet() {
+		list = ChiefInfoList{
+			// at same account and block number to deploy this contract can be get the same address
+			newChiefInfo(TestnetChainConfig.Chief002Block, "0.0.2", TestnetChainConfig.Chief002Address, TribeChief_0_0_2ABI),
+			newChiefInfo(TestnetChainConfig.Chief003Block, "0.0.3", TestnetChainConfig.Chief003Address, TribeChief_0_0_3ABI),
+			newChiefInfo(TestnetChainConfig.Chief004Block, "0.0.4", TestnetChainConfig.Chief004Address, TribeChief_0_0_4ABI),
+			newChiefInfo(TestnetChainConfig.Chief005Block, "0.0.5", TestnetChainConfig.Chief005Address, TribeChief_0_0_5ABI),
+			newChiefInfo(TestnetChainConfig.Chief006Block, "0.0.6", TestnetChainConfig.Chief006Address, TribeChief_0_0_6ABI),
+		}
+	} else if IsDevnet() {
+		list = ChiefInfoList{
+			newChiefInfo(DevnetChainConfig.Chief007Block, "0.0.7", DevnetChainConfig.Chief007Address, TribeChief_0_0_7ABI),
+		}
+	} else {
+		list = ChiefInfoList{
+			// at same account and block number to deploy this contract can be get the same address
+			newChiefInfo(MainnetChainConfig.Chief005Block, "0.0.5", MainnetChainConfig.Chief005Address, TribeChief_0_0_5ABI),
+			newChiefInfo(MainnetChainConfig.Chief006Block, "0.0.6", MainnetChainConfig.Chief006Address, TribeChief_0_0_6ABI),
+		}
+	}
+	chiefInfoList = list
+	return
+}
+
+// startNumber and address must from chain's config
 func chiefAddressList() (list ChiefInfoList) {
 	if chiefInfoList != nil {
 		return chiefInfoList
@@ -381,13 +411,10 @@ func getChiefInfo(list ChiefInfoList, blockNumber *big.Int) *ChiefInfo {
 	return nil
 }
 
-// skip verify difficulty on this block number
-func IsChiefBlock(blockNumber *big.Int) bool {
-	return isChiefBlock(chiefAddressList(), blockNumber)
-}
-
-func isChiefBlock(list ChiefInfoList, blockNumber *big.Int) bool {
-	for _, ci := range list {
+// skip verify difficulty on this old hardfork block number
+func IsBeforeChief100block(blockNumber *big.Int) bool {
+	//return isChiefBlock(oldchiefAddressList(), blockNumber)
+	for _, ci := range beforechief100AddressList() {
 		//log.Info("isChief", "a", ci.StartNumber, "b", blockNumber)
 		if ci.StartNumber.Cmp(blockNumber) == 0 {
 			return true
@@ -395,6 +422,16 @@ func isChiefBlock(list ChiefInfoList, blockNumber *big.Int) bool {
 	}
 	return false
 }
+
+//func isChiefBlock(list ChiefInfoList, blockNumber *big.Int) bool {
+//	for _, ci := range list {
+//		//log.Info("isChief", "a", ci.StartNumber, "b", blockNumber)
+//		if ci.StartNumber.Cmp(blockNumber) == 0 {
+//			return true
+//		}
+//	}
+//	return false
+//}
 
 func IsChiefUpdate(data []byte) bool {
 	if len(data) < 4 {

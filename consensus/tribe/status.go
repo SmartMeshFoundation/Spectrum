@@ -702,7 +702,7 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 	if validateSigner {
 		signer, err := ecrecover(header, self.tribe)
 		// verify difficulty
-		if number > 3 /*&& !params.IsChiefBlock(header.Number)*/ {
+		if number > 3 && !params.IsBeforeChief100block(header.Number) {
 			difficulty := self.InTurnForVerify(number, header.ParentHash, signer)
 			if difficulty.Cmp(header.Difficulty) != 0 {
 				log.Error("** verifySeal ERROR **", "head.diff", header.Difficulty.String(), "target.diff", difficulty.String(), "err", errInvalidDifficulty)
