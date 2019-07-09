@@ -75,28 +75,20 @@ contract TribeChief_1_0_0 is Chief {
 
     ChiefBase private base;
 
-    address[] public _blackList;
-    address[] public _blackMembers;
-    address[] public _signerList;
-    address[] public _volunteerList;
-    uint public blockNumber;
+
+    address[]   _signerList; //当前轮的17块的出块人列表(包含Leader)
+    address[]   _nextRoundSignerList; //下一轮17块出块人列表,不包含Leader
+    uint   blockNumber; //当前块
 
 
 
     // the mapping of the signer score and the block number
-    mapping(address => uint) public signersMap;
-    mapping(address => uint) public volunteerMap;
+    mapping(address => uint)   signersMap; //标记某个地址在当前轮中是否是signer
 
-    // the mapping of the blacklist and block number
-    mapping(address => BlackMember) public blMap;
-
-    function getLeader() public view returns (address[] memory) {
-        return base.takeLeaderList();
-    }
-
-    constructor(address baseAddress, address pocAddress) public {
+    constructor(address baseAddress, address pocAddress,uint startBlockNumber) public {
         base = ChiefBase(baseAddress);
         base.init(pocAddress, address(this));
+        blockNumber=startBlockNumber; //从此块开始分叉
 
         address[] memory leaderList = base.takeLeaderList();
         require(leaderList.length > 0);
@@ -118,142 +110,55 @@ contract TribeChief_1_0_0 is Chief {
         _;
     }
 
-    function pushVolunteer(address addr) public {
-        /*
-        if ( _signerList.length < base.takeSignerLimit() ) {
-            _signerList.push(addr);
-            signersMap[addr] = 1;
-        }
-        */
-        if (_volunteerList.length < base.takeVolunteerLimit()) {
-            _volunteerList.push(addr);
-            volunteerMap[addr] = 1;
-        }
-    }
-
-    function pushBlackMember(address addr) public payable {
-        BlackMember memory bm = BlackMember(addr, 1, block.number);
-        if (blMap[addr].score != 0) {
-            if (blMap[addr].score < 3) {
-                blMap[addr].score += 1;
-                blMap[addr].number = block.number;
-                if (blMap[addr].score == 3) {
-                    _blackList.push(addr);
-                }
-            }
-        } else {
-            blMap[addr] = bm;
-            _blackMembers.push(addr);
-        }
-    }
-
-    // every signer call this func before update
-    function removeBlackMember(address addr) public payable {
-        if (blMap[addr].score > 0) {
-            if (blMap[addr].score >= 3) {
-                for (uint i = 0; i < _blackList.length; i++) {
-                    if (_blackList[i] == addr) {
-                        if (_blackList.length > 1) {
-                            for (uint j = i; j < _blackList.length - 1; j++) {
-                                _blackList[j] = _blackList[j + 1];
-                            }
-                            i--;
-                        }
-                        _blackList.length -= 1;
-                    }
-                }
-            }
-            delete blMap[addr];
-            for (uint i = 0; i < _blackMembers.length; i++) {
-                if (_blackMembers[i] == addr) {
-                    if (_blackMembers.length > 1) {
-                        for (uint j = i; j < _blackMembers.length - 1; j++) {
-                            _blackMembers[j] = _blackMembers[j + 1];
-                        }
-                        i--;
-                    }
-                    _blackMembers.length -= 1;
-                }
-            }
+    function pushNextRoundSigner(address addr)  private {
+        if (_nextRoundSignerList.length < base.takeVolunteerLimit()) {
+            _nextRoundSignerList.push(addr);
+        } else{
+            revert();
         }
     }
 
     // append a signer
-    function pushSigner(address signer, uint idx) private {
+    function pushSigner(address signer ) private {
         if (_signerList.length < base.takeSignerLimit()) {
-            if (idx < base.takeSignerLimit()) {
-                delete signersMap[_signerList[idx]];
-                _signerList[idx] = signer;
-            } else {
                 _signerList.push(signer);
-            }
             signersMap[signer] = 1;
-        }
-    }
-    // delete a signer by index
-    function deleteSigner(uint index) private {
-        uint slen = _signerList.length;
-        if (index < slen) {
-            delete signersMap[_signerList[index]];
-            for (uint i = index; i < slen - 1; i++) {
-                _signerList[i] = _signerList[i + 1];
-            }
-            _signerList.length -= 1;
+        } else{
+            revert();
         }
     }
 
-    // delete a volunteer by index
-    function deleteVolunteer(uint index) private {
-        uint vlen = _volunteerList.length;
-        if (index < vlen) {
-            delete volunteerMap[_volunteerList[index]];
-            for (uint i = index; i < vlen - 1; i++) {
-                _volunteerList[i] = _volunteerList[i + 1];
-            }
-            _volunteerList.length -= 1;
-        }
-    }
-
-    // clean all of list without idx 0, 0 is leader
-    function genSigners_clean_all_signer() public {
+    // clean all of list and return _signerList[0]
+    function clean_all_signer_and_get0()  private returns (address signer0) {
+        signer0=_signerList[0]; //至少会有一个signer
         // clean all of signerList
-        address[] memory sl = new address[](_signerList.length);
-        for (uint j = 0; j < sl.length; j++) {
-            sl[j] = _signerList[j];
+        for (uint i = _signerList.length-1; i >=0; i--) {
+            signersMap[_signerList[i]]=0;
+            _signerList[i]=address(0);
         }
-        // do clean
-        for (uint i0 = sl.length; i0 > 1; i0--) {
-            uint sIndex = i0 - 1;
-            deleteSigner(sIndex);
-
-            address signerI = sl[sIndex];
-            if (sIndex > 0 && uint160(signerI) != uint160(0)) {
-                //TODO move sl[sIndex] to POC volunteerList and weight-1 ;
-
-            }
-        }
+        _signerList.length=0;
     }
 
-    function genSigners_set_leader() public {
-        address g = _signerList[0];
+    function genSigners_set_leader(address signer0 ) private {
         address[] memory leaders = base.takeLeaderList();
         for (uint i = 0; i < leaders.length; i++) {
             address l = leaders[i];
-            if (g == l) {
+            if (signer0 == l) {
                 if (i == leaders.length - 1) {
-                    pushSigner(leaders[0], 0);
+                    pushSigner(leaders[0]);
                 } else {
-                    pushSigner(leaders[i + 1], 0);
+                    pushSigner(leaders[i + 1]);
                 }
+                break;
             }
         }
     }
 
     // push volunteerList to signerList
-    function genSigners_v2s() public {
-        for (uint i1 = 0; i1 < _volunteerList.length; i1++) {
-            address v = _volunteerList[i1];
-            pushSigner(v, base.takeSignerLimit() + 1);
+    function genSigners_v2s() private {
+        for (uint i1 = 0; i1 < _nextRoundSignerList.length; i1++) {
+            address v = _nextRoundSignerList[i1];
+            pushSigner(v);
         }
         for (uint i2 = _signerList.length; i2 < base.takeSignerLimit(); i2++) {
             // placeholder
@@ -262,54 +167,49 @@ contract TribeChief_1_0_0 is Chief {
     }
 
     // clean volunteerList
-    function genSigners_clean_volunteer() public {
-        for (uint i2 = _volunteerList.length; i2 > 0; i2--) {
-            uint vIndex = i2 - 1;
-            deleteVolunteer(vIndex);
+    function genSigners_clean_volunteer() private {
+        for (uint i = _nextRoundSignerList.length-1; i >=0; i--) {
+            _nextRoundSignerList[i]=address(0);
         }
+        _nextRoundSignerList.length=0;
     }
 
-    function genSigners_clean_blackList() public {
+    function genSigners_clean_blackList() private {
         base.pocCleanBlackList();
     }
 
     function genSigners() public {
-        genSigners_clean_all_signer();
+        address signer0=clean_all_signer_and_get0();
         // generate
-        genSigners_set_leader();
+        genSigners_set_leader(signer0);
         // push volunteerList to signerList
         genSigners_v2s();
         // clean volunteerList
         genSigners_clean_volunteer();
-        // clean blackList
-        genSigners_clean_blackList();
     }
-
+    //合约外部调用唯一的入口
     function update(address volunteer) public allow() {
 
         blockNumber = block.number;
-        removeBlackMember(msg.sender);
 
         uint l = _signerList.length;
-        uint signerIdx = uint(blockNumber % l);
+        uint signerIdx = uint(blockNumber % l); //轮到signerIdx出块
         address si = _signerList[signerIdx];
 
         //1 : not leader signer, and `sender!=si` move `si` to waitList in POC contract
-        if (signerIdx > uint(0)) {
+        if (signerIdx > uint(0)) { //leader不是选出来的
 
             if (uint160(volunteer) != uint160(0)) {
-                pushVolunteer(volunteer);
+                pushNextRoundSigner(volunteer);
             }
-
+            //轮到si出块,si没有,那么会惩罚si
             if (si != address(0) && msg.sender != si) {
                 // move si to stopList in POC contract
                 if (base.pocAddStop(si) > 0) {
                     // move to blackList
                     base.pocAddBlackList(si);
                 }else{
-                    // TODO move to meshbox stopList
-                    // TODO move to meshbox stopList
-                    // TODO move to meshbox stopList
+
                 }
 
                 delete signersMap[si];
@@ -320,9 +220,13 @@ contract TribeChief_1_0_0 is Chief {
 
         //2 : last block, reset signerList
         if (l == base.takeSignerLimit() && signerIdx == uint(base.takeSignerLimit() - 1)) {
-            genSigners();
+            genSigners(); //一轮结束,选择下一轮出块人
         }
-
+        //拉黑持续时间为一个epoch
+        if (l%getEpoch()==0){
+            // clean blackList
+            genSigners_clean_blackList();
+        }
     }
 
     function getStatus() public view returns (
@@ -346,7 +250,7 @@ contract TribeChief_1_0_0 is Chief {
         signerList = _signerList;
         // vsn 0.0.3
         number = blockNumber;
-        totalVolunteer = _volunteerList.length;
+        totalVolunteer = _nextRoundSignerList.length;
     }
 
     function version() public view returns (string memory) {return vsn;}
@@ -356,15 +260,21 @@ contract TribeChief_1_0_0 is Chief {
     function getEpoch() public view returns (uint) {return base.takeEpoch();}
 
     function getVolunteerLimit() public view returns (uint) {return base.takeVolunteerLimit();}
-
+    //为了保持兼容性,所以名字保持不变
     function getVolunteers() public view returns (
         address[] memory volunteerList,
         uint[] memory weightList,
         uint length
     ){
-        weightList = new uint[](_volunteerList.length);
-        volunteerList = _volunteerList;
-        length = volunteerList.length;
+        (volunteerList,length)=getNextRoundSignerList();
+        weightList = new uint[](length);
+    }
+    function getNextRoundSignerList() public view returns (
+    address[] memory nextRoundSignerList,
+    uint length
+    ) {
+        nextRoundSignerList=_nextRoundSignerList;
+        length=nextRoundSignerList.length;
     }
 
     // TODO
