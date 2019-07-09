@@ -80,7 +80,7 @@ func createRun(evm *EVM, contract *Contract, input []byte) ([]byte, error) {
 		}
 	}
 	createSync.Store(*contract.CodeAddr, struct{}{})
-	defer createSync.Delete(contract.CodeAddr)
+	defer createSync.Delete(*contract.CodeAddr)
 	return evm.interpreter.Run(contract, input)
 }
 
