@@ -3,17 +3,19 @@ package chief
 import (
 	"context"
 	"errors"
-	"github.com/SmartMeshFoundation/Spectrum/contracts"
-	"github.com/SmartMeshFoundation/Spectrum/contracts/statute"
-	"github.com/SmartMeshFoundation/Spectrum/ethclient"
 	"math/big"
 	"time"
 
+	"github.com/SmartMeshFoundation/Spectrum/contracts"
+	"github.com/SmartMeshFoundation/Spectrum/contracts/statute"
+	"github.com/SmartMeshFoundation/Spectrum/ethclient"
+
 	"crypto/ecdsa"
 	"fmt"
+
 	"github.com/SmartMeshFoundation/Spectrum/accounts/abi/bind"
 	"github.com/SmartMeshFoundation/Spectrum/common"
-	"github.com/SmartMeshFoundation/Spectrum/contracts/chief/lib"
+	chieflib "github.com/SmartMeshFoundation/Spectrum/contracts/chief/lib"
 	"github.com/SmartMeshFoundation/Spectrum/core"
 	"github.com/SmartMeshFoundation/Spectrum/core/types"
 	"github.com/SmartMeshFoundation/Spectrum/crypto"
@@ -818,25 +820,44 @@ func (self *TribeService) minerList(num *big.Int, hash common.Hash) []common.Add
 	if err != nil {
 		log.Error("get_StatuteService_fail", "err", err)
 	}
-	mbs, err := ss.GetMeshboxList()
-	if err != nil {
-		log.Error("poc.GetMeshboxList__fail", "err", err)
-	}
+	//暂时不允许meshbox参与出块,如果meshbox出快了也需要抵押
+	//mbs, err := ss.GetMeshboxList()
+	//if err != nil {
+	//	log.Error("poc.GetMeshboxList__fail", "err", err)
+	//}
+	//if mbs != nil && len(mbs) > 0 {
+	//	nl = append(nl, mbs...)
+	//}
+
 	if vll != nil && len(vll) > 0 {
 		nl = append(nl, vll...)
-	}
-	if mbs != nil && len(mbs) > 0 {
-		nl = append(nl, mbs...)
 	}
 	return nl
 }
 
+//下一轮出块节点不能包含当前这一轮的出块人以及下一轮已经被选出来的出块人
+func (self *TribeService) getNextRoundSignerExcludeList(blockNumber *big.Int, blockHash common.Hash) (addrs []common.Address) {
+	//为了兼容考虑,这里的volunteers是已经选出的下一轮出块人列表,可能没有满员
+	vl, err := self._getVolunteers(blockNumber, blockHash)
+	if err != nil {
+		log.Warn("tribeservice_getVolunteers_fail", "err", err)
+	}
+	for _, a := range vl.VolunteerList {
+		addrs = append(addrs, a)
+	}
+	chiefStatus, err := self.getChiefStatus(blockNumber, &blockHash)
+	if err != nil {
+		log.Warn("getChiefStatus", "err", err)
+	}
+	for _, a := range chiefStatus.SignerList {
+		addrs = append(addrs, a)
+	}
+	return addrs
+}
+
+//从nl也就是可能出块节列表中根据vrf选择一个,如果选中的人已经在下一轮出块列表中就尝试选择下一个,takerMiner只会在1.0.0版本后使用
 func (self *TribeService) takeMiner(nl []common.Address, hash common.Hash, _vrfn []byte) common.Address {
 	if nl != nil && len(nl) > 0 {
-		/*		vrfnp, err := crypto.SimpleVRF2Bytes(self.server.PrivateKey, hash.Bytes())
-				if err != nil {
-					panic(err)
-				}*/
 		var (
 			block = self.ethereum.BlockChain().GetBlockByHash(hash)
 			vrfn  = new(big.Int).SetBytes(_vrfn[:])
@@ -845,6 +866,8 @@ func (self *TribeService) takeMiner(nl []common.Address, hash common.Hash, _vrfn
 		if block == nil {
 			panic(errors.New("get block by hash fail"))
 		}
+		//排除当前signerList的原因是有可能被选中作为下一轮出块节点,但是同时又
+		excludes := self.getNextRoundSignerExcludeList(block.Number(), block.Hash())
 		fn = func(_vrfn *big.Int) common.Address {
 			m := big.NewInt(int64(len(nl)))
 			x := new(big.Int).Sub(_vrfn, vrfn)
@@ -859,14 +882,10 @@ func (self *TribeService) takeMiner(nl []common.Address, hash common.Hash, _vrfn
 			log.Info("fetchVolunteer-1.0.0-volunteers", "num", block.Number(), "addrList", addrLog)
 			// skip if `n` in volunteer list
 			v := nl[idx.Int64()]
-			vl, err := self._getVolunteers(block.Number(), block.Hash())
-			if err != nil {
-				log.Warn("tribeservice_getVolunteers_fail", "err", err)
-			} else if vl.Length != nil && vl.Length.Int64() > 0 {
-				for _, vol := range vl.VolunteerList {
-					if vol == v {
-						return fn(new(big.Int).Add(_vrfn, big.NewInt(1)))
-					}
+
+			for _, vol := range excludes {
+				if vol == v {
+					return fn(new(big.Int).Add(_vrfn, big.NewInt(1)))
 				}
 			}
 			log.Info("fetchVolunteer-1.0.0-final", "num", block.Number(), "idx", idx.String(), "addr", v.Hex(), "vrfn", _vrfn)
