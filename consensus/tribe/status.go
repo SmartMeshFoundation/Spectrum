@@ -372,9 +372,9 @@ signers:[0,...,16] 0号对应的是常委会节点,1-16对应的是普通出块�
 */
 func (self *TribeStatus) InTurnForCalcChief100(signer common.Address, parent *types.Header) *big.Int {
 	var (
-		number  = parent.Number.Int64() + 1
-		signers = self.GetSigners()
-		sl      = len(signers)
+		number     = parent.Number.Int64() + 1
+		signers, _ = self.GetSignersFromChiefByHash(parent.Hash(), big.NewInt(number)) //self.GetSigners()
+		sl         = len(signers)
 	)
 	if idx, _, err := self.fetchOnSigners(signer, signers); err == nil {
 		// main
@@ -702,7 +702,7 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 	if validateSigner {
 		signer, err := ecrecover(header, self.tribe)
 		// verify difficulty
-		if number > 3 && !params.IsChiefBlock(header.Number) {
+		if number > 3 /*&& !params.IsChiefBlock(header.Number)*/ {
 			difficulty := self.InTurnForVerify(number, header.ParentHash, signer)
 			if difficulty.Cmp(header.Difficulty) != 0 {
 				log.Error("** verifySeal ERROR **", "head.diff", header.Difficulty.String(), "target.diff", difficulty.String(), "err", errInvalidDifficulty)
