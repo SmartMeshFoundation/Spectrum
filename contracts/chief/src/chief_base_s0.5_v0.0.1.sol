@@ -29,14 +29,14 @@ contract ChiefBase {
     uint public leaderLimit = 5;//5
     uint public signerLimit = 3;
     uint public epoch = 6171; // block time 14s, 6171 block = 24H
-    uint public volunteerLimit = signerLimit - 1;
+    uint public volunteerLimit = signerLimit - 1; //留0号位置给Leader
     //config <<<<
     //function setEpoch(uint _epoch) public payable {epoch = _epoch;}
     //function setSignerLimit(uint _signerLimit) public payable {signerLimit = _signerLimit;}
 
-    function setLeaderLimit(uint _leaderLimit) public payable owner() {leaderLimit = _leaderLimit;}
+    function setLeaderLimit(uint _leaderLimit) public  owner() {leaderLimit = _leaderLimit;}
 
-    function setOwner(address newOwner) public payable owner() {_owner = newOwner;}
+    function setOwner(address newOwner) public  owner() {_owner = newOwner;}
 
     function takeEpoch() public view returns (uint) {return epoch;}
 
@@ -88,51 +88,33 @@ contract ChiefBase {
         return false;
     }
 
-    // generate a random index for remove signers every epoch
-    function getRandomIdx(address addr, uint max) private view returns (uint256) {
-        if (max <= 0) {
-            return 0;
-        }
-        bytes32 z = keccak256(abi.encodePacked(int160(addr), block.difficulty, now));
-        uint256 random = uint256(z);
-        return (random % max);
-    }
-
     function init(address pocAddr, address tribeAddr) public {
         require(msg.sender == tribeAddr);
         if (address(poc) == address(0) && pocAddr != address(0)) {
-            initPoc(pocAddr);
+            poc = POC(pocAddr);
         }
         if (tribeAddr != address(0)) {
-            initTribe(tribeAddr);
+            _tribe = tribeAddr;
         }
     }
 
-    // public for test >>>>
-    function initPoc(address pocAddr) public {
-        poc = POC(pocAddr);
-    }
-
-    function initTribe(address tribeAddr) public {
-        _tribe = tribeAddr;
-    }
-    // public for test <<<<
-
-    function pocChangeOwner(address newOwner, uint256 num) public {
+    function pocChangeOwner(address newOwner, uint256 num) owner() public {
         poc.changeOwner(newOwner, num);
     }
 
     function pocAddStop(address minerAddress) public returns (int8) {
-        //require(msg.sender == _tribe);
+        require(msg.sender == _tribe);
         return poc.ownerStop(minerAddress);
     }
 
     // chief -> base -> poc : blacklist options >>>>
     function pocAddBlackList(address minerAddress) public {
+        require(msg.sender == _tribe);
         poc.ownerPushBlackList(minerAddress);
     }
 
-    function pocCleanBlackList() public {
+    function pocCleanBlackList()  public{
+        require(msg.sender == _tribe);
         poc.ownerEmptyBlackList();
     }
 
@@ -140,14 +122,13 @@ contract ChiefBase {
         return poc.getBlackList();
     }
 
-    // chief -> base -> poc : blacklist options <<<<
-
-    // chief -> base -> poc : locklist options >>>>
     function pocAddLockList(address minerAddress) public {
+        require(msg.sender == _tribe);
         poc.ownerPushLockList(minerAddress);
     }
 
     function pocDelLockList(address minerAddress) public returns (int8) {
+        require(msg.sender == _tribe);
         return poc.ownerPopLockList(minerAddress);
     }
     // chief -> base -> poc : locklist options <<<<
