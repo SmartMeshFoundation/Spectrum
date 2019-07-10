@@ -93,7 +93,7 @@ contract ChiefBase {
         if (address(poc) == address(0) && pocAddr != address(0)) {
             poc = POC(pocAddr);
         }
-        if (tribeAddr != address(0)) {
+        if (tribeAddr != address(0) && _tribe==address(0)) {
             _tribe = tribeAddr;
         }
     }
