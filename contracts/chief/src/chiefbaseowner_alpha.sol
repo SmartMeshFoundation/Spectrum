@@ -13,7 +13,7 @@ contract ChiefBaseOwner {
         base=chiefBase;
     }
     function UpgradeToNewChiefVersion( address newChiefBase,uint256 num) public{
-        //msg.sender保证不存在,这样在硬分叉的指定块强制调用这个合约. 
+        //msg.sender保证不存在,这样在硬分叉的指定块强制调用这个合约.
         require(msg.sender==address(0xffffffffffffffffffffffffffffffffffffffff));
         base.pocChangeOwner(newChiefBase,num);
         base=newChiefBase;
