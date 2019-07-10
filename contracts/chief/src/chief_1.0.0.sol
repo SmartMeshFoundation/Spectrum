@@ -73,7 +73,7 @@ contract TribeChief_1_0_0 is Chief {
         uint number;
     }
 
-    ChiefBase private base;
+    ChiefBase_1_0_0 private base;
 
 
     address[]   _signerList; //当前轮的17块的出块人列表(包含Leader)
@@ -86,7 +86,7 @@ contract TribeChief_1_0_0 is Chief {
     mapping(address => uint)   signersMap; //标记某个地址在当前轮中是否是signer
 
     constructor(address baseAddress, address pocAddress,uint startBlockNumber) public {
-        base = ChiefBase(baseAddress);
+        base = ChiefBase_1_0_0(baseAddress);
         base.init(pocAddress, address(this));
         blockNumber=startBlockNumber; //从此块开始分叉
 

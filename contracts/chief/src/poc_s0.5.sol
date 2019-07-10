@@ -1,6 +1,6 @@
 pragma solidity >=0.5.0 <0.6.0;
 
-contract POC{
+contract POC_1_0_0 {
 
     struct minerInfo {
         address owner;//该矿工的owner地址

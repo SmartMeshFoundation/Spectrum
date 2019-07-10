@@ -52,8 +52,8 @@ type TribeService struct {
 	tribeChief_0_0_6 *chieflib.TribeChief_0_0_6
 	tribeChief_0_0_7 *chieflib.TribeChief_0_0_7
 	tribeChief_1_0_0 *chieflib.TribeChief_1_0_0
-	poc              *chieflib.POC
-	base             *chieflib.ChiefBase
+	poc              *chieflib.POC_1_0_0
+	base             *chieflib.ChiefBase_1_0_0
 	quit             chan int
 	server           *p2p.Server // peers and nodekey ...
 	ethereum         *eth.Ethereum
@@ -131,13 +131,13 @@ func NewTribeService(ctx *node.ServiceContext) (node.Service, error) {
 		}
 
 		ts.tribeChief_1_0_0 = contract_1_0_0
-		poc, err := chieflib.NewPOC(v1_0_0.PocAddr, ab)
+		poc, err := chieflib.NewPOC_1_0_0(v1_0_0.PocAddr, ab)
 		if err != nil {
 			return nil, err
 		}
 		ts.poc = poc
 
-		base, err := chieflib.NewChiefBase(v1_0_0.BaseAddr, ab)
+		base, err := chieflib.NewChiefBase_1_0_0(v1_0_0.BaseAddr, ab)
 		if err != nil {
 			return nil, err
 		}

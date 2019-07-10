@@ -9,11 +9,11 @@ import "github.com/SmartMeshFoundation/Spectrum/contracts/chief/src/poc_s0.5.sol
 /* local */
 import "./poc_s0.5.sol";
 
-contract ChiefBase {
+contract ChiefBase_1_0_0 {
 
     string public vsn = "1.0.0";
 
-    POC private poc;
+    POC_1_0_0 private poc;
 
     address public _owner;
     address public _tribe;
@@ -91,7 +91,7 @@ contract ChiefBase {
     function init(address pocAddr, address tribeAddr) public {
         require(msg.sender == tribeAddr);
         if (address(poc) == address(0) && pocAddr != address(0)) {
-            poc = POC(pocAddr);
+            poc = POC_1_0_0(pocAddr);
         }
         if (tribeAddr != address(0) && _tribe==address(0)) {
             _tribe = tribeAddr;
