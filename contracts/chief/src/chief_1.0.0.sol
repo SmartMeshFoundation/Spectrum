@@ -223,7 +223,7 @@ contract TribeChief_1_0_0 is Chief {
             genSigners(); //一轮结束,选择下一轮出块人
         }
         //拉黑持续时间为一个epoch
-        if (l%getEpoch()==0){
+        if (block.number%getEpoch()==0){
             // clean blackList
             genSigners_clean_blackList();
         }
