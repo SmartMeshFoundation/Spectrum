@@ -33,21 +33,21 @@ const (
 var (
 	blockPeriod  = uint64(15)                               // Default minimum difference between two consecutive block's timestamps
 	_extraVanity = 32                                       // Fixed number of extra-data prefix bytes reserved for signer vanity
-	_extraVrf    = 161                                      // before SIP005 extra format is bytes[extraVanity+extraSeal], after is bytes[extraVrf+extraSeal]
+	_extraVrf    = 161                                      // before SIP100 extra format is bytes[extraVanity+extraSeal], after is bytes[extraVrf+extraSeal]
 	extraSeal    = 65                                       // Fixed number of extra-data suffix bytes reserved for signer seal
 	nonceSync    = hexutil.MustDecode("0xffffffffffffffff") // TODO Reserved to control behavior
 	nonceAsync   = hexutil.MustDecode("0x0000000000000000") // TODO Reserved to control behavior
 	uncleHash    = types.CalcUncleHash(nil)                 // Always Keccak256(RLP([])) as uncles are meaningless outside of PoW.
-	// less than SIP005 >>>>>>>>>>>>>
+	// less than SIP100 >>>>>>>>>>>>>
 	// new role is in turn 6 ~ 1
 	diffInTurnMain = big.NewInt(3) // Block difficulty for in-turn Main
 	diffInTurn     = big.NewInt(2) // Block difficulty for in-turn Sub
 	diffNoTurn     = big.NewInt(1) // Block difficulty for out-of-turn Other
-	// less than SIP005 <<<<<<<<<<<<<
-	diff = int64(6) // SIP005 max diff is 6
+	// less than SIP100 <<<<<<<<<<<<<
+	diff = int64(6) // SIP100 max diff is 6
 
 	extraVanityFn = func(num *big.Int) int {
-		if params.IsSIP005Block(num) {
+		if params.IsSIP100Block(num) {
 			return _extraVrf
 		}
 		return _extraVanity

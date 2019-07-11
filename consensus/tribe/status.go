@@ -598,7 +598,7 @@ func (self *TribeStatus) ValidateSigner(parentHeader, header *types.Header, sign
 	}
 
 	idx, _, err := self.fetchOnSigners(signer, signers)
-	if params.IsSIP005Block(header.Number) {
+	if params.IsSIP100Block(header.Number) {
 		if err == nil {
 			// first
 			idx_m := number % int64(len(signers))
@@ -624,8 +624,8 @@ func (self *TribeStatus) ValidateSigner(parentHeader, header *types.Header, sign
 }
 
 func (self *TribeStatus) VerifySignerBalance(state *state.StateDB, addr common.Address, header *types.Header) error {
-	// SIP005 skip this verify
-	if params.IsSIP005Block(header.Number) {
+	// SIP100 skip this verify
+	if params.IsSIP100Block(header.Number) {
 		return nil
 	}
 	var (
@@ -719,7 +719,7 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 		}
 
 		// verify vrf num
-		if params.IsSIP005Block(header.Number) {
+		if params.IsSIP100Block(header.Number) {
 			err = verifyVrfNum(parent.Header(), header)
 			if err != nil {
 				log.Error("vrf_num_fail", "num", number, "err", err)
@@ -735,7 +735,7 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 
 	// add by liangc 190412 : SIP004 if the sender in signerList now refuse and skip this tx
 	signerMap := make(map[common.Address]struct{})
-	if params.IsSIP004Block(header.Number) && !params.IsSIP005Block(header.Number) {
+	if params.IsSIP004Block(header.Number) && !params.IsSIP100Block(header.Number) {
 		for _, signer := range self.Signers {
 			signerMap[signer.Address] = struct{}{}
 		}
@@ -744,7 +744,7 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 	var total = 0
 	for i, tx := range block.Transactions() {
 
-		if params.IsSIP004Block(header.Number) && !params.IsSIP005Block(header.Number) {
+		if params.IsSIP004Block(header.Number) && !params.IsSIP100Block(header.Number) {
 			from := types.GetFromByTx(tx)
 			//verify by anmap bindinfo
 			_, nl, err := params.AnmapBindInfo(*from, parent.Hash())
@@ -779,8 +779,8 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 		if tx.To() != nil && params.IsChiefAddress(*tx.To()) && params.IsChiefUpdate(tx.Data()) {
 			//verify volunteer
 			if state != nil {
-				if params.IsSIP005Block(header.Number) {
-					// TODO SIP005 check volunteer by vrfnp
+				if params.IsSIP100Block(header.Number) {
+					// TODO SIP100 check volunteer by vrfnp
 					volunteerHex := common.Bytes2Hex(tx.Data()[4:])
 					volunteer := common.HexToAddress(volunteerHex)
 					vrfn := header.Extra[:32]

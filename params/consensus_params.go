@@ -271,17 +271,17 @@ func IsSIP004Block(num *big.Int) bool {
 
 // add by liangc : 19-05-31 : for smc-1.0.0
 // may be discard
-func IsSIP005Block(num *big.Int) bool {
+func IsSIP100Block(num *big.Int) bool {
 	if IsTestnet() {
-		if TestnetChainConfig.SIP005Block != nil && TestnetChainConfig.SIP005Block.Cmp(big.NewInt(0)) > 0 && TestnetChainConfig.SIP005Block.Cmp(num) <= 0 {
+		if TestnetChainConfig.Chief100Block != nil && TestnetChainConfig.Chief100Block.Cmp(big.NewInt(0)) > 0 && TestnetChainConfig.Chief100Block.Cmp(num) <= 0 {
 			return true
 		}
 	} else if IsDevnet() {
-		if DevnetChainConfig.SIP005Block != nil && DevnetChainConfig.SIP005Block.Cmp(big.NewInt(0)) > 0 && DevnetChainConfig.SIP005Block.Cmp(num) <= 0 {
+		if DevnetChainConfig.Chief100Block != nil && DevnetChainConfig.Chief100Block.Cmp(big.NewInt(0)) > 0 && DevnetChainConfig.Chief100Block.Cmp(num) <= 0 {
 			return true
 		}
 	} else {
-		if MainnetChainConfig.SIP005Block != nil && MainnetChainConfig.SIP005Block.Cmp(big.NewInt(0)) > 0 && MainnetChainConfig.SIP005Block.Cmp(num) <= 0 {
+		if MainnetChainConfig.Chief100Block != nil && MainnetChainConfig.Chief100Block.Cmp(big.NewInt(0)) > 0 && MainnetChainConfig.Chief100Block.Cmp(num) <= 0 {
 			return true
 		}
 	}
@@ -367,7 +367,7 @@ func chiefAddressList() (list ChiefInfoList) {
 			newChiefInfo(TestnetChainConfig.Chief004Block, "0.0.4", TestnetChainConfig.Chief004Address, TribeChief_0_0_4ABI),
 			newChiefInfo(TestnetChainConfig.Chief005Block, "0.0.5", TestnetChainConfig.Chief005Address, TribeChief_0_0_5ABI),
 			newChiefInfo(TestnetChainConfig.Chief006Block, "0.0.6", TestnetChainConfig.Chief006Address, TribeChief_0_0_6ABI),
-			//newChiefInfoWithPocBase(TestnetChainConfig.Chief100Block, TestnetChainConfig.PocBlock, "1.0.0", TestnetChainConfig.Chief100Address, TestnetChainConfig.PocAddress, TestnetChainConfig.ChiefBaseAddress, TribeChief_1_0_0ABI),
+			newChiefInfoWithPocBase(TestnetChainConfig.Chief100Block, TestnetChainConfig.PocBlock, "1.0.0", TestnetChainConfig.Chief100Address, TestnetChainConfig.PocAddress, TestnetChainConfig.ChiefBaseAddress, TribeChief_1_0_0ABI),
 		}
 	} else if IsDevnet() {
 		list = ChiefInfoList{
@@ -422,16 +422,6 @@ func IsBeforeChief100block(blockNumber *big.Int) bool {
 	}
 	return false
 }
-
-//func isChiefBlock(list ChiefInfoList, blockNumber *big.Int) bool {
-//	for _, ci := range list {
-//		//log.Info("isChief", "a", ci.StartNumber, "b", blockNumber)
-//		if ci.StartNumber.Cmp(blockNumber) == 0 {
-//			return true
-//		}
-//	}
-//	return false
-//}
 
 func IsChiefUpdate(data []byte) bool {
 	if len(data) < 4 {

@@ -115,7 +115,7 @@ var (
 		SIP003Block: big.NewInt(917013),
 		SIP004Block: big.NewInt(2212557),
 
-		SIP005Block: big.NewInt(2588183),
+		Chief100Block: big.NewInt(2588183),
 
 		Tribe: &TribeConfig{},
 	}
@@ -192,7 +192,6 @@ var (
 		SIP002Block: big.NewInt(1),
 		SIP003Block: big.NewInt(3),
 		SIP004Block: big.NewInt(3),
-		SIP005Block: big.NewInt(7),
 
 		Tribe: &TribeConfig{Period: 3},
 	}
@@ -300,7 +299,7 @@ type ChainConfig struct {
 	// extends 0.0.6 only for dev and test
 	Chief007Block   *big.Int       `json:"chief007Block,omitempty"`
 	Chief007Address common.Address `json:"chief007Address,omitempty"`
-
+	// https://github.com/SmartMeshFoundation/Spectrum/wiki/%5BChinese%5D-v1.0.0-Standard
 	Chief100Block   *big.Int       `json:"chief100Block,omitempty"`
 	Chief100Address common.Address `json:"chief100Address,omitempty"`
 
@@ -319,9 +318,6 @@ type ChainConfig struct {
 	// add by liangc : 19-03-27 : for smc-0.6.0
 	// https://github.com/SmartMeshFoundation/Spectrum/wiki/%5BChinese%5D-v0.6.0-Standard
 	SIP004Block *big.Int `json:"sip004Block,omitempty"`
-	// add by liangc : 19-05-31 : for miner reward
-	// https://github.com/SmartMeshFoundation/Spectrum/wiki/%5BChinese%5D-v1.0.0-Standard
-	SIP005Block *big.Int `json:"sip005Block,omitempty"`
 
 	Meshbox001Block   *big.Int       `json:"meshbox001Block,omitempty"`
 	Meshbox001Address common.Address `json:"meshbox001Address,omitempty"`
