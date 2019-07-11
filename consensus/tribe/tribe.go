@@ -435,7 +435,7 @@ func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error
 	copy(header.Nonce[:], nonceAsync)
 
 	// Extra : append sig to last 65 bytes >>>>
-	if params.IsSIP005Block(header.Number) {
+	if params.IsSIP100Block(header.Number) {
 		header.Extra = make([]byte, _extraVrf+extraSeal)
 		// append vrf to header.Extra before sign
 		parentHeader := chain.GetHeaderByHash(header.ParentHash)

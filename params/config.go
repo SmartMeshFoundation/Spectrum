@@ -115,7 +115,7 @@ var (
 		SIP003Block: big.NewInt(917013),
 		SIP004Block: big.NewInt(2212557),
 
-		SIP005Block: big.NewInt(2588183),
+		Chief100Block: big.NewInt(2588183),
 
 		Tribe: &TribeConfig{},
 	}
@@ -157,30 +157,8 @@ var (
 		PocBlock:   big.NewInt(20),
 		PocAddress: common.HexToAddress("0x901c0636c4fc83f353bca2db85e2ace886a9416d"),
 
-		Chief100Block: big.NewInt(22),
-		//Chief100Address: common.HexToAddress("0x"),
+		Chief100Block:   big.NewInt(22),
 		Chief100Address: common.HexToAddress("0x6d05f6aa4e19e20cd781fa3def97bbfd0b980534"),
-		/*
-			Meshbox002Block:   big.NewInt(6),
-			Meshbox002Address: common.HexToAddress("0xc4a2d182fe92f0eadffbddea9a0977d5b95b31a5"),
-
-			Anmap001Block:   big.NewInt(6),
-			Anmap001Address: common.HexToAddress("0x57d2bcd8d702999daf240793919675c90b12a17a"),
-
-			// base block link to Chief100Block
-			ChiefBaseAddress: common.HexToAddress("0x7880adce4504fd39645aabb3efb53824d9b0c21b"),
-
-			// PocBlock must less than Chief100Block
-			PocBlock:   big.NewInt(20),
-			PocAddress: common.HexToAddress("0xad61f1201f592fbf13d2645f9c59d8d5f82a1837"),
-
-			Chief100Block:   big.NewInt(22),
-			Chief100Address: common.HexToAddress("0x0f91c3f2e10a0b53d6b3b4d6c7b41ab77c7d0674"),
-
-		*/
-		// ############
-		// # DEBUG <<<<
-		// ############
 
 		MinMinerBalance: new(big.Int).Mul(big.NewInt(1), big.NewInt(Ether)),
 
@@ -189,7 +167,6 @@ var (
 		SIP002Block: big.NewInt(1),
 		SIP003Block: big.NewInt(3),
 		SIP004Block: big.NewInt(3),
-		SIP005Block: big.NewInt(7),
 
 		Tribe: &TribeConfig{Period: 3},
 	}
@@ -298,6 +275,8 @@ type ChainConfig struct {
 	Chief007Block   *big.Int       `json:"chief007Block,omitempty"`
 	Chief007Address common.Address `json:"chief007Address,omitempty"`
 
+	//  for miner reward
+	// https://github.com/SmartMeshFoundation/Spectrum/wiki/%5BChinese%5D-v1.0.0-Standard
 	Chief100Block   *big.Int       `json:"chief100Block,omitempty"`
 	Chief100Address common.Address `json:"chief100Address,omitempty"`
 
@@ -316,9 +295,6 @@ type ChainConfig struct {
 	// add by liangc : 19-03-27 : for smc-0.6.0
 	// https://github.com/SmartMeshFoundation/Spectrum/wiki/%5BChinese%5D-v0.6.0-Standard
 	SIP004Block *big.Int `json:"sip004Block,omitempty"`
-	// add by liangc : 19-05-31 : for miner reward
-	// https://github.com/SmartMeshFoundation/Spectrum/wiki/%5BChinese%5D-v1.0.0-Standard
-	SIP005Block *big.Int `json:"sip005Block,omitempty"`
 
 	Meshbox001Block   *big.Int       `json:"meshbox001Block,omitempty"`
 	Meshbox001Address common.Address `json:"meshbox001Address,omitempty"`

@@ -507,7 +507,7 @@ func (self *worker) commitNewWork() {
 		if self.config.DAOForkSupport && self.config.DAOForkBlock != nil && self.config.DAOForkBlock.Cmp(header.Number) == 0 {
 			misc.ApplyDAOHardFork(work.state)
 		}*/
-	// SIP004 --> SIP005
+	// SIP004 --> SIP100
 	pending, err := self.eth.TxPool().Pending(false)
 	//fmt.Println(header.Number.Int64(),err, "====== commitNewWork =======> pending.len:", len(pending))
 	if err != nil {

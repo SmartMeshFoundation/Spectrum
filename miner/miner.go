@@ -148,8 +148,8 @@ func (self *Miner) Start(coinbase common.Address) {
 				log.Error("miner start fail", err)
 			}
 			cn := self.eth.BlockChain().CurrentBlock().Number()
-			// SIP005 skip this verfiy
-			if params.IsSIP005Block(cn) {
+			// SIP100 skip this verfiy
+			if params.IsSIP100Block(cn) {
 				break
 			}
 			if params.IsSIP004Block(cn) && params.IsReadyMeshbox(cn) && params.IsReadyAnmap(cn) {

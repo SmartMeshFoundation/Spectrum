@@ -38,9 +38,12 @@ var BadHashes = map[common.Hash]bool{
 		// add by liangc : testnet : rollback 595708 in testnet for test and update chief 0.0.6
 		common.HexToHash("0x24f468cb2f0a77add1705a341277eadea9b64700981f6e0d94dc688c5dfbb9f2"): true,
 	*/
-	// add by liangc : testnet : rollback 2200022 in testnet for test and debug vsn0.6.0
-	common.HexToHash("0x3e7cb5d81c8f8b3998ec1b1c244333d16712f27cedac0f42b4039bf04689da09"): true,
-	// 					   2248496
-	// testnet rollback to 2243388
-	common.HexToHash("0x3a0c324ef355f3b12049851e75873e13e5b48aa69e79d68f5e8c9a61a2655bee"): true,
+	//// add by liangc : testnet : rollback 2200022 in testnet for test and debug vsn0.6.0
+	//common.HexToHash("0x3e7cb5d81c8f8b3998ec1b1c244333d16712f27cedac0f42b4039bf04689da09"): true,
+	//// 					   2248496
+	//// testnet rollback to 2243388
+	//common.HexToHash("0x3a0c324ef355f3b12049851e75873e13e5b48aa69e79d68f5e8c9a61a2655bee"): true,
+
+	// testnet rollback to 2588182 sip005 hardfork
+	common.HexToHash("0x6bdc4204174d77a564cabc9038ca3a4bc5054deceac02fbb8a19a061883ac1e9"): true,
 }
