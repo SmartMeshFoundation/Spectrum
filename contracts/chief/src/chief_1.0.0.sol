@@ -13,7 +13,7 @@ import "./chief_base_s0.5_v0.0.1.sol";
 /*
 ----------
 | devnet |
-----------
+----------   
 
 test nodes :
 
@@ -39,7 +39,7 @@ f = "0xbf1736a65f8beadd71b321be585fd883503fdeaa"; personal.unlockAccount(f,"1234
         addr: 0xd3F50Dfd2887B3818aB9E6c6f846ED1d3bD90B29
         R: 0x99b087c99fceee44b15373847e38f485b31b5b779ce7b01081f2d61c00c77d19
         S: 0x0f29d84ff759415e969e12a49cf2fc453c1b2aa386d59e0488b11627dcdbd261
-        V: 27
+        V: 27 
 
         addr: 0x50bf23F1d844465AB69357aa08Af0fEA4B1E62D7
         R: 0x2edbf406a13757485096ae35d85f1f881f17073e230454ad83a65e003ff2deb8
@@ -76,9 +76,9 @@ contract TribeChief_1_0_0 is Chief {
     ChiefBase_1_0_0 private base;
 
 
-    address[]   _signerList; //当前轮的17块的出块人列表(包含Leader)
-    address[]   _nextRoundSignerList; //下一轮17块出块人列表,不包含Leader
-    uint   blockNumber; //当前块
+    address[] public  _signerList; //当前轮的17块的出块人列表(包含Leader)
+    address[] public  _nextRoundSignerList; //下一轮17块出块人列表,不包含Leader
+    uint  public  blockNumber; //当前块
 
 
 
@@ -114,7 +114,7 @@ contract TribeChief_1_0_0 is Chief {
         if (_nextRoundSignerList.length < base.takeVolunteerLimit()) {
             _nextRoundSignerList.push(addr);
         } else{
-            revert();
+            revert("next round signer too much");
         }
     }
 
@@ -124,19 +124,20 @@ contract TribeChief_1_0_0 is Chief {
                 _signerList.push(signer);
             signersMap[signer] = 1;
         } else{
-            revert();
+            revert("too many signer");
         }
     }
 
     // clean all of list and return _signerList[0]
-    function clean_all_signer_and_get0()  private returns (address signer0) {
-        signer0=_signerList[0]; //至少会有一个signer
+    function clean_all_signer_and_get0()  private returns (address) {
+        address signer0=_signerList[0]; //至少会有一个signer
         // clean all of signerList
-        for (uint i = _signerList.length-1; i >=0; i--) {
+        for (uint i = 0;i<_signerList.length;i++) {
             signersMap[_signerList[i]]=0;
             _signerList[i]=address(0);
         }
         _signerList.length=0;
+        return signer0;
     }
 
     function genSigners_set_leader(address signer0 ) private {
@@ -149,26 +150,27 @@ contract TribeChief_1_0_0 is Chief {
                 } else {
                     pushSigner(leaders[i + 1]);
                 }
-                break;
+               return;
             }
         }
+        revert("signer0 must exist in leader list");
     }
 
     // push volunteerList to signerList
     function genSigners_v2s() private {
-        for (uint i1 = 0; i1 < _nextRoundSignerList.length; i1++) {
-            address v = _nextRoundSignerList[i1];
+        for (uint i = 0; i < _nextRoundSignerList.length; i++) {
+            address v = _nextRoundSignerList[i];
             pushSigner(v);
         }
-        for (uint i2 = _signerList.length; i2 < base.takeSignerLimit(); i2++) {
+        for (uint i = _signerList.length; i < base.takeSignerLimit(); i++) {
             // placeholder
             _signerList.push(address(0));
         }
     }
 
     // clean volunteerList
-    function genSigners_clean_volunteer() private {
-        for (uint i = _nextRoundSignerList.length-1; i >=0; i--) {
+    function genSigners_clean_next_round_signers() private {
+        for (uint i =0; i< _nextRoundSignerList.length; i++) {
             _nextRoundSignerList[i]=address(0);
         }
         _nextRoundSignerList.length=0;
@@ -178,21 +180,22 @@ contract TribeChief_1_0_0 is Chief {
         base.pocCleanBlackList();
     }
 
-    function genSigners() public {
+    function genSigners() private  {
         address signer0=clean_all_signer_and_get0();
+        require(signer0!=address(0),"signer0 must not be zero");
         // generate
         genSigners_set_leader(signer0);
-        // push volunteerList to signerList
+        // move next round candidate signers to current signer list
         genSigners_v2s();
-        // clean volunteerList
-        genSigners_clean_volunteer();
+        // clear next round candidate signers.
+        genSigners_clean_next_round_signers();
     }
     //合约外部调用唯一的入口
     function update(address volunteer) public allow() {
 
         blockNumber = block.number;
 
-        uint l = _signerList.length;
+        uint l = base.takeSignerLimit();
         uint signerIdx = uint(blockNumber % l); //轮到signerIdx出块
         address si = _signerList[signerIdx];
 
@@ -208,18 +211,15 @@ contract TribeChief_1_0_0 is Chief {
                 if (base.pocAddStop(si) > 0) {
                     // move to blackList
                     base.pocAddBlackList(si);
-                }else{
-
                 }
-
                 delete signersMap[si];
-                // mark 0
+                // mark 0  
                 _signerList[signerIdx] = address(0);
             }
         }
 
         //2 : last block, reset signerList
-        if (l == base.takeSignerLimit() && signerIdx == uint(base.takeSignerLimit() - 1)) {
+        if (signerIdx == (l - 1)) {
             genSigners(); //一轮结束,选择下一轮出块人
         }
         //拉黑持续时间为一个epoch
@@ -279,5 +279,12 @@ contract TribeChief_1_0_0 is Chief {
 
     // TODO
     function filterVolunteer(address[] memory volunteers) public view returns (uint[] memory result) {}
+    function test_update(address nextsigner) public{
+        update(nextsigner);
+    }
+    function test_push_signer(uint256 i,address signer) public{
+            _signerList[i]=signer;
+            signersMap[signer] = 1;
+    }
 }
 
