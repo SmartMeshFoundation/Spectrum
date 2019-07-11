@@ -113,7 +113,7 @@ var (
 	ErrTribeChiefVolunteerFail                = errors.New("tribe chief volunteer check fail")
 	ErrTribeValdateTxSenderCannotInSignerList = errors.New("tx sender cannot in signerlist")
 	Chief100BlockReward, _                    = new(big.Int).SetString("35000000000000000000", 10) //Block reward in wei for successfully mining a block
-	BlockRewardReducedInterval                = 1036800                                            //half reward about two years
+	BlockRewardReducedInterval                = 4505000                                            //half reward about two years
 )
 
 type Tribe struct {
