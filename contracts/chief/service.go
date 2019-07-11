@@ -902,7 +902,7 @@ func (self *TribeService) verifyMiner(vol common.Address, hash common.Hash, vrfn
 	switch ci.Version {
 	case "1.0.0":
 		m := self.takeMiner(self.minerList(block.Number(), block.Hash()), hash, vrfn)
-		log.Info("<<TribeService.verifyMiner>>", "result", vol == m, "c", vol.Hex(), "t", m.Hex())
+		log.Debug("<<TribeService.verifyMiner>>", "result", vol == m, "c", vol.Hex(), "t", m.Hex())
 		if vol == m {
 			return true
 		}
