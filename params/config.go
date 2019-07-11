@@ -151,14 +151,39 @@ var (
 		Anmap001Address: common.HexToAddress("0x143084accd6472ad502b59c3197f9ed5f797b966"),
 
 		// base block link to Chief100Block
-		ChiefBaseAddress: common.HexToAddress("0xad61f1201f592fbf13d2645f9c59d8d5f82a1837"),
+		//ChiefBaseAddress: common.HexToAddress("0xad61f1201f592fbf13d2645f9c59d8d5f82a1837"), liang
+		ChiefBaseAddress: common.HexToAddress("0x416cd73ea1c343868e63bb75e8a05f1f8b994901"),
 
 		// PocBlock must less than Chief100Block
-		PocBlock:   big.NewInt(20),
-		PocAddress: common.HexToAddress("0x901c0636c4fc83f353bca2db85e2ace886a9416d"),
+		PocBlock: big.NewInt(87),
+		//PocAddress: common.HexToAddress("0x901c0636c4fc83f353bca2db85e2ace886a9416d"), liang
+		PocAddress: common.HexToAddress("0x849a428e0d298da798dee3bb96f7541722229dab"),
 
-		Chief100Block:   big.NewInt(22),
-		Chief100Address: common.HexToAddress("0x6d05f6aa4e19e20cd781fa3def97bbfd0b980534"),
+		Chief100Block: big.NewInt(89),
+		//Chief100Address: common.HexToAddress("0x"),
+		//Chief100Address: common.HexToAddress("0x6d05f6aa4e19e20cd781fa3def97bbfd0b980534"), liang
+		Chief100Address: common.HexToAddress("0x4db1e5554c3dddfeeebef146151521877bbb9a71"),
+		/*
+			Meshbox002Block:   big.NewInt(6),
+			Meshbox002Address: common.HexToAddress("0xc4a2d182fe92f0eadffbddea9a0977d5b95b31a5"),
+
+			Anmap001Block:   big.NewInt(6),
+			Anmap001Address: common.HexToAddress("0x57d2bcd8d702999daf240793919675c90b12a17a"),
+
+			// base block link to Chief100Block
+			ChiefBaseAddress: common.HexToAddress("0x7880adce4504fd39645aabb3efb53824d9b0c21b"),
+
+			// PocBlock must less than Chief100Block
+			PocBlock:   big.NewInt(20),
+			PocAddress: common.HexToAddress("0xad61f1201f592fbf13d2645f9c59d8d5f82a1837"),
+
+			Chief100Block:   big.NewInt(22),
+			Chief100Address: common.HexToAddress("0x0f91c3f2e10a0b53d6b3b4d6c7b41ab77c7d0674"),
+
+		*/
+		// ############
+		// # DEBUG <<<<
+		// ############
 
 		MinMinerBalance: new(big.Int).Mul(big.NewInt(1), big.NewInt(Ether)),
 
@@ -274,8 +299,6 @@ type ChainConfig struct {
 	// extends 0.0.6 only for dev and test
 	Chief007Block   *big.Int       `json:"chief007Block,omitempty"`
 	Chief007Address common.Address `json:"chief007Address,omitempty"`
-
-	//  for miner reward
 	// https://github.com/SmartMeshFoundation/Spectrum/wiki/%5BChinese%5D-v1.0.0-Standard
 	Chief100Block   *big.Int       `json:"chief100Block,omitempty"`
 	Chief100Address common.Address `json:"chief100Address,omitempty"`

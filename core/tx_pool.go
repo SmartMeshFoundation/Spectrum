@@ -1011,7 +1011,7 @@ func (pool *TxPool) addTx(tx *types.Transaction, local bool) error {
 	// Try to inject the transaction and update any state
 	log.Debug("TODO<<TxPool.addTx>> add_begin", "tx", tx.Hash().Hex())
 	replace, err := pool.add(tx, local)
-	log.Debug("TODO<<TxPool.addTx>> add_end", "tx", tx.Hash().Hex())
+	log.Debug("TODO<<TxPool.addTx>> add_end", "tx", tx.Hash().Hex(), "err", err)
 	if err != nil {
 		return err
 	}

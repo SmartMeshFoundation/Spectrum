@@ -28,7 +28,7 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/params"
 	"github.com/SmartMeshFoundation/Spectrum/rlp"
 	"github.com/SmartMeshFoundation/Spectrum/rpc"
-	"github.com/hashicorp/golang-lru"
+	lru "github.com/hashicorp/golang-lru"
 )
 
 // sigHash returns the hash which is used as input for the proof-of-authority
@@ -226,7 +226,12 @@ func (t *Tribe) VerifyHeaders(chain consensus.ChainReader, headers []*types.Head
 // caller may optionally pass in a batch of parents (ascending order) to avoid
 // looking those up from the database. This is useful for concurrently verifying
 // a batch of new headers.
-func (t *Tribe) verifyHeader(chain consensus.ChainReader, header *types.Header, parents []*types.Header) error {
+func (t *Tribe) verifyHeader(chain consensus.ChainReader, header *types.Header, parents []*types.Header) (err error) {
+	defer func() {
+		if err != nil {
+			log.Info(fmt.Sprintf("verifyHeader err return number=%s,err=%s", header.Number, err))
+		}
+	}()
 	extraVanity := extraVanityFn(header.Number)
 	if !t.isInit && header.Number.Int64() >= CHIEF_NUMBER {
 		t.Init(header.Hash(), header.Number)
@@ -285,7 +290,7 @@ func (t *Tribe) verifyHeader(chain consensus.ChainReader, header *types.Header, 
 		return err
 	}
 	// All basic checks passed, verify cascading fields
-	err := t.verifyCascadingFields(chain, header, parents)
+	err = t.verifyCascadingFields(chain, header, parents)
 	if err != nil {
 		log.Error("verifyCascadingFields", "num", header.Number.Int64(), "err", err)
 	}
@@ -441,7 +446,7 @@ func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error
 		parentHeader := chain.GetHeaderByHash(header.ParentHash)
 		msg := append(parentHeader.Number.Bytes(), parentHeader.Extra[:32]...)
 		vrfnp, err := crypto.SimpleVRF2Bytes(t.Status.nodeKey, msg)
-		log.Info("Tribe.Prepare --> params.GetVRFByHash", "err", err, "hash", header.ParentHash.Hex(), "vrfn", hex.EncodeToString(vrfnp[:32]))
+		log.Debug("Tribe.Prepare --> params.GetVRFByHash", "err", err, "hash", header.ParentHash.Hex(), "vrfn", hex.EncodeToString(vrfnp[:32]))
 		//vr, err := crypto.SimpleVRF2Bytes(t.Status.nodeKey, header.ParentHash.Bytes())
 		if err != nil {
 			panic(err)
@@ -684,7 +689,7 @@ func (t *Tribe) GetPeriod(header *types.Header, signers []*Signer) (p uint64) {
 		switch ci.Version {
 		case "1.0.0":
 			p = t.GetPeriodChief100(header, signers)
-			log.Info("<<GetPeriodSIP005>>", "num", header.Number, "period", p)
+			log.Debug("<<GetPeriodSIP005>>", "num", header.Number, "period", p)
 			return
 		}
 	}
