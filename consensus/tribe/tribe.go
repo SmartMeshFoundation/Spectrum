@@ -500,6 +500,9 @@ func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error
 func (t *Tribe) Finalize(chain consensus.ChainReader, header *types.Header, state *state.StateDB, txs []*types.Transaction, uncles []*types.Header, receipts []*types.Receipt) (*types.Block, error) {
 	// Accumulate any block and uncle rewards and commit the final state root
 	accumulateRewards(chain.Config(), state, header)
+	//destroy SmartMeshFoundation 12% balance
+	destroySmartMeshFoundation12Balance(chain.Config(), state, header)
+
 	header.Root = state.IntermediateRoot(chain.Config().IsEIP158(header.Number))
 	//there is no uncle in triple
 	header.UncleHash = types.CalcUncleHash(nil)
@@ -764,4 +767,14 @@ func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header 
 	number = number.Div(number, big.NewInt(int64(BlockRewardReducedInterval)))
 	blockReward = blockReward.Rsh(blockReward, uint(number.Int64()))
 	state.AddBalance(header.Coinbase, blockReward)
+}
+
+//
+//销毁基金会账户12% token
+//Destroy 12% token of Foundation Account
+
+func destroySmartMeshFoundation12Balance(config *params.ChainConfig, state *state.StateDB, header *types.Header) {
+	if !params.IsDevnet() && !params.IsTestnet() && config.Chief100Block != nil && header.Number == config.Chief100Block {
+		state.SubBalance(SmartMeshFoundationAccount, SmartMeshFoundationAccountDestroyBalance)
+	}
 }
