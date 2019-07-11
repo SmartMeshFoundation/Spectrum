@@ -310,6 +310,10 @@ func (self *TribeStatus) resetSignersLevel(hash common.Hash, number *big.Int) {
 	m := self.GetMinerAddress()
 	for _, v := range self.Volunteers {
 		if v == m {
+			if self.SignerLevel != LevelVolunteer {
+				log.Info(fmt.Sprintf("resetSignersLevel: miner=%s,number=%s,hash=%s", m.String(), number, hash.String()))
+			}
+
 			self.SignerLevel = LevelVolunteer
 			return
 		}

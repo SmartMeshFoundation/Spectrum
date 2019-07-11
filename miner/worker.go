@@ -223,7 +223,7 @@ func (self *worker) start(s chan int) {
 			if self.chain.CurrentHeader().Number.Int64() > 3 { // free for genesis signer
 				// pending until miner level upgrade
 				tribe.WaitingNomination()
-				log.Info("Everything is ready , signer started.")
+				log.Warn("Everything is ready , signer started.")
 			}
 			tribe.SetMining(1, self.chain.CurrentBlock().Number(), self.chain.CurrentHeader().Hash())
 		}()
@@ -478,6 +478,7 @@ func (self *worker) commitNewWork() {
 		log.Error("Failed to prepare header for mining", "err", err)
 		return
 	}
+	log.Warn("start prepare....")
 	// If we are care about TheDAO hard-fork check whether to override the extra-data or not
 	/*
 		if daoBlock := self.config.DAOForkBlock; daoBlock != nil {
