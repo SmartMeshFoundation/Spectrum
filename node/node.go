@@ -19,6 +19,13 @@ package node
 import (
 	"errors"
 	"fmt"
+	"net"
+	"os"
+	"path/filepath"
+	"reflect"
+	"strings"
+	"sync"
+
 	"github.com/SmartMeshFoundation/Spectrum/accounts"
 	"github.com/SmartMeshFoundation/Spectrum/ethdb"
 	"github.com/SmartMeshFoundation/Spectrum/event"
@@ -26,14 +33,10 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/log"
 	"github.com/SmartMeshFoundation/Spectrum/p2p"
 	"github.com/SmartMeshFoundation/Spectrum/rpc"
-	"github.com/cc14514/smc-devnet/lib"
+
+	//"github.com/cc14514/smc-devnet/lib"
+	"github.com/SmartMeshFoundation/Spectrum/internal/smc-devnet/lib"
 	"github.com/prometheus/prometheus/util/flock"
-	"net"
-	"os"
-	"path/filepath"
-	"reflect"
-	"strings"
-	"sync"
 )
 
 // Node is a container on which services can be registered.
@@ -239,7 +242,7 @@ func (n *Node) openDataDir() error {
 		if n.config.DevReset {
 			os.RemoveAll(instdir)
 		}
-		if n.config.DevMaster {
+		if n.config.DevMaster && n.config.DevReset {
 			if f, err := os.Open(instdir); err != nil {
 				if _, err := lib.Restore(n.config.DataDir, n.config.DevReset, n.config.DevMaster); err != nil {
 					panic(err)
