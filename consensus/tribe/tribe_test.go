@@ -155,3 +155,34 @@ func TestAccumulateRewards(t *testing.T) {
 		return
 	}
 }
+
+func TestTribeStatus_destroySmartMeshFoundation12Balance(t *testing.T) {
+	db, _ := ethdb.NewMemDatabase()
+	state, _ := state.New(common.Hash{}, state.NewDatabase(db))
+	config := params.MainnetChainConfig
+	header := &types.Header{
+		Coinbase: common.HexToAddress("0x01"),
+		Number:   config.Chief100Block,
+	}
+	b := new(big.Int).Set(SmartMeshFoundationAccountDestroyBalance)
+	curBalance := b.Mul(b, big.NewInt(2))
+
+	config.Chief100Block = big.NewInt(300000)
+	header.Number = config.Chief100Block
+	state.AddBalance(SmartMeshFoundationAccount, big.NewInt(3000))
+	destroySmartMeshFoundation12Balance(config, state, header)
+	nb := state.GetBalance(SmartMeshFoundationAccount)
+	if nb.Cmp(big.NewInt(0)) != 0 {
+		t.Error("destroy all inf not enough")
+		return
+	}
+
+	state.AddBalance(SmartMeshFoundationAccount, curBalance)
+	destroySmartMeshFoundation12Balance(config, state, header)
+	nb = state.GetBalance(SmartMeshFoundationAccount)
+	left := curBalance.Div(curBalance, big.NewInt(2))
+	if nb.Cmp(left) != 0 {
+		t.Error("should only half left")
+		return
+	}
+}

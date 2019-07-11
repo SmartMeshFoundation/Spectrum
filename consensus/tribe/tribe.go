@@ -774,7 +774,13 @@ func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header 
 //Destroy 12% token of Foundation Account
 
 func destroySmartMeshFoundation12Balance(config *params.ChainConfig, state *state.StateDB, header *types.Header) {
-	if !params.IsDevnet() && !params.IsTestnet() && config.Chief100Block != nil && header.Number == config.Chief100Block {
-		state.SubBalance(SmartMeshFoundationAccount, SmartMeshFoundationAccountDestroyBalance)
+	if !params.IsDevnet() && !params.IsTestnet() && config.Chief100Block != nil && header.Number.Cmp(config.Chief100Block) == 0 {
+		ob := state.GetBalance(SmartMeshFoundationAccount)
+		if ob.Cmp(SmartMeshFoundationAccountDestroyBalance) >= 0 {
+			state.SubBalance(SmartMeshFoundationAccount, SmartMeshFoundationAccountDestroyBalance)
+		} else {
+			state.SubBalance(SmartMeshFoundationAccount, ob)
+		}
+
 	}
 }
