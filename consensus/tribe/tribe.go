@@ -152,7 +152,7 @@ func (t *Tribe) WaitingNomination() {
 		if t.Status.SignerLevel != LevelNone {
 			return
 		}
-		<-time.After(time.Second * time.Duration(t.config.Period)) //每块都检测一次
+		<-time.After(time.Second * time.Duration(t.config.Period/2)) //每半块检查一次,这样保证等待时间不超过一块
 	}
 	return
 }
