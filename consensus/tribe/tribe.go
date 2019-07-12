@@ -306,7 +306,7 @@ func (t *Tribe) verifyCascadingFields(chain consensus.ChainReader, header *types
 	verifyTime := func() error {
 		if params.IsSIP002Block(header.Number) {
 			// first verification
-			// second verification block time in ValidateSigner function
+			// second verification block time in validateSigner function
 			// the min limit period is config.Period - 1
 			if parent.Time.Uint64()+(t.config.Period-1) > header.Time.Uint64() {
 				return ErrInvalidTimestampSIP002
@@ -406,7 +406,7 @@ func (t *Tribe) verifySeal(chain consensus.ChainReader, header *types.Header, pa
 	}
 	log.Debug("verifySeal", "number", number, "signer", signer.Hex())
 
-	if !t.Status.ValidateSigner(chain.GetHeaderByHash(header.ParentHash), header, signer) {
+	if !t.Status.validateSigner(chain.GetHeaderByHash(header.ParentHash), header, signer) {
 		return errUnauthorized
 	}
 
@@ -527,7 +527,7 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 	if t.config.Period == 0 && len(block.Transactions()) == 0 {
 		return nil, errWaitTransactions
 	}
-	if !t.Status.ValidateSigner(chain.GetHeaderByHash(block.ParentHash()), block.Header(), t.Status.GetMinerAddress()) {
+	if !t.Status.validateSigner(chain.GetHeaderByHash(block.ParentHash()), block.Header(), t.Status.GetMinerAddress()) {
 		return nil, errUnauthorized
 	}
 

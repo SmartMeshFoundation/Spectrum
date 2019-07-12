@@ -26,7 +26,7 @@ const (
 
 	historyLimit = 2048
 	wiggleTime   = 500 * time.Millisecond // Random delay (per signer) to allow concurrent signers
-	CHIEF_NUMBER = int64(3)
+	CHIEF_NUMBER = int64(3)               //chief合约开始生效的块数
 )
 
 var (

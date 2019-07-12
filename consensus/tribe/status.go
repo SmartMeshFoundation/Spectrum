@@ -151,8 +151,13 @@ func (self *TribeStatus) GetSigners() []*Signer {
 	return self.Signers
 }
 
+//InTurnForCalcChief100 计算规则参考inTurnForCalcChief100
+func (self *TribeStatus) InTurnForCalcChief100(signer common.Address, parent *types.Header) *big.Int {
+	return self.inTurnForCalcChief100(parent.Number.Int64()+1, parent.Hash(), signer)
+}
+
 /*
-InTurnForCalcChief100 计算如果当前出块节点是signer的话,它对应的难度是多少.
+inTurnForCalcChief100 计算如果当前出块节点是signer的话,它对应的难度是多少.
 signers:[0,...,16] 0号对应的是常委会节点,1-16对应的是普通出块节点
 场景1:
 1. 当前应该出块节点应该是3,如果signer是3,那么难度就是6.
@@ -160,11 +165,12 @@ signers:[0,...,16] 0号对应的是常委会节点,1-16对应的是普通出块�
 场景2:当前出块节点应该是singers[0],也就是某个常委会节点
 1. 如果signers[0] 出块,那么难度就是6
 2. 假设signers[0]是常委2,那么常委3替他出块难度是5,常委4出块就是4,...常委1出块难度则是2
+
+这里的number参数主要是选定合约版本,而parentHash则是用来选择读取哪个block时候的合约状态
 */
-func (self *TribeStatus) InTurnForCalcChief100(signer common.Address, parent *types.Header) *big.Int {
+func (self *TribeStatus) inTurnForCalcChief100(number int64, parentHash common.Hash, signer common.Address) *big.Int {
 	var (
-		number     = parent.Number.Int64() + 1
-		signers, _ = self.GetSignersFromChiefByHash(parent.Hash(), big.NewInt(number)) //self.GetSigners()
+		signers, _ = self.GetSignersFromChiefByHash(parentHash, big.NewInt(number)) //self.GetSigners()
 		sl         = len(signers)
 	)
 	if idx, _, err := self.fetchOnSigners(signer, signers); err == nil {
@@ -189,6 +195,11 @@ func (self *TribeStatus) InTurnForCalcChief100(signer common.Address, parent *ty
 		}
 	}
 	return diffNoTurn
+}
+
+//InTurnForVerifyChief100: 计算规则参考inTurnForCalcChief100
+func (self *TribeStatus) InTurnForVerifyChief100(number int64, parentHash common.Hash, signer common.Address) *big.Int {
+	return self.inTurnForCalcChief100(number, parentHash, signer)
 }
 
 /*
@@ -225,43 +236,6 @@ func (self *TribeStatus) InTurnForCalc(signer common.Address, parent *types.Head
 		}
 	}
 
-	return diffNoTurn
-}
-func (self *TribeStatus) InTurnForVerifyChief100(number int64, parentHash common.Hash, signer common.Address) *big.Int {
-	// TODO TODO TODO TODO
-	var (
-		signers []*Signer
-	)
-	if number > 3 {
-		var err error
-		signers, err = self.GetSignersFromChiefByHash(parentHash, big.NewInt(number))
-		if err != nil {
-			log.Warn("InTurn:GetSignersFromChiefByNumber:", "err", err)
-		}
-	} else {
-		return diffInTurn
-	}
-
-	if idx, _, err := self.fetchOnSigners(signer, signers); err == nil {
-		sl := len(signers)
-		// main
-		if sl > 0 && number%int64(sl) == idx.Int64() {
-			return big.NewInt(diff)
-		}
-		// second
-		if idx.Int64() == 0 {
-			return big.NewInt(diff - 1)
-		}
-	} else if leaders, err := leaderSort(signers[0].Address, self.Leaders); err == nil {
-		sl := len(signers)
-		for i, leader := range leaders {
-			if signer == leader && number%int64(sl) == 0 {
-				return big.NewInt(diff - int64(i+1))
-			} else if signer == leader {
-				return big.NewInt(diff - int64(i+2))
-			}
-		}
-	}
 	return diffNoTurn
 }
 
@@ -358,7 +332,12 @@ func verifyVrfNum(parent, header *types.Header) (err error) {
 	return
 }
 
-func (self *TribeStatus) ValidateSigner(parentHeader, header *types.Header, signer common.Address) bool {
+/*
+validateSigner:
+1. 验证出块时间符合规则,具体规则见GetPeriodChief100描述
+2.
+*/
+func (self *TribeStatus) validateSigner(parentHeader, header *types.Header, signer common.Address) bool {
 	var (
 		err        error
 		signers    []*Signer
@@ -366,7 +345,7 @@ func (self *TribeStatus) ValidateSigner(parentHeader, header *types.Header, sign
 		parentHash = header.ParentHash
 	)
 	//if number > 1 && self.Number != parentNumber {
-	if number <= 3 {
+	if number <= CHIEF_NUMBER {
 		return true
 	}
 
@@ -395,12 +374,12 @@ func (self *TribeStatus) ValidateSigner(parentHeader, header *types.Header, sign
 	idx, _, err := self.fetchOnSigners(signer, signers)
 	if params.IsSIP100Block(header.Number) {
 		if err == nil {
-			// first
+			// 轮到谁出就谁出的块
 			idx_m := number % int64(len(signers))
 			if idx_m == idx.Int64() {
 				return true
 			}
-			// second
+			// 其他只能有常委会节点替代
 			if idx.Int64() == 0 {
 				return true
 			}
@@ -418,6 +397,9 @@ func (self *TribeStatus) ValidateSigner(parentHeader, header *types.Header, sign
 	return false
 }
 
+/*
+VerifySignerBalance: 在chief1.0之前直接通过账号余额来判断是否具有出块资格,chief1.0之后只能通过抵押到poc合约中才具有资格.
+*/
 func (self *TribeStatus) VerifySignerBalance(state *state.StateDB, addr common.Address, header *types.Header) error {
 	// SIP100 skip this verify
 	if params.IsSIP100Block(header.Number) {
@@ -509,7 +491,7 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 		if err != nil {
 			return err
 		}
-		if !self.ValidateSigner(parent.Header(), header, signer) {
+		if !self.validateSigner(parent.Header(), header, signer) {
 			return errUnauthorized
 		}
 
