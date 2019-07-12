@@ -30,7 +30,6 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/core"
 	"github.com/SmartMeshFoundation/Spectrum/core/state"
 	"github.com/SmartMeshFoundation/Spectrum/core/types"
-	"github.com/SmartMeshFoundation/Spectrum/log"
 	"github.com/SmartMeshFoundation/Spectrum/miner"
 	"github.com/SmartMeshFoundation/Spectrum/params"
 	"github.com/SmartMeshFoundation/Spectrum/rlp"
@@ -130,44 +129,44 @@ func NewPrivateMinerAPI(e *Ethereum) *PrivateMinerAPI {
 // of workers started is equal to the number of logical CPUs that are usable by
 // this process. If mining is already running, this method adjust the number of
 // threads allowed to use.
-func (api *PrivateMinerAPI) Start(threads *int) error {
-	// Set the number of threads if the seal engine supports it
-	if threads == nil {
-		threads = new(int)
-	} else if *threads == 0 {
-		*threads = -1 // Disable the miner from within
-	}
-	type threaded interface {
-		SetThreads(threads int)
-	}
-	if th, ok := api.e.engine.(threaded); ok {
-		log.Info("Updated mining threads", "threads", *threads)
-		th.SetThreads(*threads)
-	}
-	// Start the miner and return
-	if !api.e.IsMining() {
-		// Propagate the initial price point to the transaction pool
-		api.e.lock.RLock()
-		price := api.e.gasPrice
-		api.e.lock.RUnlock()
+//func (api *PrivateMinerAPI) Start(threads *int) error {
+//	// Set the number of threads if the seal engine supports it
+//	if threads == nil {
+//		threads = new(int)
+//	} else if *threads == 0 {
+//		*threads = -1 // Disable the miner from within
+//	}
+//	type threaded interface {
+//		SetThreads(threads int)
+//	}
+//	if th, ok := api.e.engine.(threaded); ok {
+//		log.Info("Updated mining threads", "threads", *threads)
+//		th.SetThreads(*threads)
+//	}
+//	// Start the miner and return
+//	if !api.e.IsMining() {
+//		// Propagate the initial price point to the transaction pool
+//		api.e.lock.RLock()
+//		price := api.e.gasPrice
+//		api.e.lock.RUnlock()
+//
+//		api.e.txPool.SetGasPrice(price)
+//		return api.e.StartMining(true)
+//	}
+//	return nil
+//}
 
-		api.e.txPool.SetGasPrice(price)
-		return api.e.StartMining(true)
-	}
-	return nil
-}
-
-// Stop the miner
-func (api *PrivateMinerAPI) Stop() bool {
-	type threaded interface {
-		SetThreads(threads int)
-	}
-	if th, ok := api.e.engine.(threaded); ok {
-		th.SetThreads(-1)
-	}
-	api.e.StopMining()
-	return true
-}
+//// Stop the miner
+//func (api *PrivateMinerAPI) Stop() bool {
+//	type threaded interface {
+//		SetThreads(threads int)
+//	}
+//	if th, ok := api.e.engine.(threaded); ok {
+//		th.SetThreads(-1)
+//	}
+//	api.e.StopMining()
+//	return true
+//}
 
 /*
 
