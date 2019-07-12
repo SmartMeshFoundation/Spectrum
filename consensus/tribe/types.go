@@ -114,7 +114,7 @@ var (
 
 	Chief100BlockReward, _                      = new(big.Int).SetString("35000000000000000000", 10) //Block reward in wei for successfully mining a block
 	BlockRewardReducedInterval                  = 4505000                                            //half reward about two years
-	SmartMeshFoundationAccount                  = common.HexToAddress("xe0014a4268ad3d7b131551be47bc6ed72a6937e4")
+	SmartMeshFoundationAccount                  = common.HexToAddress("0xe0014a4268ad3d7b131551be47bc6ed72a6937e4")
 	SmartMeshFoundationAccountDestroyBalance, _ = new(big.Int).SetString("376991118360000000000000000", 10)
 )
 
