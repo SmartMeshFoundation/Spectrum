@@ -507,7 +507,7 @@ const Miner_JS = `
 web3._extend({
 	property: 'miner',
 	methods: [
-		new web3._extend.Method({
+	/*	new web3._extend.Method({
 			name: 'start',
 			call: 'miner_start',
 			params: 1,
@@ -517,7 +517,7 @@ web3._extend({
 			name: 'stop',
 			call: 'miner_stop'
 		}),
-
+        */
 		/*
 		new web3._extend.Method({
 			name: 'setEtherbase',
