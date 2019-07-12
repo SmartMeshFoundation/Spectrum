@@ -34,7 +34,7 @@ contract ChiefBase_1_0_0 {
     //function setEpoch(uint _epoch) public payable {epoch = _epoch;}
     //function setSignerLimit(uint _signerLimit) public payable {signerLimit = _signerLimit;}
 
-    function setLeaderLimit(uint _leaderLimit) public  owner() {leaderLimit = _leaderLimit;}
+//    function setLeaderLimit(uint _leaderLimit) public  owner() {leaderLimit = _leaderLimit;}
 
     function setOwner(address newOwner) public  owner() {_owner = newOwner;}
 

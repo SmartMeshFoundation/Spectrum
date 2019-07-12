@@ -279,12 +279,12 @@ contract TribeChief_1_0_0 is Chief {
 
     // TODO
     function filterVolunteer(address[] memory volunteers) public view returns (uint[] memory result) {}
-    function test_update(address nextsigner) public{
-        update(nextsigner);
-    }
-    function test_push_signer(uint256 i,address signer) public{
-            _signerList[i]=signer;
-            signersMap[signer] = 1;
-    }
+//    function test_update(address nextsigner) public{
+//        update(nextsigner);
+//    }
+//    function test_push_signer(uint256 i,address signer) public{
+//            _signerList[i]=signer;
+//            signersMap[signer] = 1;
+//    }
 }
 
