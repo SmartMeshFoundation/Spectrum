@@ -115,7 +115,7 @@ var (
 		SIP003Block: big.NewInt(917013),
 		SIP004Block: big.NewInt(2212557),
 
-		Chief100Block: big.NewInt(2588183),
+		//Chief100Block: big.NewInt(2588183),
 
 		Tribe: &TribeConfig{},
 	}
@@ -155,7 +155,7 @@ var (
 		ChiefBaseAddress: common.HexToAddress("0x416cd73ea1c343868e63bb75e8a05f1f8b994901"),
 
 		// PocBlock must less than Chief100Block
-		PocBlock: big.NewInt(35),
+		//PocBlock: big.NewInt(35),
 		//PocAddress: common.HexToAddress("0x901c0636c4fc83f353bca2db85e2ace886a9416d"), //liang
 		PocAddress: common.HexToAddress("0x351135073f3397e667f5992c0e3feda8ca1cff5e"),
 
@@ -306,7 +306,7 @@ type ChainConfig struct {
 
 	ChiefBaseAddress common.Address `json:"chiefBaseAddress,omitempty"`
 
-	PocBlock   *big.Int       `json:"PocBlock,omitempty"`
+	//PocBlock   *big.Int       `json:"PocBlock,omitempty"`
 	PocAddress common.Address `json:"PocAddress,omitempty"`
 
 	// <<< add by liangc : set chief start number <<<
