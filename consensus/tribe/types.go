@@ -13,7 +13,6 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/common/hexutil"
 	"github.com/SmartMeshFoundation/Spectrum/consensus"
 	"github.com/SmartMeshFoundation/Spectrum/core/types"
-	"github.com/SmartMeshFoundation/Spectrum/ethdb"
 	"github.com/SmartMeshFoundation/Spectrum/params"
 	lru "github.com/hashicorp/golang-lru"
 )
@@ -23,7 +22,7 @@ const (
 	LevelNone      = "None"
 	LevelVolunteer = "Volunteer"
 	LevelSigner    = "Signer"
-	LevelSinner    = "Sinner"
+	LevelSinner    = "Sinner" //黑名单
 
 	historyLimit = 2048
 	wiggleTime   = 500 * time.Millisecond // Random delay (per signer) to allow concurrent signers
@@ -122,12 +121,8 @@ var (
 type Tribe struct {
 	accman   *accounts.Manager
 	config   *params.TribeConfig // Consensus engine configuration parameters
-	db       ethdb.Database      // Database to store and retrieve snapshot checkpoints
 	sigcache *lru.ARCCache       // mapping block.hash -> signer
-	//signer      common.Address      // Ethereum address of the signing key
-	signFn SignerFn     // Signer function to authorize hashes with
-	lock   sync.RWMutex // Protects the signer fields
-	Status *TribeStatus
+	Status   *TribeStatus
 	//SealErrorCh map[int64]error // when error from seal fun, may be need commit a new work
 	SealErrorCh *sync.Map // map[int64]error
 	//SealErrorCounter uint32     // less then 3 , retry commit new work
@@ -168,19 +163,15 @@ type History struct {
 }
 
 type TribeStatus struct {
-	Signers        []*Signer        `json:"signers"`
-	Volunteers     []common.Address `json:"volunteers"` // Discarded on vsn 0.0.6
-	Leaders        []common.Address `json:"leaders"`
-	TotalVolunteer *big.Int         `json:"totalVolunteer"` // add by vsn 0.0.6
-	SignerLevel    string           `json:"signerLevel"`    // None -> Volunteer -> Signer
-	Number         int64            `json:"number"`         // last block.number
-	BlackListLen   int              `json:"totalSinner"`    // length of blacklist
+	Signers     []*Signer        `json:"signers"`
+	Leaders     []common.Address `json:"leaders"`
+	SignerLevel string           `json:"signerLevel"` // None -> Volunteer -> Signer
+	Number      int64            `json:"number"`      // last block.number
 	// for watch the set method result
-	Epoch          *big.Int `json:"epoch"`
-	LeaderLimit    *big.Int `json:"leaderLimit"`
-	SignerLimit    *big.Int `json:"signerLimit"`
-	VolunteerLimit *big.Int `json:"volunteerLimit"`
-	Vsn            string   `json:"version"` // chief version
+	Epoch       *big.Int `json:"epoch"`
+	LeaderLimit *big.Int `json:"leaderLimit"`
+	SignerLimit *big.Int `json:"signerLimit"`
+	Vsn         string   `json:"version"` // chief version
 
 	blackList []common.Address
 	mining    int32 // 1 mining start , 0 mining stop
