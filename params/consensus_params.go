@@ -326,7 +326,7 @@ func IsReadyAnmap(num *big.Int) bool {
 }
 
 // startNumber and address must from chain's config
-// 针对老的分叉版本在检测时跳过，从1.0.0版本开始不再跳过
+// 针对老的分叉版本在检测时跳过，从1.0.0版本开始不再跳过，所有以后版本本列表不在增加新的项
 func beforechief100AddressList() (list ChiefInfoList) {
 	if chiefInfoList != nil {
 		return chiefInfoList
