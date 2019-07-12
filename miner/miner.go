@@ -23,6 +23,8 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"time"
+
 	"github.com/SmartMeshFoundation/Spectrum/accounts"
 	"github.com/SmartMeshFoundation/Spectrum/common"
 	"github.com/SmartMeshFoundation/Spectrum/consensus"
@@ -35,7 +37,6 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/event"
 	"github.com/SmartMeshFoundation/Spectrum/log"
 	"github.com/SmartMeshFoundation/Spectrum/params"
-	"time"
 )
 
 // Backend wraps all methods required for mining.
@@ -79,7 +80,6 @@ func New(eth Backend, config *params.ChainConfig, mux *event.TypeMux, engine con
 			rtn := make(chan common.Address)
 			tribe.Status.GetMinerAddressByChan(rtn)
 			tma := <-rtn
-			tribe.Authorize(common.Address{}, nil)
 			go miner.Start(tma)
 			log.Info("👷 Tribe and miner is started .")
 		}()

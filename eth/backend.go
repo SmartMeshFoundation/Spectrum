@@ -26,6 +26,7 @@ import (
 	"sync/atomic"
 
 	"crypto/ecdsa"
+
 	"github.com/SmartMeshFoundation/Spectrum/accounts"
 	"github.com/SmartMeshFoundation/Spectrum/common"
 	"github.com/SmartMeshFoundation/Spectrum/common/hexutil"
@@ -354,9 +355,6 @@ func (s *Ethereum) StartMining(local bool) error {
 		return fmt.Errorf("etherbase missing: %v", err)
 	}
 
-	if tribe, ok := s.engine.(*tribe.Tribe); ok {
-		tribe.Authorize(common.Address{}, nil)
-	}
 	if clique, ok := s.engine.(*clique.Clique); ok {
 		wallet, err := s.accountManager.Find(accounts.Account{Address: eb})
 		if wallet == nil || err != nil {

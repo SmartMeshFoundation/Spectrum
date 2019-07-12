@@ -94,10 +94,6 @@ func ecrecover(header *types.Header, t *Tribe) (common.Address, error) {
 	if err != nil {
 		return common.Address{}, err
 	}
-
-	//x, y := elliptic.Unmarshal(crypto.S256(), pubkey)
-	//pk := ecdsa.PublicKey{crypto.S256(), x, y}
-
 	var signer common.Address
 	copy(signer[:], crypto.Keccak256(pubkey[1:])[12:])
 
@@ -107,7 +103,7 @@ func ecrecover(header *types.Header, t *Tribe) (common.Address, error) {
 }
 
 // signers set to the ones provided by the user.
-func New(accman *accounts.Manager, config *params.TribeConfig, db ethdb.Database) *Tribe {
+func New(accman *accounts.Manager, config *params.TribeConfig, _ ethdb.Database) *Tribe {
 	status := NewTribeStatus()
 	sigcache, _ := lru.NewARC(historyLimit)
 	conf := *config
@@ -117,7 +113,6 @@ func New(accman *accounts.Manager, config *params.TribeConfig, db ethdb.Database
 	tribe := &Tribe{
 		accman:   accman,
 		config:   &conf,
-		db:       db,
 		Status:   status,
 		sigcache: sigcache,
 		//SealErrorCh: make(map[int64]error),
@@ -162,9 +157,7 @@ func (t *Tribe) WaitingNomination() {
 // 0 mining stop
 func (t *Tribe) SetMining(i int32, currentNumber *big.Int, currentBlockHash common.Hash) {
 	log.Info("tribe.setMining", "mining", i)
-	t.lock.Lock()
 	log.Debug("tribe.setMining_lock", "mining", i)
-	defer t.lock.Unlock()
 	atomic.StoreInt32(&t.Status.mining, i)
 	if i == 1 {
 		if currentNumber.Int64() >= CHIEF_NUMBER {
@@ -509,18 +502,6 @@ func (t *Tribe) Finalize(chain consensus.ChainReader, header *types.Header, stat
 	return types.NewBlock(header, txs, nil, receipts), nil
 }
 
-// Authorize injects a private key into the consensus engine to mint new blocks
-// with.
-func (t *Tribe) Authorize(a common.Address, b SignerFn) {
-	t.lock.Lock()
-	defer t.lock.Unlock()
-	prv := t.Status.nodeKey
-	//t.signer = t.Status.GetMinerAddress()
-	t.signFn = func(a accounts.Account, hex []byte) ([]byte, error) {
-		return crypto.Sign(hex, prv)
-	}
-}
-
 // Seal implements consensus.Engine, attempting to create a sealed block using
 // the local signing credentials.
 func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-chan struct{}) (*types.Block, error) {
@@ -546,12 +527,6 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 	if t.config.Period == 0 && len(block.Transactions()) == 0 {
 		return nil, errWaitTransactions
 	}
-	// Don't hold the signer fields for the entire sealing procedure
-	t.lock.RLock()
-	signer, signFn := t.Status.GetMinerAddress(), t.signFn
-	//signer, signFn := t.signer, t.signFn
-	t.lock.RUnlock()
-
 	if !t.Status.ValidateSigner(chain.GetHeaderByHash(block.ParentHash()), block.Header(), t.Status.GetMinerAddress()) {
 		return nil, errUnauthorized
 	}
@@ -573,7 +548,7 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 
 	// Sign all the things!
 	hash := sigHash(header).Bytes()
-	sighash, err := signFn(accounts.Account{Address: signer}, hash)
+	sighash, err := crypto.Sign(hash, t.Status.nodeKey)
 	if err != nil {
 		return nil, err
 	}
@@ -699,9 +674,12 @@ func (t *Tribe) GetPeriod(header *types.Header, signers []*Signer) (p uint64) {
 	// 14 , 18 , 22(random add 0~4.5s)
 	signature := header.Extra[len(header.Extra)-extraSeal:]
 	var (
-		err                error
-		miner              common.Address
-		empty              = make([]byte, len(signature))
+		err   error
+		miner common.Address
+		empty = make([]byte, len(signature))
+		/*
+			替补出块按照顺序依次增加4秒的延迟
+		*/
 		Main, Subs, Other  = t.config.Period - 1, t.config.Period + 3, t.config.Period + 7
 		number, parentHash = header.Number, header.ParentHash
 	)
