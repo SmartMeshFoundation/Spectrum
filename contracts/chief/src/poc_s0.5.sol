@@ -493,7 +493,8 @@ contract POC_1_0_0 {
         address[] memory,
         uint256[] memory,
         uint256[] memory,
-        address[] memory
+        address[] memory,
+        uint256[] memory
     ){
         uint256 slen = stopList.length;
         uint256 nlen = normalList.length;
@@ -515,11 +516,20 @@ contract POC_1_0_0 {
         address[] memory ownerList;
         ownerList = new address[](len);
 
+        //黑名单状态
+        uint256[] memory blackStatusList;
+        blackStatusList = new uint256[](len);
+
         for (uint256 i = 0; i < slen; i++){
             minerList[i]  = stopList[i];
             amountList[i] = minerMap[stopList[i]].amount;
             blockList[i]  = minerMap[stopList[i]].stop_block;
             ownerList[i]  = minerMap[stopList[i]].owner;
+            if (blackList.length > 0 && blackList[blackListIndex[stopList[i]]] == stopList[i]){
+                blackStatusList[i] = 1;
+            } else {
+                blackStatusList[i] = 0;
+            }
         }
 
         for (uint256 j = 0; j < nlen; j++ ){
@@ -527,7 +537,12 @@ contract POC_1_0_0 {
             amountList[slen + j] = minerMap[normalList[j]].amount;
             blockList[slen + j]  = minerMap[normalList[j]].stop_block;
             ownerList[slen + j]  = minerMap[normalList[j]].owner;
+            if (blackList.length > 0 && blackList[blackListIndex[normalList[j]]] == normalList[j]){
+                blackStatusList[slen + j] = 1;
+            } else {
+                blackStatusList[slen + j] = 0;
+            }
         }
-        return (minerList, amountList, blockList, ownerList);
+        return (minerList, amountList, blockList, ownerList, blackStatusList);
     }
 }
