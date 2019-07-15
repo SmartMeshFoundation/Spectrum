@@ -108,68 +108,6 @@ Building Spectrum requires both a Go (version 1.9.2 or later) and a C compiler. 
 
     > personal.newAccount()
 
-## View the miner nodes
-
-* tribe.getStatus()
-* then you will see the following message:
-<pre><code>{
-  "epoch": 5760,
-  "number": 39601,
-  "signerLevel": "None",
-  "signerLimit": 17,
-  "signers": [
-    {
-      "address": "0x3a5fbac6ca913599c5fde8c1638db58d01de8a48",
-      "score": 3
-    },
-    {
-      "address": "0xad4c80164065a3c33dd2014908c7563eff88ab49",
-      "score": 3
-    },
-    {
-      "address": "0xc22d53456abd14da347517a4b47ea24866b8e3ae",
-      "score": 3
-    },
-    {
-      "address": "0x7b06dd132c089034157f1e1aacda75787df1e0c5",
-      "score": 3
-    },
-    {
-      "address": "0x00ab501f3fe4b2f71651764699ec5752598e679f",
-      "score": 3
-    }
-  ]
-}</code></pre>
-
-that tell you there are two miners in the testnet.
-
-## View the block mining history in console
-
-* tribe.getHistory(3)
-    
-* then you will see the following message (console format):
-<pre><code>[{
-    difficulty: 3,
-    hash: "0x9d3416ffed42e753cd9ce9e48251f8baa5203e0abdcecbc8cda0238890359a60",
-    number: 2205589,
-    signer: "0xad9581fe7f9b640cc34915cd988965216e44a972",
-    timestamp: 1554892642
-}, {
-    difficulty: 3,
-    hash: "0xd789d9029deae40143f2e222d68922f6a599ea3b3f35c8dbe33063a414d2c7aa",
-    number: 2205588,
-    signer: "0x4110bd1ff0b73fa12c259acf39c950277f266787",
-    timestamp: 1554892628
-}, {
-    difficulty: 3,
-    hash: "0xc44e434a23db5179a45dda9fcb4082a92cf93fe88f47a617266db5992c346700",
-    number: 2205587,
-    signer: "0xf848f385fd21c6972264c777684940814a7d4792",
-    timestamp: 1554892614
-}]</code></pre>
-
-that tell the block number and miner's account that generate that block.
-
 ## Get your own miner id
 
     every node has it's own miner id, you can run getMiner() function to get that id:
