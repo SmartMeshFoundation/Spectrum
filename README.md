@@ -126,7 +126,7 @@ Building Spectrum requires both a Go (version 1.9.2 or later) and a C compiler. 
 
     > tribe.bind("account","password") 
 
-## Deposit token to POC
+## Deposit smt to POC
 
     Users can become miner by deposit smt:
 
