@@ -138,10 +138,7 @@ Building Spectrum requires both a Go (version 1.9.2 or later) and a C compiler. 
       "address": "0x00ab501f3fe4b2f71651764699ec5752598e679f",
       "score": 3
     }
-  ],
-  "totalSinner": 2,
-  "volunteerLimit": 70,
-  "volunteers": []
+  ]
 }</code></pre>
 
 that tell you there are two miners in the testnet.
