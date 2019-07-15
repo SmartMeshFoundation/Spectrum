@@ -120,9 +120,9 @@ Building Spectrum requires both a Go (version 1.9.2 or later) and a C compiler. 
         level: "Signer"
     }
     
-## Bind your own miner id  to  wallet address
+## Bind your own miner id to wallet address
 
-    Users can bind their block ID to a wallet address:
+    Users can bind their miner ID to a wallet address:
 
     > tribe.bind("account","password") 
 
@@ -135,7 +135,7 @@ Building Spectrum requires both a Go (version 1.9.2 or later) and a C compiler. 
 
 ## Start mining
 
-    Users can start mining or resume mining:
+    Users can start mining or resume it:
 
     > tribe.pocStart("account","password") 
 
