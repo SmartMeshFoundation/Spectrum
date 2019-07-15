@@ -42,7 +42,7 @@ contract POC_1_0_0 {
     //初始最小存放金额
     uint256 public initMinDeposit;
 
-    //部署合约时的当前区块
+    //启动挖矿块号
     uint256 public initBlockNumber;
 
     //存款减半间隔区块数
@@ -371,6 +371,13 @@ contract POC_1_0_0 {
         return 1;
 
     }
+
+
+    //owner 设置启动挖矿块号
+    function ownerSetInitBlockNumber (uint256 _number) onlyOwner public {
+        initBlockNumber = _number;
+    }
+
 
 
     //修改owner
