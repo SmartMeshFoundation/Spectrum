@@ -25,7 +25,7 @@ We suggest that the GasPrice should not be less than 18Gwei, otherwise the trans
 
 ## Build the source 
 
-Building Spectrum requires both a Go (version 1.9.2 or later) and a C compiler. You can install them using your favourite package manager. And you can view the detail on this [page](https://github.com/SmartMeshFoundation/Spectrum/wiki/Building-Specturm).
+Building Spectrum requires both a Go (version 1.9.2 or later) and a C compiler. You can install them using your favourite package manager. And you can see the detailed installation steps on this [page](https://github.com/SmartMeshFoundation/Spectrum/wiki/Building-Specturm).
 
 ## Encrypt your nodekey
 
