@@ -34,7 +34,7 @@ Building Spectrum requires both a Go (version 1.9.2 or later) and a C compiler. 
 
      $ ./build/bin/smc security --unlock
      
-## Run fast node to test smc
+## Run node to smc
 
     $ ./build/bin/smc console
     
