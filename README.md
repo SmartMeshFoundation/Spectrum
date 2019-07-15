@@ -170,7 +170,7 @@ that tell you there are two miners in the testnet.
 
 that tell the block number and miner's account that generate that block.
 
-## get your own miner account
+## Get your own miner account
 
     every node has it's own miner account, you can run getMiner() function to get that account:
 
@@ -181,5 +181,6 @@ that tell the block number and miner's account that generate that block.
         address: "0x00ab501f3fe4b2f71651764699ec5752598e679f",
         level: "Signer"
     }
+    
 
 
