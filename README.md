@@ -53,33 +53,33 @@ Building Spectrum requires both a Go (version 1.9.2 or later) and a C compiler. 
 
     Users can bind their miner ID to a wallet address:
 
-    > tribe.bind("account","password") 
+    > tribe.bind("account","passwd") 
 
 ## Deposit smt to POC
 
     Users can become miner by deposit smt:
 
-    > tribe.pocDeposit("account","password") 
+    > tribe.pocDeposit("account","passwd") 
 
 
 ## Start mining
 
     Users can start mining or resume it:
 
-    > tribe.pocStart("account","password") 
+    > tribe.pocStart("account","passwd") 
 
 
 ## Stop mining
 
     Users can stop mining:
 
-    > tribe.pocStop("account","password") 
+    > tribe.pocStop("account","passwd") 
     
 ## Withdraw smt
 
     Users can withdraw smt:
 
-    > tribe.pocWithdraw("account","password")   
+    > tribe.pocWithdraw("account","passwd")   
     
 # More functions   
     Users can input tribe to view:
