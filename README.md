@@ -170,9 +170,9 @@ that tell you there are two miners in the testnet.
 
 that tell the block number and miner's account that generate that block.
 
-## Get your own miner account
+## Get your own miner id
 
-    every node has it's own miner account, you can run getMiner() function to get that account:
+    every node has it's own miner id, you can run getMiner() function to get that id:
 
     > tribe.getMiner() 
 
@@ -182,5 +182,40 @@ that tell the block number and miner's account that generate that block.
         level: "Signer"
     }
     
+## Bind your own miner id  to  wallet address
 
+    Users can bind their block ID to a wallet address:
+
+    > tribe.bind("account","password") 
+
+## Deposit token to POC
+
+    Users can become miner by deposit smt:
+
+    > tribe.pocDeposit("account","password") 
+
+
+## Start mining
+
+    Users can start mining or resume mining:
+
+    > tribe.pocStart("account","password") 
+
+
+## Stop mining
+
+    Users can stop mining:
+
+    > tribe.pocStop("account","password") 
+    
+## Withdraw smt
+
+    Users can withdraw smt:
+
+    > tribe.pocWithdraw("account","password")   
+    
+# More functions   
+    Users can input tribe to view:
+    
+    > tribe
 
