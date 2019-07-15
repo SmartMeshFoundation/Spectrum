@@ -105,20 +105,15 @@ Building Spectrum requires both a Go (version 1.9.2 or later) and a C compiler. 
     $ ./build/bin/smc console
     
 ## Create new account
+    Users can create new account:
 
     > personal.newAccount()
 
 ## Get your own miner id
 
-    every node has it's own miner id, you can run getMiner() function to get that id:
+    Every node has it's own miner id, you can run getMiner() function to get that id:
 
     > tribe.getMiner() 
-
-    then you will see below messages:
-    {
-        address: "0x00ab501f3fe4b2f71651764699ec5752598e679f",
-        level: "Signer"
-    }
     
 ## Bind your own miner id to wallet address
 
