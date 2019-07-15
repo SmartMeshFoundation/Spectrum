@@ -13,6 +13,15 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/log"
 )
 
+const (
+	POC_METHOD_DEPOSIT          = "poc_deposit"
+	POC_METHOD_START            = "poc_start"
+	POC_METHOD_STOP             = "poc_stop"
+	POC_METHOD_WITHDRAW         = "poc_withdraw"
+	POC_METHOD_WITHDRAW_SURPLUS = "poc_withdrawsurplus"
+	POC_METHOD_GET_STATUS       = "poc_getall"
+)
+
 type ChiefInfo struct {
 	StartNumber, PocStartNumber *big.Int // 0 is nil
 	Version                     string
@@ -66,6 +75,8 @@ var (
 	ChiefBaseBalance = new(big.Int).Mul(big.NewInt(1), big.NewInt(Finney))
 	MboxChan         = make(chan Mbox, 32)
 	StatuteService   = make(chan Mbox, 384)
+	//PocService 用于poc 服务
+	PocService = make(chan Mbox, 32)
 	//close at tribe.init
 	TribeReadyForAcceptTxs = make(chan struct{})
 	InitTribe              = make(chan struct{})
@@ -154,6 +165,19 @@ func MeshboxVsn(num *big.Int) (string, error) {
 		}
 	}
 	return "", errors.New("meshbox_service_not_started")
+}
+
+//POCInfo: poc地址
+func POCInfo() (addr common.Address) {
+	if IsTestnet() {
+		addr = TestnetChainConfig.PocAddress
+	} else if IsDevnet() {
+		addr = DevnetChainConfig.PocAddress
+	} else {
+		addr = MainnetChainConfig.PocAddress
+
+	}
+	return
 }
 
 func MeshboxInfo(num *big.Int, vsn string) (n *big.Int, addr common.Address) {
@@ -506,6 +530,83 @@ func AnmapUnbind(from, nodeid common.Address, sigHex string) (string, error) {
 	}
 }
 
+//PocDeposit poc质押操作
+func PocDeposit(from common.Address, sigHex string) (string, error) {
+	rtn := make(chan MBoxSuccess)
+	m := Mbox{
+		Method: "poc_deposit",
+		Rtn:    rtn,
+	}
+	m.Params = map[string]interface{}{"from": from, "sigHex": sigHex}
+	StatuteService <- m
+	success := <-rtn
+	if success.Success {
+		return success.Entity.(string), nil
+	} else {
+		return "", success.Entity.(error)
+	}
+}
+func pocHelper(method string, from, nodeID common.Address) (string, error) {
+	rtn := make(chan MBoxSuccess)
+	m := Mbox{
+		Method: method,
+		Rtn:    rtn,
+	}
+	m.Params = map[string]interface{}{"from": from, "nodeid": nodeID}
+	StatuteService <- m
+	success := <-rtn
+	if success.Success {
+		return success.Entity.(string), nil
+	} else {
+		return "", success.Entity.(error)
+	}
+}
+
+//PocStart 因为错过出块被拉黑以后,在一个epoch之后需要手工恢复出块资格
+func PocStart(from, nodeID common.Address) (string, error) {
+	return pocHelper(POC_METHOD_START, from, nodeID)
+}
+
+//PocStop 因为不想参与挖矿,准备撤回抵押
+func PocStop(from, nodeID common.Address) (string, error) {
+	return pocHelper(POC_METHOD_STOP, from, nodeID)
+}
+
+//PocWithdraw 在停止PocStop两周后,可以从poc合约中撤回押金到自己账户
+func PocWithdraw(from, nodeID common.Address) (string, error) {
+	return pocHelper(POC_METHOD_WITHDRAW, from, nodeID)
+}
+
+//PocWithdrawSurplus  因为手工调用Poc Withdraw合约,一次性抵押过多,后续可以选择撤回多余的抵押
+func PocWithdrawSurplus(from, nodeID common.Address) (string, error) {
+	return pocHelper(POC_METHOD_WITHDRAW_SURPLUS, from, nodeID)
+}
+
+//PocStatus Poc状态
+type PocStatus struct {
+	MinerList       []common.Address
+	AmountList      []*big.Int
+	BlockList       []*big.Int
+	OwnerList       []common.Address
+	BlackStatusList []*big.Int
+}
+
+//PocGetAll 获取poc status
+func PocGetAll() (ps *PocStatus, err error) {
+	rtn := make(chan MBoxSuccess)
+	m := Mbox{
+		Method: POC_METHOD_GET_STATUS,
+		Rtn:    rtn,
+	}
+	m.Params = make(map[string]interface{})
+	StatuteService <- m
+	success := <-rtn
+	if success.Success {
+		return success.Entity.(*PocStatus), nil
+	} else {
+		return nil, success.Entity.(error)
+	}
+}
 func MeshboxExistAddress(addr common.Address) bool {
 	select {
 	case <-InitMeshbox:

@@ -174,6 +174,40 @@ web3._extend({
 			params: 1,
 			inputFormatter: [null]
 		}),
+		new web3._extend.Method({
+			name: 'pocDeposit',
+			call: 'tribe_pocDeposit',
+			params: 2,
+			inputFormatter: [null,null]
+		}),
+		new web3._extend.Method({
+			name: 'pocStart',
+			call: 'tribe_pocStart',
+			params: 2,
+			inputFormatter: [null,null]
+		}),
+		new web3._extend.Method({
+			name: 'pocStop',
+			call: 'tribe_pocStop',
+			params: 2,
+			inputFormatter: [null,null]
+		}),
+		new web3._extend.Method({
+			name: 'pocWithdraw',
+			call: 'tribe_pocWithdraw',
+			params: 2,
+			inputFormatter: [null,null]
+		}),
+		new web3._extend.Method({
+			name: 'pocWithdrawSurplus',
+			call: 'tribe_pocWithdrawSurplus',
+			params: 2,
+			inputFormatter: [null,null]
+		}),
+		new web3._extend.Method({
+			name: 'pocGetStatus',
+			call: 'tribe_pocGetStatus'
+		}),
 	],
 });
 `

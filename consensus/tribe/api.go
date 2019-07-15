@@ -76,6 +76,84 @@ func (api *API) Bind(from *common.Address, passphrase string) (string, error) {
 	return tx, nil
 }
 
+//PocDeposit 调用poc合约的deposit质押,满足金额以后,自动开启挖矿
+func (api *API) PocDeposit(from *common.Address, passphrase string) (string, error) {
+	if from == nil {
+		return "", errors.New("args_can_not_empty")
+	}
+	a := accounts.Account{Address: *from}
+	e := fetchKeystore(api.accman).TimedUnlock(a, passphrase, 60*time.Second)
+	if e != nil {
+		return "", e
+	}
+	nodekey := api.tribe.Status.getNodekey()
+	nodeid := crypto.PubkeyToAddress(nodekey.PublicKey)
+	msg := crypto.Keccak256(from.Bytes())
+	sig, _ := crypto.Sign(msg, nodekey)
+	sigHex := hex.EncodeToString(sig)
+	tx, e := params.PocDeposit(*from, sigHex)
+	if e != nil {
+		return "", e
+	}
+	log.Info("tribe.pocDeposit", "tx", tx, "from", from.Hex(), "nodeid", nodeid.Hex())
+	return tx, nil
+}
+
+//PocStart 调用poc合约的start,从stop状态恢复,开启挖矿
+func (api *API) PocStart(from *common.Address, passphrase string) (string, error) {
+	return api.pocHelper(from, passphrase, params.POC_METHOD_START)
+}
+
+//PocStop 调用poc合约的stop,停止挖矿,准备撤回抵押
+func (api *API) PocStop(from *common.Address, passphrase string) (string, error) {
+	return api.pocHelper(from, passphrase, params.POC_METHOD_STOP)
+}
+
+//PocWithdraw 调用poc合约的withdraw,在stop两周后,可以撤回押金
+func (api *API) PocWithdraw(from *common.Address, passphrase string) (string, error) {
+	return api.pocHelper(from, passphrase, params.POC_METHOD_WITHDRAW)
+}
+
+//PocWithdrawSurplus 调用poc合约的PocWithdrawSurplus,从合约中撤回多余的抵押押金
+func (api *API) PocWithdrawSurplus(from *common.Address, passphrase string) (string, error) {
+	return api.pocHelper(from, passphrase, params.POC_METHOD_WITHDRAW_SURPLUS)
+}
+func (api *API) pocHelper(from *common.Address, passphrase string, method string) (string, error) {
+	if from == nil {
+		return "", errors.New("args_can_not_empty")
+	}
+	var (
+		tx string
+		e  error
+	)
+	a := accounts.Account{Address: *from}
+	e = fetchKeystore(api.accman).TimedUnlock(a, passphrase, 60*time.Second)
+	if e != nil {
+		return "", e
+	}
+	nodekey := api.tribe.Status.getNodekey()
+	nodeID := crypto.PubkeyToAddress(nodekey.PublicKey)
+	switch method {
+	case params.POC_METHOD_START:
+		tx, e = params.PocStart(*from, nodeID)
+	case params.POC_METHOD_STOP:
+		tx, e = params.PocStop(*from, nodeID)
+	case params.POC_METHOD_WITHDRAW:
+		tx, e = params.PocWithdraw(*from, nodeID)
+	case params.POC_METHOD_WITHDRAW_SURPLUS:
+		tx, e = params.PocWithdrawSurplus(*from, nodeID)
+	}
+	if e != nil {
+		return "", e
+	}
+	log.Info("tribe.", "method", method, "tx", tx, "from", from.Hex(), "nodeid", nodeID.Hex())
+	return tx, nil
+}
+
+//PocGetStatus 查询poc合约状态
+func (api *API) PocGetStatus() (*params.PocStatus, error) {
+	return params.PocGetAll()
+}
 func (api *API) Unbind(from *common.Address, passphrase string) (string, error) {
 	nodekey := api.tribe.Status.getNodekey()
 	nodeid := crypto.PubkeyToAddress(nodekey.PublicKey)

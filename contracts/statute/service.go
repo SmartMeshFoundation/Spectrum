@@ -4,6 +4,11 @@ import (
 	"context"
 	"encoding/hex"
 	"errors"
+	"math/big"
+	"time"
+
+	chieflib "github.com/SmartMeshFoundation/Spectrum/contracts/chief/lib"
+
 	"github.com/SmartMeshFoundation/Spectrum/accounts"
 	"github.com/SmartMeshFoundation/Spectrum/accounts/abi/bind"
 	"github.com/SmartMeshFoundation/Spectrum/common"
@@ -17,8 +22,6 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/p2p"
 	"github.com/SmartMeshFoundation/Spectrum/params"
 	"github.com/SmartMeshFoundation/Spectrum/rpc"
-	"math/big"
-	"time"
 )
 
 type AnmapService interface {
@@ -36,6 +39,7 @@ type StatuteService struct {
 	anmap_0_0_1   *anmaplib.Anmap
 	meshbox_0_0_1 *meshboxlib.MeshBox
 	meshbox_0_0_2 *meshboxlib.MeshBox_0_0_2
+	poc_1         *chieflib.POC_1_0_0
 	ipcpath       string
 	server        *p2p.Server // peers and nodekey ...
 	quit          chan int
@@ -46,7 +50,10 @@ var statuteService *StatuteService
 
 func NewStatuteService(ctx *node.ServiceContext) (node.Service, error) {
 	var ethereum *eth.Ethereum
-	ctx.Service(&ethereum)
+	err := ctx.Service(&ethereum)
+	if err != nil {
+		log.Error("NewStatuteService", "err", err)
+	}
 	ipcpath := params.GetIPCPath()
 	statuteService = &StatuteService{
 		accman:   ctx.AccountManager,
@@ -84,7 +91,7 @@ func (self *StatuteService) startMeshbox(vsn string, backend *eth.ContractBacken
 					}
 					statuteService.meshbox_0_0_2 = contract
 				}
-				defer close(params.InitMeshbox)
+				close(params.InitMeshbox)
 				log.Info("<<Meshbox.Start>> success ", "period", period, "vsn", vsn, "cn", cn.Int64(), "tn", mn.Int64())
 				return
 			} else {
@@ -117,7 +124,7 @@ func (self *StatuteService) startAnmap(vsn string, backend *eth.ContractBackend)
 					}
 					statuteService.anmap_0_0_1 = contract
 				}
-				defer close(params.InitAnmap)
+				close(params.InitAnmap)
 				log.Info("<<Anmap.Start>> success ", "period", period, "vsn", vsn, "cn", cn.Int64(), "tn", mn.Int64())
 				return
 			} else if cn.Cmp(mn) >= 0 {
@@ -136,6 +143,15 @@ func (self *StatuteService) Start(server *p2p.Server) error {
 	go self.startMeshbox("0.0.1", be)
 	go self.startMeshbox("0.0.2", be)
 	go self.startAnmap("0.0.1", be)
+	if true {
+		//poc contract service
+		var err error
+		self.poc_1, err = chieflib.NewPOC_1_0_0(params.POCInfo(), be)
+		if err != nil {
+			panic(err)
+		}
+	}
+
 	self.server = server
 	return nil
 }
@@ -332,6 +348,132 @@ func (self *StatuteService) bind(mbox params.Mbox) {
 }
 
 /*
+from common.Address, sigHex string
+*/
+func (self *StatuteService) pocDeposit(mbox params.Mbox) {
+	success := params.MBoxSuccess{Success: true}
+	var (
+		from   common.Address
+		sigHex string
+		err    error
+		tx     *types.Transaction
+	)
+	defer func() {
+		if err != nil {
+			success.Success = false
+			success.Entity = err
+		} else {
+			success.Entity = tx.Hash().String()
+		}
+		mbox.Rtn <- success
+	}()
+	from = mbox.Params["from"].(common.Address)
+	sigHex = mbox.Params["sigHex"].(string)
+	log.Info("mbox.params", "from", from.Hex(), "sigHex", sigHex, "pocaddr", params.POCInfo())
+
+	a := accounts.Account{Address: from}
+	w, err := self.accman.Find(a)
+	if err != nil {
+		return
+	}
+	//质押最小金额
+	min, err := self.poc_1.MinDepositAmount(nil)
+	if err != nil {
+		return
+	}
+	opts := &bind.TransactOpts{
+		From: from,
+		Signer: func(signer types.Signer, address common.Address, tx *types.Transaction) (*types.Transaction, error) {
+			return w.SignTx(a, tx, params.ChainID())
+		},
+		Value: min,
+	}
+	r, s, v := sigSplit(sigHex)
+	tx, err = self.poc_1.Deposit(opts, r, s, v)
+	log.Info("<<StatuteService.PocDeposit>>", "err", err, "tx", tx)
+	return
+}
+
+func (self *StatuteService) pocStartAndStopAndWithdrawAndWithdrawSurplus(mbox params.Mbox, method string) {
+	success := params.MBoxSuccess{Success: true}
+	var (
+		from   common.Address
+		nodeID common.Address
+		err    error
+		tx     *types.Transaction
+	)
+	defer func() {
+		if err != nil {
+			success.Success = false
+			success.Entity = err
+		} else {
+			success.Entity = tx.Hash().String()
+		}
+		mbox.Rtn <- success
+	}()
+	from = mbox.Params["from"].(common.Address)
+	nodeID = mbox.Params["nodeid"].(common.Address)
+	log.Info("mbox.params", "from", from.Hex(), "nodeid", nodeID, "pocaddr", params.POCInfo())
+
+	a := accounts.Account{Address: from}
+	w, err := self.accman.Find(a)
+	if err != nil {
+		return
+	}
+	opts := &bind.TransactOpts{
+		From: from,
+		Signer: func(signer types.Signer, address common.Address, tx *types.Transaction) (*types.Transaction, error) {
+			return w.SignTx(a, tx, params.ChainID())
+		},
+	}
+	switch method {
+	case params.POC_METHOD_START:
+		tx, err = self.poc_1.Start(opts, nodeID)
+	case params.POC_METHOD_STOP:
+		tx, err = self.poc_1.Stop(opts, nodeID)
+	case params.POC_METHOD_WITHDRAW:
+		tx, err = self.poc_1.Withdraw(opts, nodeID)
+	case params.POC_METHOD_WITHDRAW_SURPLUS:
+		tx, err = self.poc_1.WithdrawSurplus(opts, nodeID)
+	default:
+		panic(method)
+	}
+	log.Info("<<StatuteService>>", "method", method, "err", err, "tx", tx)
+	return
+}
+
+func (self *StatuteService) pocGetAll(mbox params.Mbox) {
+	success := params.MBoxSuccess{Success: true}
+	var (
+		err error
+		ps  *params.PocStatus
+	)
+	defer func() {
+		if err != nil {
+			success.Success = false
+			success.Entity = err
+		} else {
+			success.Entity = ps
+		}
+		mbox.Rtn <- success
+	}()
+	log.Info("poc_getStatus")
+	minerList, amountList, blockList, ownerList, blackStatusList, err := self.poc_1.GetAll(nil)
+	if err != nil {
+		return
+	}
+	ps = &params.PocStatus{
+		MinerList:       minerList,
+		AmountList:      amountList,
+		BlockList:       blockList,
+		OwnerList:       ownerList,
+		BlackStatusList: blackStatusList,
+	}
+	log.Info("<<StatuteService.pocGetAll>>", "err", err)
+	return
+}
+
+/*
 args:
 	from
 	nodeid
@@ -447,6 +589,18 @@ func (self *StatuteService) loop() {
 				self.unbind(mbox)
 			case "existAddress":
 				self.existAddress(mbox)
+			case params.POC_METHOD_DEPOSIT:
+				self.pocDeposit(mbox)
+			case params.POC_METHOD_START:
+				fallthrough
+			case params.POC_METHOD_STOP:
+				fallthrough
+			case params.POC_METHOD_WITHDRAW:
+				fallthrough
+			case params.POC_METHOD_WITHDRAW_SURPLUS:
+				self.pocStartAndStopAndWithdrawAndWithdrawSurplus(mbox, mbox.Method)
+			case params.POC_METHOD_GET_STATUS:
+				self.pocGetAll(mbox)
 			}
 		}
 	}
