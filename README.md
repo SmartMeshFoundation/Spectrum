@@ -82,7 +82,7 @@ Building Spectrum requires both a Go (version 1.9.2 or later) and a C compiler. 
     > tribe.pocWithdraw("account","passwd")   
     
 # More functions   
-    Users can input tribe to view:
+    Users can input tribe to view more:
     
     > tribe
 
