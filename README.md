@@ -74,8 +74,8 @@ Building Spectrum requires both a Go (version 1.9.2 or later) and a C compiler. 
 
     > tribe.pocWithdraw("account","passwd")   
     
-## More functions   
-    Users can input tribe to view [Ethereum-compatible](https://github.com/ethereum/go-ethereum)[more](https://github.com/SmartMeshFoundation/Spectrum/wiki/%5BChinese%5D-Tribe-APIs):
+## [More functions](https://github.com/SmartMeshFoundation/Spectrum/wiki/%5BChinese%5D-Tribe-APIs)  
+    Users can input tribe to view:
     
     > tribe
     
