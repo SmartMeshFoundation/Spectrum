@@ -27,13 +27,6 @@ We suggest that the GasPrice should not be less than 18Gwei, otherwise the trans
 
 Building Spectrum requires both a Go (version 1.9.2 or later) and a C compiler. You can install them using your favourite package manager. And you can view the detail installation steps on this [page](https://github.com/SmartMeshFoundation/Spectrum/wiki/Building-Specturm).
 
-## Encrypt your nodekey
-
-     $ ./build/bin/smc security --passwd
-## Decrypt your nodekey
-
-     $ ./build/bin/smc security --unlock
-     
 ## Run node 
 
     $ ./build/bin/smc console
@@ -85,4 +78,14 @@ Building Spectrum requires both a Go (version 1.9.2 or later) and a C compiler. 
     Users can input tribe to view more:
     
     > tribe
+    
+## Security-related 
+  
+#### Encrypt your nodekey
+
+     $ ./build/bin/smc security --passwd
+#### Decrypt your nodekey
+
+     $ ./build/bin/smc security --unlock
+     
 
