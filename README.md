@@ -81,11 +81,11 @@ Building Spectrum requires both a Go (version 1.9.2 or later) and a C compiler. 
     
 ## Security-related 
   
-#### Encrypt your nodekey
+### Encrypt your nodekey
 
      $ ./build/bin/smc security --passwd
      
-#### Decrypt your nodekey
+### Decrypt your nodekey
 
      $ ./build/bin/smc security --unlock
      
