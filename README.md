@@ -29,53 +29,53 @@ Building Spectrum requires both a Go (version 1.9.2 or later) and a C compiler. 
 
 ## Run node 
 
-   $ ./build/bin/smc console
+    $ ./build/bin/smc console
     
 ## Create new account
-   Users can create new account:
+    Users can create new account:
 
     > personal.newAccount()
 
 ## Get your own miner id
 
-   Every node has it's own miner id, you can run getMiner() function to get that id:
+    Every node has it's own miner id, you can run getMiner() function to get that id:
 
     > tribe.getMiner() 
     
 ## Bind your own miner id to wallet address
 
-   Users can bind their miner ID to a wallet address:
+    Users can bind their miner ID to a wallet address:
 
     > tribe.bind("account","passwd") 
 
 ## Deposit smt to POC
 
-   Users can become miner by deposit smt:
+    Users can become miner by deposit smt:
 
     > tribe.pocDeposit("account","passwd") 
 
 
 ## Start mining
 
-   Users can start mining or resume it:
+    Users can start mining or resume it:
 
     > tribe.pocStart("account","passwd") 
 
 
 ## Stop mining
 
-   Users can stop mining:
+    Users can stop mining:
 
     > tribe.pocStop("account","passwd") 
     
 ## Withdraw smt
 
-   Users can withdraw smt:
+    Users can withdraw smt:
 
     > tribe.pocWithdraw("account","passwd")   
     
 ## More functions
-   Users can input tribe to [view] (https://github.com/SmartMeshFoundation/Spectrum/wiki/%5BChinese%5D-Tribe-APIs)  :
+    Users can input tribe to view:
     
     > tribe
     
