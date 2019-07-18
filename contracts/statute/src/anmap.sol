@@ -1,12 +1,8 @@
-pragma solidity ^0.5.3;
-
-//import "github.com/SmartMeshFoundation/Spectrum/contracts/statute/src/owned.sol"; // for remix
-
-import "./owned.sol";
+pragma solidity >=0.5.0 <0.6.0;
 
 // Address and nodeid mapping
 // used for reward txfee
-contract Anmap is Owned {
+contract Anmap {
 
     mapping(address => address[]) anmap;
     mapping(address => address) namap;
