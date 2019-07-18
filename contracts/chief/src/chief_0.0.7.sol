@@ -1,4 +1,4 @@
-pragma solidity ^0.5.3;
+pragma solidity >=0.5.0 <=0.5.3;
 
 //import "github.com/SmartMeshFoundation/Spectrum/contracts/chief/src/chief_abs_s0.5.sol"; // for remix
 import "./chief_abs_s0.5.sol"; // local

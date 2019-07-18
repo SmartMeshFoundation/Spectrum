@@ -1,4 +1,4 @@
-pragma solidity >=0.5.0 <0.6.0;
+pragma solidity >=0.5.0 <=0.5.3;
 
 //import "github.com/SmartMeshFoundation/Spectrum/contracts/statute/src/owned.sol"; // for remix
 
