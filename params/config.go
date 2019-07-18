@@ -56,15 +56,18 @@ var (
 
 		ChiefBaseAddress: common.HexToAddress("0x"),
 
-		Anmap001Block:   big.NewInt(0),
-		Anmap001Address: common.HexToAddress("0x"),
+		Anmap001Block:   big.NewInt(2686801),
+		Anmap001Address: common.HexToAddress("0x23fb7fa0f6f88ce56b70ac3d671315f5baf84bb9"),
 		MinMinerBalance: new(big.Int).Mul(big.NewInt(100000), big.NewInt(Ether)),
 
 		SIP001Block: big.NewInt(0), // new rules for chief.tx of gaspool
 		SIP002Block: big.NewInt(588888),
 		SIP003Block: big.NewInt(808888),
 		SIP004Block: big.NewInt(0),
-		//SIP004Block: big.NewInt(2888888), // maybe begin at 2019-8-18
+
+		// PocBlock must less than Chief100Block
+		PocAddress: common.HexToAddress("0xb9b4ece952c8005f009801e5ec78e116f528c1d0"),
+
 		Tribe: &TribeConfig{},
 	}
 
