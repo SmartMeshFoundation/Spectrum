@@ -22,6 +22,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/SmartMeshFoundation/Spectrum/core/types"
+
 	"github.com/SmartMeshFoundation/Spectrum/common"
 	"github.com/SmartMeshFoundation/Spectrum/crypto"
 	"github.com/SmartMeshFoundation/Spectrum/params"
@@ -141,6 +143,8 @@ type EVM struct {
 	// available gas is calculated in gasCall* according to the 63/64 rule and later
 	// applied in opCall*.
 	callGasTemp uint64
+	//helper to record internal transfer
+	InternalTransfers []*types.InternalTransfer
 }
 
 // NewEVM retutrns a new EVM . The returned EVM is not thread safe and should
@@ -197,6 +201,14 @@ func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas 
 			return nil, gas, nil
 		}
 		evm.StateDB.CreateAccount(addr)
+	}
+	if value != nil && value.Cmp(big.NewInt(0)) > 0 {
+		evm.InternalTransfers = append(evm.InternalTransfers, &types.InternalTransfer{
+			From:  caller.Address(),
+			To:    to.Address(),
+			Value: value,
+		})
+		//log.Warn(fmt.Sprintf("Transfer from=%s,to=%s,value=%s", caller.Address().String(), to.Address().String(), value))
 	}
 	evm.Transfer(evm.StateDB, caller.Address(), to.Address(), value)
 
@@ -372,6 +384,14 @@ func (evm *EVM) Create(caller ContractRef, code []byte, gas uint64, value *big.I
 	evm.StateDB.CreateAccount(contractAddr)
 	if evm.ChainConfig().IsEIP158(evm.BlockNumber) {
 		evm.StateDB.SetNonce(contractAddr, 1)
+	}
+	if value != nil && value.Cmp(big.NewInt(0)) > 0 {
+		evm.InternalTransfers = append(evm.InternalTransfers, &types.InternalTransfer{
+			From:  caller.Address(),
+			To:    contractAddr,
+			Value: value,
+		})
+		//log.Warn(fmt.Sprintf("Transfer from=%s,to=%s,value=%s", caller.Address().String(), contractAddr.String(), value))
 	}
 	evm.Transfer(evm.StateDB, caller.Address(), contractAddr, value)
 

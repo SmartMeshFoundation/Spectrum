@@ -397,3 +397,42 @@ func TestCanonicalMappingStorageDevnet(t *testing.T) {
 	}
 
 }
+
+// Tests that receipts associated with a single block can be stored and retrieved.
+func TestInternalTransfers(t *testing.T) {
+	db, _ := ethdb.NewMemDatabase()
+
+	tr1 := &types.InternalTransfer{
+		From:  common.HexToAddress("0xaa"),
+		To:    common.HexToAddress("0xbb"),
+		Value: big.NewInt(2),
+	}
+	tr2 := &types.InternalTransfer{
+		From:  common.HexToAddress("0xcc"),
+		To:    common.HexToAddress("0xdd"),
+		Value: big.NewInt(32),
+	}
+	trs := []*types.InternalTransfer{tr1, tr2}
+
+	// Check that no receipt entries are in a pristine database
+	hash := common.BytesToHash([]byte{0x03, 0x14})
+	if rs := GetInternalTransfers(db, hash); len(rs) != 0 {
+		t.Fatalf("non existent receipts returned: %v", rs)
+	}
+	// Insert the receipt slice into the database and check presence
+	if err := WriteInternalTransfers(db, hash, trs); err != nil {
+		t.Fatalf("failed to write block receipts: %v", err)
+	}
+	if rs := GetInternalTransfers(db, hash); len(rs) == 0 {
+		t.Fatalf("no trs returned")
+	} else {
+		for i := 0; i < len(trs); i++ {
+			rlpHave, _ := rlp.EncodeToBytes(rs[i])
+			rlpWant, _ := rlp.EncodeToBytes(trs[i])
+
+			if !bytes.Equal(rlpHave, rlpWant) {
+				t.Fatalf("tr #%d: receipt mismatch: have %v, want %v", i, rs[i], trs[i])
+			}
+		}
+	}
+}

@@ -23,6 +23,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+
 	"github.com/SmartMeshFoundation/Spectrum/common"
 	"github.com/SmartMeshFoundation/Spectrum/core/types"
 	"github.com/SmartMeshFoundation/Spectrum/ethdb"
@@ -48,17 +49,17 @@ var (
 	headFastKey   = []byte("LastFast")
 
 	// Data item prefixes (use single byte to avoid mixing data types, avoid `i`).
-	headerPrefix        = []byte("h") // headerPrefix + num (uint64 big endian) + hash -> header
-	tdSuffix            = []byte("t") // headerPrefix + num (uint64 big endian) + hash + tdSuffix -> td
-	numSuffix           = []byte("n") // headerPrefix + num (uint64 big endian) + numSuffix -> hash
-	blockHashPrefix     = []byte("H") // blockHashPrefix + hash -> num (uint64 big endian)
-	bodyPrefix          = []byte("b") // bodyPrefix + num (uint64 big endian) + hash -> block body
-	blockReceiptsPrefix = []byte("r") // blockReceiptsPrefix + num (uint64 big endian) + hash -> block receipts
-	lookupPrefix        = []byte("l") // lookupPrefix + hash -> transaction/receipt lookup metadata
-	bloomBitsPrefix     = []byte("B") // bloomBitsPrefix + bit (uint16 big endian) + section (uint64 big endian) + hash -> bloom bits
-
-	preimagePrefix = "secure-key-"              // preimagePrefix + hash -> preimage
-	configPrefix   = []byte("ethereum-config-") // config prefix for the db
+	headerPrefix           = []byte("h")                // headerPrefix + num (uint64 big endian) + hash -> header
+	tdSuffix               = []byte("t")                // headerPrefix + num (uint64 big endian) + hash + tdSuffix -> td
+	numSuffix              = []byte("n")                // headerPrefix + num (uint64 big endian) + numSuffix -> hash
+	blockHashPrefix        = []byte("H")                // blockHashPrefix + hash -> num (uint64 big endian)
+	bodyPrefix             = []byte("b")                // bodyPrefix + num (uint64 big endian) + hash -> block body
+	blockReceiptsPrefix    = []byte("r")                // blockReceiptsPrefix + num (uint64 big endian) + hash -> block receipts
+	lookupPrefix           = []byte("l")                // lookupPrefix + hash -> transaction/receipt lookup metadata
+	bloomBitsPrefix        = []byte("B")                // bloomBitsPrefix + bit (uint16 big endian) + section (uint64 big endian) + hash -> bloom bits
+	internalTransferPrefix = []byte("ir")               //internal transfers
+	preimagePrefix         = "secure-key-"              // preimagePrefix + hash -> preimage
+	configPrefix           = []byte("ethereum-config-") // config prefix for the db
 
 	// Chain index prefixes (use `i` + single byte to avoid mixing data types).
 	BloomBitsIndexPrefix = []byte("iB") // BloomBitsIndexPrefix is the data table of a chain indexer to track its progress
@@ -248,6 +249,20 @@ func GetBlockReceipts(db DatabaseReader, hash common.Hash, number uint64) types.
 		receipts[i] = (*types.Receipt)(receipt)
 	}
 	return receipts
+}
+
+//GetInternalTransfers retrieves contract internal transfer
+func GetInternalTransfers(db DatabaseReader, hash common.Hash) types.InternalTransfers {
+	data, _ := db.Get(append(internalTransferPrefix, hash[:]...))
+	if len(data) == 0 {
+		return nil
+	}
+	var irs []*types.InternalTransfer
+	if err := rlp.DecodeBytes(data, &irs); err != nil {
+		log.Error("Invalid InternalTransfers array RLP", "hash", hash, "err", err)
+		return nil
+	}
+	return types.InternalTransfers(irs)
 }
 
 // GetTxLookupEntry retrieves the positional metadata associated with a transaction
@@ -452,6 +467,21 @@ func WriteBlockReceipts(db ethdb.Putter, hash common.Hash, number uint64, receip
 	}
 	// Store the flattened receipt slice
 	key := append(append(blockReceiptsPrefix, encodeBlockNumber(number)...), hash.Bytes()...)
+	if err := db.Put(key, bytes); err != nil {
+		log.Crit("Failed to store block receipts", "err", err)
+	}
+	return nil
+}
+
+// WriteInternalTransfers stores internal transfers
+func WriteInternalTransfers(db ethdb.Putter, hash common.Hash, trs types.InternalTransfers) error {
+	// Convert the receipts into their storage form and serialize them
+	bytes, err := rlp.EncodeToBytes(trs)
+	if err != nil {
+		return err
+	}
+	// Store the flattened receipt slice
+	key := append(internalTransferPrefix, hash.Bytes()...)
 	if err := db.Put(key, bytes); err != nil {
 		log.Crit("Failed to store block receipts", "err", err)
 	}

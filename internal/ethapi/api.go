@@ -1054,7 +1054,6 @@ func (s *PublicTransactionPoolAPI) GetTransactionReceipt(hash common.Hash) (map[
 	if receipt == nil {
 		return nil, errors.New("unknown receipt")
 	}
-
 	var signer types.Signer = types.FrontierSigner{}
 	if tx.Protected() {
 		signer = types.NewEIP155Signer(tx.ChainId())
@@ -1087,6 +1086,10 @@ func (s *PublicTransactionPoolAPI) GetTransactionReceipt(hash common.Hash) (map[
 	// If the ContractAddress is 20 0x0 bytes, assume it is not a contract creation
 	if receipt.ContractAddress != (common.Address{}) {
 		fields["contractAddress"] = receipt.ContractAddress
+	}
+	trs := core.GetInternalTransfers(s.b.ChainDb(), hash)
+	if len(trs) > 0 {
+		fields["InternalTransfers"] = trs
 	}
 	return fields, nil
 }

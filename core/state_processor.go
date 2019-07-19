@@ -103,7 +103,22 @@ func ApplyTransaction(config *params.ChainConfig, bc *BlockChain, author *common
 	if err != nil {
 		return nil, nil, err
 	}
-
+	//只有成功了才会记录内部交易
+	if !failed {
+		if tx.Value().Cmp(big.NewInt(0)) > 0 {
+			vmenv.InternalTransfers = vmenv.InternalTransfers[1:] //如果Tx本来的Value都大于0,那么不应该记录再记录这个交易本身了
+		}
+		if len(vmenv.InternalTransfers) > 0 {
+			//log.Error(fmt.Sprintf("interanl transfers hash=%s,trs= %v ", tx.Hash().String(), vmenv.InternalTransfers))
+			err = WriteInternalTransfers(bc.chainDb, tx.Hash(), vmenv.InternalTransfers)
+			if err != nil {
+				//log.Error(fmt.Sprintf("WriteInternalTransfers err %s ", err))
+				return nil, nil, err
+			}
+			//trs := GetInternalTransfers(bc.chainDb, tx.Hash())
+			//log.Error(fmt.Sprintf("trs=%v", trs))
+		}
+	}
 	// Update the state with pending changes
 	var root []byte
 	if config.IsByzantium(header.Number) {
