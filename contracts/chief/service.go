@@ -879,7 +879,7 @@ func (self *TribeService) takeMiner(nl []common.Address, hash common.Hash, _vrfn
 			for _, n := range nl {
 				addrLog = append(addrLog[:], n.Hex())
 			}
-			log.Info("fetchVolunteer-1.0.0-volunteers", "num", block.Number(), "addrList", addrLog)
+			log.Debug("fetchVolunteer-1.0.0-volunteers", "num", block.Number(), "addrList", addrLog)
 			// skip if `n` in volunteer list
 			v := nl[idx.Int64()]
 
@@ -888,7 +888,7 @@ func (self *TribeService) takeMiner(nl []common.Address, hash common.Hash, _vrfn
 					return fn(new(big.Int).Add(_vrfn, big.NewInt(1)))
 				}
 			}
-			log.Info("fetchVolunteer-1.0.0-final", "num", block.Number(), "idx", idx.String(), "addr", v.Hex(), "vrfn", _vrfn)
+			log.Debug("fetchVolunteer-1.0.0-final", "num", block.Number(), "idx", idx.String(), "addr", v.Hex(), "vrfn", _vrfn)
 			return v
 		}
 		return fn(vrfn)
