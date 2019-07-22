@@ -214,7 +214,8 @@ func leaderSort(first common.Address, list []common.Address) ([]common.Address, 
 			return append(list[i+1:], list[:i]...), nil
 		}
 	}
-	return nil, errors.New("leader not found")
+
+	return list, nil
 }
 
 //InTurnForCalc 在0.6版本计算难度
