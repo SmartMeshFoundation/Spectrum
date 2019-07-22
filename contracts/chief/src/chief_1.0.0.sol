@@ -114,17 +114,17 @@ contract TribeChief_1_0_0 is Chief {
         if (_nextRoundSignerList.length < base.takeVolunteerLimit()) {
             _nextRoundSignerList.push(addr);
         } else{
-            revert("next round signer too much");
+            //            revert("next round signer too much");
         }
     }
 
     // append a signer
     function pushSigner(address signer ) private {
         if (_signerList.length < base.takeSignerLimit()) {
-                _signerList.push(signer);
+            _signerList.push(signer);
             signersMap[signer] = 1;
         } else{
-            revert("too many signer");
+            //            revert("too many signer");
         }
     }
 
@@ -150,10 +150,15 @@ contract TribeChief_1_0_0 is Chief {
                 } else {
                     pushSigner(leaders[i + 1]);
                 }
-               return;
+                return;
             }
         }
-        revert("signer0 must exist in leader list");
+        //        revert("signer0 must exist in leader list");
+        /*
+        there must at least one leader.
+        current leader maybe removed.
+        */
+        pushSigner(leaders[0]);
     }
 
     // push volunteerList to signerList
@@ -270,8 +275,8 @@ contract TribeChief_1_0_0 is Chief {
         weightList = new uint[](length);
     }
     function getNextRoundSignerList() public view returns (
-    address[] memory nextRoundSignerList,
-    uint length
+        address[] memory nextRoundSignerList,
+        uint length
     ) {
         nextRoundSignerList=_nextRoundSignerList;
         length=nextRoundSignerList.length;
@@ -279,12 +284,12 @@ contract TribeChief_1_0_0 is Chief {
 
     // TODO
     function filterVolunteer(address[] memory volunteers) public view returns (uint[] memory result) {}
-//    function test_update(address nextsigner) public{
-//        update(nextsigner);
-//    }
-//    function test_push_signer(uint256 i,address signer) public{
-//            _signerList[i]=signer;
-//            signersMap[signer] = 1;
-//    }
+    //    function test_update(address nextsigner) public{
+    //        update(nextsigner);
+    //    }
+    //    function test_push_signer(uint256 i,address signer) public{
+    //            _signerList[i]=signer;
+    //            signersMap[signer] = 1;
+    //    }
 }
 
