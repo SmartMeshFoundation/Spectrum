@@ -204,37 +204,33 @@ func (api *API) GetSinners(hash *common.Hash) ([]common.Address, error) {
 
 func (api *API) GetSigners(hash *common.Hash) ([]*Signer, error) {
 	header := api.chain.CurrentHeader()
-	if header.Number.Int64() == 0 {
-		api.tribe.Status.genesisSigner(header)
-	} else {
-		h := header.Hash()
-		n := header.Number
-		if hash != nil {
-			h = *hash
-			n = api.chain.GetHeaderByHash(h).Number
-		}
-		api.tribe.Status.LoadSignersFromChief(h, n)
+
+	h := header.Hash()
+	n := header.Number
+	if hash != nil {
+		h = *hash
+		n = api.chain.GetHeaderByHash(h).Number
 	}
-	return api.tribe.Status.Signers, nil
+	status, err := api.loadHistoryChiefStatus(h, n)
+	if err != nil {
+		return nil, err
+	}
+	return status.Signers, nil
 }
 
 func (api *API) GetStatus(hash *common.Hash) (*TribeStatus, error) {
 	header := api.chain.CurrentHeader()
-	if header.Number.Int64() == 0 {
-		api.tribe.Status.genesisSigner(header)
-	} else {
-		h := header.Hash()
-		n := header.Number
-		if hash != nil {
-			h = *hash
-			n = api.chain.GetHeaderByHash(h).Number
+	h := header.Hash()
+	n := header.Number
+	if hash != nil {
+		h = *hash
+		h2 := api.chain.GetHeaderByHash(h) //有可能返回0值,当hash不存在的时候
+		if h2 == nil {
+			return nil, errors.New("block not exist")
 		}
-		api.tribe.Status.LoadSignersFromChief(h, n)
-		if chiefInfo := params.GetChiefInfo(n); chiefInfo != nil {
-			api.tribe.Status.Vsn = chiefInfo.Version
-		}
+		n = h2.Number
 	}
-	return api.tribe.Status, nil
+	return api.loadHistoryChiefStatus(h, n)
 }
 
 func (api *API) GetVolunteers(hash *common.Hash) (*TribeVolunteers, error) {
@@ -289,4 +285,31 @@ func (api *API) GetHistory(last *big.Int, noRpc *bool) (interface{}, error) {
 		}
 		return _history, nil
 	}
+}
+
+// 在 加载完所有 node.service 后，需要主动调用一次
+func (api *API) loadHistoryChiefStatus(hash common.Hash, number *big.Int) (status *TribeStatus, err error) {
+	//log.Info(fmt.Sprintf("LoadSignersFromChief hash=%s,number=%s", hash.String(), number))
+	cs, err := params.TribeGetStatus(number, hash)
+	if err != nil {
+		return nil, err
+	}
+	status = &TribeStatus{}
+	signers := cs.SignerList
+	scores := cs.ScoreList
+	sl := make([]*Signer, 0, len(signers))
+	for i, signer := range signers {
+		score := scores[i]
+		sl = append(sl, &Signer{signer, score.Int64()})
+	}
+	status.LeaderLimit = cs.LeaderLimit
+	status.Leaders = cs.LeaderList
+	if len(status.Leaders) == 0 {
+		panic(fmt.Sprintf("LoadSignersFromChief err ,hash=%s,number=%s,cs=%#v", hash.String(), number, cs))
+	}
+	status.Number = cs.Number.Int64()
+	status.blackList = cs.BlackList
+	status.Signers = sl
+	status.Epoch, status.SignerLimit = cs.Epoch, cs.SignerLimit
+	return
 }
