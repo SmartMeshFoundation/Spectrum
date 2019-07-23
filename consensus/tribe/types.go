@@ -127,6 +127,7 @@ type Tribe struct {
 	SealErrorCh *sync.Map // map[int64]error
 	//SealErrorCounter uint32     // less then 3 , retry commit new work
 	isInit bool
+	lock   sync.Mutex
 }
 
 type API struct {

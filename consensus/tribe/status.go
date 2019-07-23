@@ -5,6 +5,7 @@ import (
 	"crypto/elliptic"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"math/big"
 	"sync/atomic"
 	"time"
@@ -78,6 +79,7 @@ func (self *TribeStatus) GetSignersFromChiefByHash(hash common.Hash, number *big
 
 // 在 加载完所有 node.service 后，需要主动调用一次
 func (self *TribeStatus) LoadSignersFromChief(hash common.Hash, number *big.Int) error {
+	//log.Info(fmt.Sprintf("LoadSignersFromChief hash=%s,number=%s", hash.String(), number))
 	cs, err := params.TribeGetStatus(number, hash)
 	if err != nil {
 		log.Warn("TribeGetStatusError", "err", err, "num", number, "hash", hash.Hex())
@@ -92,6 +94,9 @@ func (self *TribeStatus) LoadSignersFromChief(hash common.Hash, number *big.Int)
 	}
 	self.LeaderLimit = cs.LeaderLimit
 	self.Leaders = cs.LeaderList
+	if len(self.Leaders) == 0 {
+		panic(fmt.Sprintf("LoadSignersFromChief err ,hash=%s,number=%s,cs=%#v", hash.String(), number, cs))
+	}
 	self.Number = cs.Number.Int64()
 	self.blackList = cs.BlackList
 	err = self.loadSigners(sl)
@@ -173,6 +178,7 @@ func (self *TribeStatus) inTurnForCalcChief100(number int64, parentHash common.H
 		signers, _ = self.GetSignersFromChiefByHash(parentHash, big.NewInt(number)) //self.GetSigners()
 		sl         = len(signers)
 	)
+	//	log.Info(fmt.Sprintf("singers=%v,signer=%s,leaders=%v,number=%d,parentHash=%s", signers, signer.String(), self.Leaders, number, parentHash.String()))
 	if idx, _, err := self.fetchOnSigners(signer, signers); err == nil {
 		// main
 		if sl > 0 && number%int64(sl) == idx.Int64() {
@@ -472,7 +478,11 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 	if block.Number().Int64() <= 3 {
 		return nil
 	}
-
+	err := self.LoadSignersFromChief(parent.Hash(), parent.Number())
+	if err != nil {
+		log.Error(fmt.Sprintf("[ValidateBlock] LoadSignersFromChief ,parent=%s,current=%s,currentNumber=%s", parent.Hash().String(), block.Hash().String(), block.Number()))
+		return err
+	}
 	header := block.Header()
 	number := header.Number.Int64()
 	//number := block.Number().Int64()

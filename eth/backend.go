@@ -182,7 +182,10 @@ func New(ctx *node.ServiceContext, config *Config) (*Ethereum, error) {
 	eth.ApiBackend.gpo = gasprice.NewOracle(eth.ApiBackend, gpoParams)
 	// add by liangc
 	if tribe, ok := eth.engine.(*tribe.Tribe); ok {
-		tribe.Init(eth.BlockChain().CurrentHeader().Hash(), eth.BlockChain().CurrentHeader().Number)
+		/*
+			不能使用currentHeader来Init,会造成init成功,但是load的signers都是无效的
+		*/
+		tribe.Init(eth.BlockChain().CurrentFastBlock().Hash(), eth.BlockChain().CurrentFastBlock().Number())
 	}
 	return eth, nil
 }

@@ -124,6 +124,11 @@ func New(accman *accounts.Manager, config *params.TribeConfig, _ ethdb.Database)
 
 func (t *Tribe) Init(hash common.Hash, number *big.Int) {
 	go func() {
+		t.lock.Lock()
+		defer t.lock.Unlock()
+		if t.isInit {
+			return
+		}
 		<-params.InitTribeStatus
 		rtn := params.SendToMsgBox("GetNodeKey")
 		success := <-rtn
@@ -132,7 +137,7 @@ func (t *Tribe) Init(hash common.Hash, number *big.Int) {
 			close(params.InitTribe)
 			params.InitTribe = nil
 		}
-		log.Info("init tribe.status when chiefservice start end.", "getnodekey", success.Success)
+		log.Debug("init tribe.status when chiefservice start end.", "getnodekey", success.Success)
 		if number.Int64() >= CHIEF_NUMBER {
 			t.isInit = true
 			t.Status.LoadSignersFromChief(hash, number)
@@ -189,8 +194,8 @@ func (t *Tribe) Author(header *types.Header) (common.Address, error) {
 func (t *Tribe) VerifyHeader(chain consensus.ChainReader, header *types.Header, seal bool) error {
 	err := t.verifyHeader(chain, header, nil)
 	if err == nil {
-		p := chain.GetHeaderByHash(header.ParentHash)
-		t.Status.LoadSignersFromChief(p.Hash(), p.Number)
+		//p := chain.GetHeaderByHash(header.ParentHash)
+		//t.Status.LoadSignersFromChief(p.Hash(), p.Number)
 	}
 	return err
 }
@@ -226,9 +231,10 @@ func (t *Tribe) verifyHeader(chain consensus.ChainReader, header *types.Header, 
 		}
 	}()
 	extraVanity := extraVanityFn(header.Number)
-	if !t.isInit && header.Number.Int64() >= CHIEF_NUMBER {
-		t.Init(header.Hash(), header.Number)
-	}
+	//if !t.isInit && header.Number.Int64() >= CHIEF_NUMBER {
+	//	log.Info(fmt.Sprintf("verifyHeader init, header=%#v,parents=%#v", header, parents))
+	//	t.Init(header.Hash(), header.Number)
+	//}
 
 	if header.Number == nil {
 		return errUnknownBlock
