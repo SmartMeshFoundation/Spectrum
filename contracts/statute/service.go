@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"math/big"
 	"time"
 
@@ -268,6 +269,20 @@ func (self *StatuteService) Unbind(from, nodeAddr common.Address, sigHex string)
 			return w.SignTx(a, tx, params.ChainID())
 		},
 	}
+	//client   *ethclient.Client
+	client, err := contracts.GetEthclientInstance()
+	if err != nil {
+		return common.Hash{}, err
+	}
+	//if params.ChiefTxNonce > 0 {
+	pnonce, perr := client.PendingNonceAt(context.Background(), from)
+	if perr != nil {
+		log.Debug("<<StatuteService_Bind>> === nonce_err", "err", perr)
+	} else {
+		log.Debug("<<StatuteService_Bind>> === nonce", "nonce", pnonce)
+		opts.Nonce = new(big.Int).SetUint64(pnonce)
+	}
+
 	r, s, v := sigSplit(sigHex)
 	tx, err := self.anmap_0_0_1.UnbindBySig(opts, nodeAddr, v, r, s)
 	log.Info("<<StatuteService.Unbind>>", "err", err, "tx", tx)
@@ -381,6 +396,11 @@ func (self *StatuteService) pocDeposit(mbox params.Mbox) {
 	if err != nil {
 		return
 	}
+	sdb, _ := self.ethereum.BlockChain().State()
+	balance := sdb.GetBalance(from)
+	if balance.Cmp(min) <= 0 {
+		err = fmt.Errorf("addr %s doesn't have enough balance, need=%s, have=%s", from.String(), min, balance)
+	}
 	opts := &bind.TransactOpts{
 		From: from,
 		Signer: func(signer types.Signer, address common.Address, tx *types.Transaction) (*types.Transaction, error) {
@@ -388,6 +408,20 @@ func (self *StatuteService) pocDeposit(mbox params.Mbox) {
 		},
 		Value: min,
 	}
+	//client   *ethclient.Client
+	client, err := contracts.GetEthclientInstance()
+	if err != nil {
+		return
+	}
+	//if params.ChiefTxNonce > 0 {
+	pnonce, perr := client.PendingNonceAt(context.Background(), from)
+	if perr != nil {
+		log.Debug("<<StatuteService_PocDeposit>> === nonce_err", "err", perr)
+	} else {
+		log.Debug("<<StatuteService_PocDeposit>> === nonce", "nonce", pnonce)
+		opts.Nonce = new(big.Int).SetUint64(pnonce)
+	}
+
 	r, s, v := sigSplit(sigHex)
 	tx, err = self.poc_1.Deposit(opts, r, s, v)
 	log.Info("<<StatuteService.PocDeposit>>", "err", err, "tx", tx)
@@ -425,6 +459,19 @@ func (self *StatuteService) pocStartAndStopAndWithdrawAndWithdrawSurplus(mbox pa
 		Signer: func(signer types.Signer, address common.Address, tx *types.Transaction) (*types.Transaction, error) {
 			return w.SignTx(a, tx, params.ChainID())
 		},
+	}
+	//client   *ethclient.Client
+	client, err := contracts.GetEthclientInstance()
+	if err != nil {
+		return
+	}
+	//if params.ChiefTxNonce > 0 {
+	pnonce, perr := client.PendingNonceAt(context.Background(), from)
+	if perr != nil {
+		log.Debug("<<StatuteService_pocStartAndStopAndWithdrawAndWithdrawSurplus>> === nonce_err", "err", perr)
+	} else {
+		log.Debug("<<StatuteService_pocStartAndStopAndWithdrawAndWithdrawSurplus>> === nonce", "nonce", pnonce)
+		opts.Nonce = new(big.Int).SetUint64(pnonce)
 	}
 	switch method {
 	case params.POC_METHOD_START:

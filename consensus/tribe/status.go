@@ -94,7 +94,7 @@ func (self *TribeStatus) LoadSignersFromChief(hash common.Hash, number *big.Int)
 	}
 	self.LeaderLimit = cs.LeaderLimit
 	self.Leaders = cs.LeaderList
-	if len(self.Leaders) == 0 {
+	if len(self.Leaders) == 0 && params.IsSIP100Block(number) {
 		panic(fmt.Sprintf("LoadSignersFromChief err ,hash=%s,number=%s,cs=%#v", hash.String(), number, cs))
 	}
 	self.Number = cs.Number.Int64()
