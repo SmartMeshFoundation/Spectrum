@@ -304,9 +304,6 @@ func (api *API) loadHistoryChiefStatus(hash common.Hash, number *big.Int) (statu
 	}
 	status.LeaderLimit = cs.LeaderLimit
 	status.Leaders = cs.LeaderList
-	if len(status.Leaders) == 0 {
-		panic(fmt.Sprintf("LoadSignersFromChief err ,hash=%s,number=%s,cs=%#v", hash.String(), number, cs))
-	}
 	status.Number = cs.Number.Int64()
 	status.blackList = cs.BlackList
 	status.Signers = sl
