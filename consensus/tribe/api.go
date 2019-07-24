@@ -311,5 +311,49 @@ func (api *API) loadHistoryChiefStatus(hash common.Hash, number *big.Int) (statu
 	status.blackList = cs.BlackList
 	status.Signers = sl
 	status.Epoch, status.SignerLimit = cs.Epoch, cs.SignerLimit
+	chiefInfo := params.GetChiefInfo(number)
+	if chiefInfo != nil {
+		status.Vsn = chiefInfo.Version
+	}
+	api.setSignerLevel(hash, number, status)
 	return
+}
+
+func (api *API) setSignerLevel(hash common.Hash, number *big.Int, tmpStatus *TribeStatus) {
+	m := api.tribe.Status.GetMinerAddress()
+	for _, s := range tmpStatus.Signers {
+		if s.Address == m {
+			tmpStatus.SignerLevel = LevelSigner
+			return
+		}
+	}
+	for _, s := range tmpStatus.blackList {
+		if s == m {
+			tmpStatus.SignerLevel = LevelSinner
+			return
+		}
+	}
+
+	for _, s := range tmpStatus.Leaders {
+		if s == m {
+			tmpStatus.SignerLevel = LevelSigner
+			return
+		}
+	}
+
+	ci := params.GetChiefInfo(number)
+	switch ci.Version {
+	case "0.0.6":
+		// if filterVolunteer return 1 then is volunteer
+		rtn := params.SendToMsgBoxForFilterVolunteer(hash, number, m)
+		r := <-rtn
+		if r.Success {
+			if fr := r.Entity.(*big.Int); fr != nil && fr.Int64() == 0 {
+				tmpStatus.SignerLevel = LevelVolunteer
+				return
+			}
+		}
+	}
+	// default none
+	tmpStatus.SignerLevel = LevelNone
 }
