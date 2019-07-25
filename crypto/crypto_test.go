@@ -19,15 +19,19 @@ package crypto
 import (
 	"bytes"
 	"crypto/ecdsa"
+	"crypto/rand"
 	"encoding/hex"
 	"fmt"
-	"github.com/SmartMeshFoundation/Spectrum/crypto/vrf"
 	"io/ioutil"
 	"math/big"
 	"os"
 	"testing"
 
+	"github.com/SmartMeshFoundation/Spectrum/crypto/secp256k1"
+	"github.com/SmartMeshFoundation/Spectrum/crypto/vrf"
+
 	"crypto/elliptic"
+
 	"github.com/SmartMeshFoundation/Spectrum/common"
 )
 
@@ -447,4 +451,139 @@ func TestForPOCDepositArgs(t *testing.T) {
 		t.Log("V:", V)
 	}
 
+}
+
+func TestVRFForS256Fenbu(t *testing.T) {
+	if testing.Short() {
+		return
+	}
+	key, err := ecdsa.GenerateKey(secp256k1.S256(), rand.Reader)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	fmt.Printf("key=%s\n", hex.EncodeToString(FromECDSA(key)))
+	var n = 380
+	var batch = 10000000
+	var k100 []*ecdsa.PrivateKey
+	for i := 0; i < n; i++ {
+		k, err := ecdsa.GenerateKey(secp256k1.S256(), rand.Reader)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		fmt.Printf("k%d=%s\n", i, hex.EncodeToString(FromECDSA(k)))
+		k100 = append(k100, k)
+	}
+	m := make(map[int]int)
+	var lastVrf []byte
+	for i := 0; i < batch; i++ {
+		var tk *ecdsa.PrivateKey
+		if i%17 == 0 || len(lastVrf) == 0 {
+			tk = key
+		} else {
+			num := new(big.Int).SetBytes(lastVrf)
+			num = num.Mod(num, big.NewInt(int64(n)))
+			tk = k100[num.Int64()]
+			m[int(num.Int64())] = m[int(num.Int64())] + 1
+		}
+		msg := append(big.NewInt(int64(i-1)).Bytes(), lastVrf...)
+		vrfnp, err := SimpleVRF2Bytes(tk, msg)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		lastVrf = vrfnp
+	}
+	var avg int
+	for k, v := range m {
+		avg += v
+		fmt.Printf("%d,%d\n", k, v)
+	}
+	fmt.Printf("total=%d", avg)
+	fmt.Printf("avg=%d", avg/n)
+}
+
+func TestVRFForS256Fenbu2(t *testing.T) {
+	if testing.Short() {
+		return
+	}
+	key, err := ecdsa.GenerateKey(secp256k1.S256(), rand.Reader)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	fmt.Printf("key=%s\n", hex.EncodeToString(FromECDSA(key)))
+	var n = 380
+	var batch = 1000000
+	var k100 []*ecdsa.PrivateKey
+	for i := 0; i < n; i++ {
+		k, err := ecdsa.GenerateKey(secp256k1.S256(), rand.Reader)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		fmt.Printf("k%d=%s\n", i, hex.EncodeToString(FromECDSA(k)))
+		k100 = append(k100, k)
+	}
+	var signers [17]*ecdsa.PrivateKey
+	var nextRoundSigners [17]*ecdsa.PrivateKey
+	var emptySigners [17]*ecdsa.PrivateKey
+	signers[0] = key
+	copy(signers[1:17], k100[0:16])
+	copy(nextRoundSigners[:], signers[:])
+	find := func(num *big.Int) *ecdsa.PrivateKey {
+		num = num.Mod(num, big.NewInt(int64(n)))
+		k := num.Int64()
+		var ck *ecdsa.PrivateKey
+		for {
+		nextRound:
+			ck = k100[k]
+			for i := 0; i < 17; i++ {
+				if signers[i] == ck {
+					k++
+					k = k % int64(n)
+					goto nextRound
+				}
+			}
+			for i := 0; i < 17; i++ {
+				if nextRoundSigners[i] == ck {
+					k++
+					k = k % int64(n)
+					goto nextRound
+				}
+			}
+			break //没有和已选择的冲突
+		}
+		return ck
+	}
+	m := make(map[int]int)
+	var lastVrf []byte
+	for i := 0; i < batch; i++ {
+		var tk *ecdsa.PrivateKey
+		if i%17 == 0 || len(lastVrf) == 0 {
+			copy(signers[:], nextRoundSigners[:])
+			copy(nextRoundSigners[:], emptySigners[:])
+			tk = signers[0]
+			nextRoundSigners[0] = tk //第0个不变
+		} else {
+			num := new(big.Int).SetBytes(lastVrf)
+			tk = find(num)
+			m[int(num.Int64())] = m[int(num.Int64())] + 1
+		}
+		msg := append(big.NewInt(int64(i-1)).Bytes(), lastVrf...)
+		vrfnp, err := SimpleVRF2Bytes(tk, msg)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		lastVrf = vrfnp
+	}
+	var avg int
+	for k, v := range m {
+		avg += v
+		fmt.Printf("%d,%d\n", k, v)
+	}
+	fmt.Printf("total=%d", avg)
+	fmt.Printf("avg=%d", avg/n)
 }
