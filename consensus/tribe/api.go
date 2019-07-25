@@ -151,8 +151,19 @@ func (api *API) pocHelper(from *common.Address, passphrase string, method string
 }
 
 //PocGetStatus 查询poc合约状态
-func (api *API) PocGetStatus() (*params.PocStatus, error) {
-	return params.PocGetAll()
+func (api *API) PocGetStatus(hash *common.Hash) (*params.PocStatus, error) {
+	header := api.chain.CurrentHeader()
+	h := header.Hash()
+	n := header.Number
+	if hash != nil {
+		h = *hash
+		h2 := api.chain.GetHeaderByHash(h) //有可能返回0值,当hash不存在的时候
+		if h2 == nil {
+			return nil, errors.New("block not exist")
+		}
+		n = h2.Number
+	}
+	return params.PocGetAll(h, n)
 }
 func (api *API) Unbind(from *common.Address, passphrase string) (string, error) {
 	nodekey := api.tribe.Status.getNodekey()

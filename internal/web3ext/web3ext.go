@@ -206,7 +206,9 @@ web3._extend({
 		}),
 		new web3._extend.Method({
 			name: 'pocGetStatus',
-			call: 'tribe_pocGetStatus'
+			call: 'tribe_pocGetStatus',
+			params: 1,
+			inputFormatter: [null]
 		}),
 	],
 });

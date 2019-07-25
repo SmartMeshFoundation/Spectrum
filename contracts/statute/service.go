@@ -490,6 +490,19 @@ func (self *StatuteService) pocStartAndStopAndWithdrawAndWithdrawSurplus(mbox pa
 }
 
 func (self *StatuteService) pocGetAll(mbox params.Mbox) {
+	var (
+		blockNumber *big.Int     = nil
+		blockHash   *common.Hash = nil
+	)
+	// hash and number can not nil
+	if h, ok := mbox.Params["hash"]; ok {
+		bh := h.(common.Hash)
+		blockHash = &bh
+	}
+	if n, ok := mbox.Params["number"]; ok {
+		blockNumber = n.(*big.Int)
+	}
+	log.Debug("=>TribeService.pocGetAll", "blockNumber", blockNumber, "blockHash", blockHash.Hex())
 	success := params.MBoxSuccess{Success: true}
 	var (
 		err error
@@ -504,8 +517,12 @@ func (self *StatuteService) pocGetAll(mbox params.Mbox) {
 		}
 		mbox.Rtn <- success
 	}()
-	log.Info("poc_getStatus")
-	minerList, amountList, blockList, ownerList, blackStatusList, err := self.poc_1.GetAll(nil)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+	defer cancel()
+	opts := &bind.CallOptsWithNumber{}
+	opts.Context = ctx
+	opts.Hash = blockHash
+	minerList, amountList, blockList, ownerList, blackStatusList, err := self.poc_1.GetAll(opts)
 	if err != nil {
 		return
 	}
@@ -516,7 +533,7 @@ func (self *StatuteService) pocGetAll(mbox params.Mbox) {
 		OwnerList:       ownerList,
 		BlackStatusList: blackStatusList,
 	}
-	log.Info("<<StatuteService.pocGetAll>>", "err", err)
+	log.Debug("<<StatuteService.pocGetAll>>")
 	return
 }
 

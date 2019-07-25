@@ -592,13 +592,16 @@ type PocStatus struct {
 }
 
 //PocGetAll 获取poc status
-func PocGetAll() (ps *PocStatus, err error) {
+func PocGetAll(hash common.Hash, number *big.Int) (ps *PocStatus, err error) {
 	rtn := make(chan MBoxSuccess)
 	m := Mbox{
 		Method: POC_METHOD_GET_STATUS,
 		Rtn:    rtn,
 	}
-	m.Params = make(map[string]interface{})
+	if number == nil || hash == common.HexToHash("0x") {
+		panic(errors.New("hash and number can not nil"))
+	}
+	m.Params = map[string]interface{}{"hash": hash, "number": number}
 	StatuteService <- m
 	success := <-rtn
 	if success.Success {
