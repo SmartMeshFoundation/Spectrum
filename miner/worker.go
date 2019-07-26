@@ -484,7 +484,7 @@ func (self *worker) commitNewWork() {
 		return
 	}
 	if tribe, ok := self.engine.(*tribe.Tribe); ok {
-		chiefTx := tribe.GetChief100UpdateTx(self.chain, header, work.state)
+		chiefTx := tribe.GetChiefUpdateTx(self.chain, header, work.state)
 		if chiefTx != nil {
 			pending[tribe.Status.GetMinerAddress()] = types.Transactions{chiefTx}
 		}

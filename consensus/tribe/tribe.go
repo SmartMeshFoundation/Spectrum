@@ -497,7 +497,7 @@ var chiefGasPrice = big.NewInt(18000000000)
 /*
 获取要插入的chief Tx
 */
-func (t *Tribe) GetChief100UpdateTx(chain consensus.ChainReader, header *types.Header, state *state.StateDB) *types.Transaction {
+func (t *Tribe) GetChiefUpdateTx(chain consensus.ChainReader, header *types.Header, state *state.StateDB) *types.Transaction {
 	if header.Number.Uint64() <= uint64(CHIEF_NUMBER) {
 		return nil
 	}

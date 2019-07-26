@@ -1,6 +1,8 @@
 package contracts
 
 import (
+	"time"
+
 	"github.com/SmartMeshFoundation/Spectrum/ethclient"
 	"github.com/SmartMeshFoundation/Spectrum/log"
 	"github.com/SmartMeshFoundation/Spectrum/params"
@@ -10,12 +12,19 @@ var client *ethclient.Client
 
 func GetEthclientInstance() (*ethclient.Client, error) {
 	if client == nil {
-		ethclient, err := ethclient.Dial(params.GetIPCPath())
-		if err != nil {
-			log.Error("GetEthclientInstance_fail", "err", err)
-			return nil, err
+		var ec *ethclient.Client
+		var err error
+		for {
+			ec, err = ethclient.Dial(params.GetIPCPath())
+			if err != nil {
+				log.Warn("GetEthclientInstance_fail", "err", err)
+				time.Sleep(time.Millisecond * 100)
+			} else {
+				break
+			}
 		}
-		client = ethclient
+
+		client = ec
 	}
 	return client, nil
 }
