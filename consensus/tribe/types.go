@@ -123,8 +123,6 @@ type Tribe struct {
 	config   *params.TribeConfig // Consensus engine configuration parameters
 	sigcache *lru.ARCCache       // mapping block.hash -> signer
 	Status   *TribeStatus
-	//SealErrorCh map[int64]error // when error from seal fun, may be need commit a new work
-	SealErrorCh *sync.Map // map[int64]error
 	//SealErrorCounter uint32     // less then 3 , retry commit new work
 	isInit bool
 	lock   sync.Mutex
