@@ -133,7 +133,6 @@ func (t *Tribe) Init(hash common.Hash, number *big.Int) {
 		t.Status.nodeKey = success.Entity.(*ecdsa.PrivateKey)
 		if params.InitTribe != nil {
 			close(params.InitTribe)
-			params.InitTribe = nil
 		}
 		log.Debug("init tribe.status when chiefservice start end.", "getnodekey", success.Success)
 		t.isInit = true
