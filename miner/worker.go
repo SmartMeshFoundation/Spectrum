@@ -455,12 +455,7 @@ func (self *worker) commitNewWork() {
 	}
 
 	if err := self.engine.Prepare(self.chain, header); err != nil {
-		log.Trace("Failed to prepare header for mining", "err", err, "number", header.Number)
-		err := self.makeCurrent(parent, header)
-		if err != nil {
-			log.Error("Failed to create mining context", "err", err)
-			return
-		}
+		log.Error("Failed to prepare header for mining", "err", err, "number", header.Number)
 		return
 	}
 
