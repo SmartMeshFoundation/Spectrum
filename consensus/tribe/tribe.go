@@ -7,7 +7,6 @@ import (
 	"errors"
 	"math/big"
 	"math/rand"
-	"sync"
 	"time"
 
 	"crypto/ecdsa"
@@ -112,11 +111,10 @@ func New(accman *accounts.Manager, config *params.TribeConfig, _ ethdb.Database)
 		conf.Period = blockPeriod
 	}
 	tribe := &Tribe{
-		accman:      accman,
-		config:      &conf,
-		Status:      status,
-		sigcache:    sigcache,
-		SealErrorCh: new(sync.Map),
+		accman:   accman,
+		config:   &conf,
+		Status:   status,
+		sigcache: sigcache,
 	}
 	status.setTribe(tribe)
 	return tribe
@@ -508,16 +506,19 @@ var chiefGasPrice = big.NewInt(18000000000)
 获取要插入的chief Tx
 */
 func (t *Tribe) GetChief100UpdateTx(chain consensus.ChainReader, header *types.Header, state *state.StateDB) *types.Transaction {
+	if header.Number.Uint64() <= uint64(CHIEF_NUMBER) {
+		return nil
+	}
 	parentHash := header.ParentHash
 	parentNumber := new(big.Int).Set(header.Number)
 	parentNumber.Sub(parentNumber, big.NewInt(1))
-	if !params.IsSIP100Block(parentNumber) {
-		return nil // sip100之前的update调用还是走老办法
+	var vrf *big.Int
+	if params.IsSIP100Block(parentNumber) {
+		vrf = new(big.Int).SetBytes(header.Extra[:32])
 	}
-	vrf := new(big.Int).SetBytes(header.Extra[:32])
 	nextRoundSigner := params.Chief100GetNextRoundSigner(parentHash, parentNumber, vrf)
 	nonce := state.GetNonce(t.Status.GetMinerAddress())
-	txData, _ := hex.DecodeString("1c1b8772000000000000000000000000")
+	txData, _ := hex.DecodeString("1c1b8772000000000000000000000000") //这个是4字节chiefUpdate函数标识以及12字节的0
 	txData = append(txData, nextRoundSigner[:]...)
 	rawTx := types.NewTransaction(nonce, params.GetChiefInfo(parentNumber).Addr, big.NewInt(0), chiefGasLimit, chiefGasPrice, txData)
 	auth := bind.NewKeyedTransactor(t.Status.getNodekey())
@@ -548,7 +549,6 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 	if err := t.Status.ValidateBlock(nil, chain.GetBlock(block.ParentHash(), block.NumberU64()-1), block, false); err != nil {
 		log.Error("Tribe_Seal", "number", block.Number().Int64(), "err", err)
 		//log.Error("Tribe_Seal", "retry", atomic.LoadUint32(&t.SealErrorCounter), "number", block.Number().Int64(), "err", err)
-		t.SealErrorCh.Store(chain.CurrentHeader().Number.Int64(), err) //因为没有收集到update调用的失败,所以再次尝试
 		return nil, err
 	}
 	//atomic.StoreUint32(&t.SealErrorCounter, 0)

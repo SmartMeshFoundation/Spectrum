@@ -319,9 +319,9 @@ func (self *TribeStatus) fetchOnSigners(address common.Address, signers []*Signe
 func (self *TribeStatus) Update(currentNumber *big.Int, hash common.Hash) {
 	if currentNumber.Int64() >= CHIEF_NUMBER && atomic.LoadInt32(&self.mining) == 1 {
 		// mining start
-		log.Debug("<<TribeStatus.Update_begin>>", "num", currentNumber.Int64())
-		success := <-params.SendToMsgBoxWithNumber("Update", currentNumber)
-		log.Debug("<<TribeStatus.Update_end>>", "num", currentNumber.Int64(), "success", success.Success, "entity", success.Entity)
+		//log.Debug("<<TribeStatus.Update_begin>>", "num", currentNumber.Int64())
+		//success := <-params.SendToMsgBoxWithNumber("Update", currentNumber)
+		//log.Debug("<<TribeStatus.Update_end>>", "num", currentNumber.Int64(), "success", success.Success, "entity", success.Entity)
 		err := self.LoadSignersFromChief(hash, currentNumber)
 		if err != nil {
 			log.Error("[TribeStatus.Update] LoadSignersFromChief ", "number", currentNumber, "err", err)

@@ -357,21 +357,43 @@ func (self *TribeService) chief100FetchNextRoundSigner(mbox params.Mbox) {
 		blockNumber *big.Int
 		hash        common.Hash
 		vrfn        *big.Int
+		v           common.Address
 	)
 	hash = mbox.Params["hash"].(common.Hash)
 	blockNumber = mbox.Params["number"].(*big.Int) //如果出错.立即崩溃亏即可
 	vrfn = mbox.Params["vrfn"].(*big.Int)
-
-	nl := self.minerList(blockNumber, hash)
-	v := self.takeMiner(nl, hash, vrfn.Bytes())
-
+	if params.IsSIP100Block(blockNumber) {
+		nl := self.minerList(blockNumber, hash)
+		v = self.takeMiner(nl, hash, vrfn.Bytes())
+	} else {
+		ch := self.ethereum.BlockChain().GetHeaderByHash(hash)
+		TD := self.ethereum.BlockChain().GetTd(hash, blockNumber.Uint64())
+		min := new(big.Int).Sub(TD, min_td)
+		vsn := params.GetChiefInfo(blockNumber).Version
+		vs := self.ethereum.FetchVolunteers(min, func(pk *ecdsa.PublicKey) bool {
+			log.Debug("fetchVolunteer_callback", "vsn", vsn)
+			if vsn == "0.0.6" || vsn == "0.0.7" {
+				return params.CanNomination(pk)
+			}
+			return true
+		})
+		client, err := contracts.GetEthclientInstance()
+		if err != nil {
+			panic(fmt.Sprintf("GetEthclientInstance err:%s", err))
+		}
+		v = self.fetchVolunteer_0_0_6__0_0_7(client, blockNumber, vsn, vs, ch)
+	}
 	success.Success = true
 	success.Entity = v
 	mbox.Rtn <- success
 	log.Debug("chief.mbox.rtn chief100: update <-", "addr", v.String())
+
 }
 
 func (self *TribeService) update(mbox params.Mbox) {
+	if true {
+		panic("not used  ")
+	}
 	prv := self.server.PrivateKey
 	auth := bind.NewKeyedTransactor(prv)
 	auth.GasPrice = eth.DefaultConfig.GasPrice

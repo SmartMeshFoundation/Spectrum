@@ -323,33 +323,7 @@ func (self *worker) wait() {
 		mustCommitNewWork := true
 		for result := range self.recv {
 			atomic.AddInt32(&self.atWork, -1)
-
-			if result == nil {
-				// add by liangc
-				//处理缺失chief update tx这种情况
-				if tribe, ok := self.engine.(*tribe.Tribe); ok {
-					h := self.chain.CurrentHeader()
-					if !params.IsSIP100Block(h.Number) {
-						continue
-					}
-					if sealErr, ok := tribe.SealErrorCh.Load(h.Number.Int64()); ok {
-						log.Error("SealErrorCh", "currentNumber", h.Number.Int64(), "err", sealErr)
-						log.Warn("wait_new_work_will_retry_tribe.update", "current_num", h.Number.Int64(), "current_hash", h.Hash().Hex())
-						tribe.Status.Update(h.Number, h.Hash())
-						self.commitNewWork()
-						log.Warn("wait_new_work_will_retry_commitNewWork", "current_num", h.Number.Int64(), "current_hash", h.Hash().Hex())
-						tribe.SealErrorCh.Delete(h.Number.Int64())
-					}
-					/*		if sealErr, ok := tribe.SealErrorCh[h.Number.Int64()]; ok {
-							log.Error("SealErrorCh", "currentNumber", h.Number.Int64(), "err", sealErr)
-							log.Warn("wait_new_work_will_retry_tribe.update", "current_num", h.Number.Int64(), "current_hash", h.Hash().Hex())
-							tribe.Status.Update(h.Number, h.Hash())
-							self.commitNewWork()
-							log.Warn("wait_new_work_will_retry_commitNewWork", "current_num", h.Number.Int64(), "current_hash", h.Hash().Hex())
-							delete(tribe.SealErrorCh, h.Number.Int64())
-						}*/
-					time.Sleep(time.Millisecond * 100) //give tx pool some time to run
-				}
+			if result == nil { //如果自己打包的块通不过验证,panic?
 				continue
 			}
 			block := result.Block
@@ -551,7 +525,7 @@ func (self *worker) commitNewWork() {
 		log.Debug("Commit new mining work", "number", work.Block.Number(), "txs", work.tcount, "uncles", len(uncles), "elapsed", common.PrettyDuration(time.Since(tstart)))
 		self.unconfirmed.Shift(work.Block.NumberU64() - 1)
 	}
-	log.Info(fmt.Sprintf("xxxxxxxx work=%#v", work))
+	//log.Info(fmt.Sprintf("xxxxxxxx work=%#v", work))
 	self.push(work)
 }
 
