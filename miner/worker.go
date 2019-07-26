@@ -326,6 +326,30 @@ func (self *worker) wait() {
 
 			if result == nil {
 				// add by liangc
+				//处理缺失chief update tx这种情况
+				if tribe, ok := self.engine.(*tribe.Tribe); ok {
+					h := self.chain.CurrentHeader()
+					if !params.IsSIP100Block(h.Number) {
+						continue
+					}
+					if sealErr, ok := tribe.SealErrorCh.Load(h.Number.Int64()); ok {
+						log.Error("SealErrorCh", "currentNumber", h.Number.Int64(), "err", sealErr)
+						log.Warn("wait_new_work_will_retry_tribe.update", "current_num", h.Number.Int64(), "current_hash", h.Hash().Hex())
+						tribe.Status.Update(h.Number, h.Hash())
+						self.commitNewWork()
+						log.Warn("wait_new_work_will_retry_commitNewWork", "current_num", h.Number.Int64(), "current_hash", h.Hash().Hex())
+						tribe.SealErrorCh.Delete(h.Number.Int64())
+					}
+					/*		if sealErr, ok := tribe.SealErrorCh[h.Number.Int64()]; ok {
+							log.Error("SealErrorCh", "currentNumber", h.Number.Int64(), "err", sealErr)
+							log.Warn("wait_new_work_will_retry_tribe.update", "current_num", h.Number.Int64(), "current_hash", h.Hash().Hex())
+							tribe.Status.Update(h.Number, h.Hash())
+							self.commitNewWork()
+							log.Warn("wait_new_work_will_retry_commitNewWork", "current_num", h.Number.Int64(), "current_hash", h.Hash().Hex())
+							delete(tribe.SealErrorCh, h.Number.Int64())
+						}*/
+					time.Sleep(time.Millisecond * 100) //give tx pool some time to run
+				}
 				continue
 			}
 			block := result.Block
@@ -459,21 +483,6 @@ func (self *worker) commitNewWork() {
 		log.Error("Failed to prepare header for mining", "err", err, "number", header.Number)
 		return
 	}
-	// If we are care about TheDAO hard-fork check whether to override the extra-data or not
-	/*
-		if daoBlock := self.config.DAOForkBlock; daoBlock != nil {
-			// Check whether the block is among the fork extra-override range
-			limit := new(big.Int).Add(daoBlock, params.DAOForkExtraRange)
-			if header.Number.Cmp(daoBlock) >= 0 && header.Number.Cmp(limit) < 0 {
-				// Depending whether we support or oppose the fork, override differently
-				if self.config.DAOForkSupport {
-					header.Extra = common.CopyBytes(params.DAOForkBlockExtra)
-				} else if bytes.Equal(header.Extra, params.DAOForkBlockExtra) {
-					header.Extra = []byte{} // If miner opposes, don't let it use the reserved extra-data
-				}
-			}
-		}
-	*/
 
 	// Could potentially happen if starting to mine in an odd state.
 	err := self.makeCurrent(parent, header)

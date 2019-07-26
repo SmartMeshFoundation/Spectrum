@@ -7,6 +7,7 @@ import (
 	"errors"
 	"math/big"
 	"math/rand"
+	"sync"
 	"time"
 
 	"crypto/ecdsa"
@@ -111,10 +112,11 @@ func New(accman *accounts.Manager, config *params.TribeConfig, _ ethdb.Database)
 		conf.Period = blockPeriod
 	}
 	tribe := &Tribe{
-		accman:   accman,
-		config:   &conf,
-		Status:   status,
-		sigcache: sigcache,
+		accman:      accman,
+		config:      &conf,
+		Status:      status,
+		sigcache:    sigcache,
+		SealErrorCh: new(sync.Map),
 	}
 	status.setTribe(tribe)
 	return tribe
@@ -546,8 +548,7 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 	if err := t.Status.ValidateBlock(nil, chain.GetBlock(block.ParentHash(), block.NumberU64()-1), block, false); err != nil {
 		log.Error("Tribe_Seal", "number", block.Number().Int64(), "err", err)
 		//log.Error("Tribe_Seal", "retry", atomic.LoadUint32(&t.SealErrorCounter), "number", block.Number().Int64(), "err", err)
-		//t.SealErrorCh[chain.CurrentHeader().Number.Int64()] = err
-		//t.SealErrorCh.Store(chain.CurrentHeader().Number.Int64(), err) //因为没有收集到update调用的失败,所以再次尝试
+		t.SealErrorCh.Store(chain.CurrentHeader().Number.Int64(), err) //因为没有收集到update调用的失败,所以再次尝试
 		return nil, err
 	}
 	//atomic.StoreUint32(&t.SealErrorCounter, 0)
