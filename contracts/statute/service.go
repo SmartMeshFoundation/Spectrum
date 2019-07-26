@@ -391,9 +391,19 @@ func (self *StatuteService) pocDeposit(mbox params.Mbox) {
 	if err != nil {
 		return
 	}
-	//质押最小金额
-	min, err := self.poc_1.MinDepositAmount(nil)
+	//client   *ethclient.Client
+	client, err := contracts.GetEthclientInstance()
 	if err != nil {
+		return
+	}
+	poc, err := chieflib.NewPOC_1_0_0(params.POCInfo(), client)
+	if err != nil {
+		return
+	}
+	//质押最小金额
+	min, err := poc.MinDepositAmount(nil)
+	if err != nil {
+		log.Error(fmt.Sprintf("query min deposit err %s,poc addr=%s", err, params.POCInfo().String()))
 		return
 	}
 	sdb, _ := self.ethereum.BlockChain().State()
@@ -408,11 +418,6 @@ func (self *StatuteService) pocDeposit(mbox params.Mbox) {
 		},
 		Value: min,
 	}
-	//client   *ethclient.Client
-	client, err := contracts.GetEthclientInstance()
-	if err != nil {
-		return
-	}
 	//if params.ChiefTxNonce > 0 {
 	pnonce, perr := client.PendingNonceAt(context.Background(), from)
 	if perr != nil {
@@ -423,7 +428,7 @@ func (self *StatuteService) pocDeposit(mbox params.Mbox) {
 	}
 
 	r, s, v := sigSplit(sigHex)
-	tx, err = self.poc_1.Deposit(opts, r, s, v)
+	tx, err = poc.Deposit(opts, r, s, v)
 	log.Info("<<StatuteService.PocDeposit>>", "err", err, "tx", tx)
 	return
 }

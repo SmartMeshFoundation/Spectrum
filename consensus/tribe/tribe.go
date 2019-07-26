@@ -15,6 +15,7 @@ import (
 	"sync/atomic"
 
 	"github.com/SmartMeshFoundation/Spectrum/accounts"
+	"github.com/SmartMeshFoundation/Spectrum/accounts/abi/bind"
 	"github.com/SmartMeshFoundation/Spectrum/common"
 	"github.com/SmartMeshFoundation/Spectrum/common/math"
 	"github.com/SmartMeshFoundation/Spectrum/consensus"
@@ -479,6 +480,14 @@ func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error
 	// Set the correct difficulty
 	if number > 3 {
 		header.Difficulty = t.CalcDifficulty(chain, header.Time.Uint64(), parent)
+		/*
+			按照sip100共识,替补只能是leader节点,如果该块不该我出,同时我也不是leader,那么就应该放弃出块
+		*/
+		if params.IsSIP100Block(header.Number) && header.Difficulty.Cmp(diffNoTurn) <= 0 {
+			if !t.Status.IsLeader(t.Status.GetMinerAddress()) {
+				return fmt.Errorf("%s is not signer and not leader at block %s,diff=%s", t.Status.GetMinerAddress().String(), header.Number, header.Difficulty)
+			}
+		}
 	} else {
 		header.Difficulty = diffInTurn
 	}
@@ -492,6 +501,33 @@ func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error
 		header.Time = big.NewInt(time.Now().Unix())
 	}
 	return nil
+}
+
+var chiefGasLimit = big.NewInt(4712388)
+var chiefGasPrice = big.NewInt(18000000000)
+
+/*
+获取要插入的chief Tx
+*/
+func (t *Tribe) GetChief100UpdateTx(chain consensus.ChainReader, header *types.Header, state *state.StateDB) *types.Transaction {
+	parentHash := header.ParentHash
+	parentNumber := new(big.Int).Set(header.Number)
+	parentNumber.Sub(parentNumber, big.NewInt(1))
+	if !params.IsSIP100Block(parentNumber) {
+		return nil // sip100之前的update调用还是走老办法
+	}
+	vrf := new(big.Int).SetBytes(header.Extra[:32])
+	nextRoundSigner := params.Chief100GetNextRoundSigner(parentHash, parentNumber, vrf)
+	nonce := state.GetNonce(t.Status.GetMinerAddress())
+	txData, _ := hex.DecodeString("1c1b8772000000000000000000000000")
+	txData = append(txData, nextRoundSigner[:]...)
+	rawTx := types.NewTransaction(nonce, params.GetChiefInfo(parentNumber).Addr, big.NewInt(0), chiefGasLimit, chiefGasPrice, txData)
+	auth := bind.NewKeyedTransactor(t.Status.getNodekey())
+	signedTx, err := auth.Signer(types.NewEIP155Signer(chain.Config().ChainId), auth.From, rawTx)
+	if err != nil {
+		panic(fmt.Sprintf("sign tx:%s", err))
+	}
+	return signedTx
 }
 
 // Finalize implements consensus.Engine, ensuring no uncles are set, nor block
@@ -515,7 +551,7 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 		log.Error("Tribe_Seal", "number", block.Number().Int64(), "err", err)
 		//log.Error("Tribe_Seal", "retry", atomic.LoadUint32(&t.SealErrorCounter), "number", block.Number().Int64(), "err", err)
 		//t.SealErrorCh[chain.CurrentHeader().Number.Int64()] = err
-		t.SealErrorCh.Store(chain.CurrentHeader().Number.Int64(), err)
+		t.SealErrorCh.Store(chain.CurrentHeader().Number.Int64(), err) //因为没有收集到update调用的失败,所以再次尝试
 		return nil, err
 	}
 	//atomic.StoreUint32(&t.SealErrorCounter, 0)
@@ -539,7 +575,7 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 
 	now := time.Now()
 	delay := time.Unix(header.Time.Int64(), 0).Sub(now)
-	//fmt.Println(" ---->", "diff", header.Difficulty, "header.time=", header.Time.Int64(), "now=", now.Unix(), "delay=", delay)
+	fmt.Println(" ---->", "diff", header.Difficulty, "header.time=", header.Time.Int64(), "now=", now.Unix(), "delay=", delay)
 
 	if header.Difficulty.Cmp(diffNoTurn) == 0 {
 		wiggle := time.Duration(len(t.Status.Signers)/2+1) * wiggleTime

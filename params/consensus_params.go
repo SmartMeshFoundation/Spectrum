@@ -20,6 +20,9 @@ const (
 	POC_METHOD_WITHDRAW         = "poc_withdraw"
 	POC_METHOD_WITHDRAW_SURPLUS = "poc_withdrawsurplus"
 	POC_METHOD_GET_STATUS       = "poc_getall"
+
+	ChiefUpdate    = "Update"
+	Chief100Update = "SIP100Update"
 )
 
 type ChiefInfo struct {
@@ -760,16 +763,35 @@ func SendToMsgBoxWithNumber(method string, number *big.Int) chan MBoxSuccess {
 	if number != nil {
 		m.Params = map[string]interface{}{"number": number}
 	}
-	if method == "Update" {
+	if method == ChiefUpdate {
 		log.Debug("TODO <<SendToMsgBoxWithNumber>> begin", "num", number)
 	}
 	MboxChan <- m
-	if method == "Update" {
+	if method == ChiefUpdate {
 		log.Debug("TODO <<SendToMsgBoxWithNumber>> end", "num", number)
 	}
 	return rtn
 }
 
+/*
+依据vrf,依据上一块的状态来选取下一轮的出块地址
+*/
+func Chief100GetNextRoundSigner(hash common.Hash, number *big.Int, vrf *big.Int) common.Address {
+	rtn := make(chan MBoxSuccess)
+	m := Mbox{
+		Method: Chief100Update,
+		Rtn:    rtn,
+	}
+	m.Params = map[string]interface{}{
+		"hash":   hash,
+		"number": number,
+		"vrfn":   vrf,
+	}
+	MboxChan <- m
+	success := <-rtn
+	return success.Entity.(common.Address) //必须成功,不成功就返回空地址
+
+}
 func SendToMsgBox(method string) chan MBoxSuccess {
 	rtn := make(chan MBoxSuccess)
 	m := Mbox{

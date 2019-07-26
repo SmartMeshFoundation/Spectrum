@@ -475,7 +475,7 @@ func (self *worker) commitNewWork() {
 		header.Coinbase = self.coinbase
 	}
 	if err := self.engine.Prepare(self.chain, header); err != nil {
-		log.Error("Failed to prepare header for mining", "err", err)
+		log.Error("Failed to prepare header for mining", "err", err, "number", header.Number)
 		return
 	}
 	// If we are care about TheDAO hard-fork check whether to override the extra-data or not
@@ -514,7 +514,12 @@ func (self *worker) commitNewWork() {
 		log.Error("Failed to fetch pending transactions", "err", err)
 		return
 	}
-
+	if tribe, ok := self.engine.(*tribe.Tribe); ok {
+		chiefTx := tribe.GetChief100UpdateTx(self.chain, header, work.state)
+		if chiefTx != nil {
+			pending[tribe.Status.GetMinerAddress()] = types.Transactions{chiefTx}
+		}
+	}
 	log.Debug("pending_len", "cn", parent.Number().Int64(), "len", len(pending))
 	txs := types.NewTransactionsByPriceAndNonce(self.current.signer, pending)
 	work.commitTransactions(self.mux, txs, self.chain, self.coinbase)
@@ -551,6 +556,7 @@ func (self *worker) commitNewWork() {
 		log.Debug("Commit new mining work", "number", work.Block.Number(), "txs", work.tcount, "uncles", len(uncles), "elapsed", common.PrettyDuration(time.Since(tstart)))
 		self.unconfirmed.Shift(work.Block.NumberU64() - 1)
 	}
+	log.Info(fmt.Sprintf("xxxxxxxx work=%#v", work))
 	self.push(work)
 }
 

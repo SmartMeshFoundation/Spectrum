@@ -168,8 +168,10 @@ func (self *TribeService) loop() {
 				self.getstatus(mbox)
 			case "GetNodeKey":
 				self.getnodekey(mbox)
-			case "Update":
+			case params.ChiefUpdate:
 				self.update(mbox)
+			case params.Chief100Update:
+				self.chief100FetchNextRoundSigner(mbox)
 			case "FilterVolunteer":
 				self.filterVolunteer(mbox)
 			case "GetVolunteers":
@@ -349,6 +351,25 @@ func (self *TribeService) getstatus(mbox params.Mbox) {
 	}
 	mbox.Rtn <- success
 }
+func (self *TribeService) chief100FetchNextRoundSigner(mbox params.Mbox) {
+	success := params.MBoxSuccess{Success: true}
+	var (
+		blockNumber *big.Int
+		hash        common.Hash
+		vrfn        *big.Int
+	)
+	hash = mbox.Params["hash"].(common.Hash)
+	blockNumber = mbox.Params["number"].(*big.Int) //如果出错.立即崩溃亏即可
+	vrfn = mbox.Params["vrfn"].(*big.Int)
+
+	nl := self.minerList(blockNumber, hash)
+	v := self.takeMiner(nl, hash, vrfn.Bytes())
+
+	success.Success = true
+	success.Entity = v
+	mbox.Rtn <- success
+	log.Debug("chief.mbox.rtn chief100: update <-", "addr", v.String())
+}
 
 func (self *TribeService) update(mbox params.Mbox) {
 	prv := self.server.PrivateKey
@@ -394,6 +415,11 @@ func (self *TribeService) update(mbox params.Mbox) {
 		success.Entity = errors.New("TribeService.update : blockNumber not nil")
 		mbox.Rtn <- success
 		return
+	}
+	if params.IsSIP100Block(blockNumber) {
+		success.Entity = common.Hash{}
+		mbox.Rtn <- success
+		return //Chief100Block不再这里,直接在tribe中添加chief Update Tx
 	}
 	if chiefInfo := params.GetChiefInfo(blockNumber); chiefInfo != nil {
 		switch chiefInfo.Version {
