@@ -500,7 +500,7 @@ func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error
 	return nil
 }
 
-var chiefGasLimit = big.NewInt(4712388)
+var chiefGasLimit = big.NewInt(0)
 var chiefGasPrice = big.NewInt(18000000000)
 
 /*

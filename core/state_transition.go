@@ -246,7 +246,12 @@ func (st *StateTransition) TransitionDb() (ret []byte, requiredGas, usedGas *big
 
 	// Pay intrinsic gas
 	// TODO convert to uint64
-	intrinsicGas := IntrinsicGas(st.data, contractCreation, homestead)
+
+	// add by liangc
+	intrinsicGas := big.NewInt(0)
+	if !(params.IsSIP001Block(st.blockNumber) && st.msg.To() != nil && params.IsChiefAddress(*st.msg.To()) && params.IsChiefUpdate(st.msg.Data())) {
+		intrinsicGas = IntrinsicGas(st.data, contractCreation, homestead)
+	}
 	if intrinsicGas.BitLen() > 64 {
 		return nil, nil, nil, false, vm.ErrOutOfGas
 	}
