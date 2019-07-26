@@ -476,14 +476,6 @@ func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error
 	// Set the correct difficulty
 	if number > 3 {
 		header.Difficulty = t.CalcDifficulty(chain, header.Time.Uint64(), parent)
-		/*
-			按照sip100共识,替补只能是leader节点,如果该块不该我出,同时我也不是leader,那么就应该放弃出块
-		*/
-		if params.IsSIP100Block(header.Number) && header.Difficulty.Cmp(diffNoTurn) <= 0 {
-			if !t.Status.IsLeader(t.Status.GetMinerAddress()) {
-				return fmt.Errorf("%s is not signer and not leader at block %s,diff=%s", t.Status.GetMinerAddress().String(), header.Number, header.Difficulty)
-			}
-		}
 	} else {
 		header.Difficulty = diffInTurn
 	}
