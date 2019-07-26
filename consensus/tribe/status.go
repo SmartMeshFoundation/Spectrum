@@ -46,7 +46,14 @@ func (self *TribeStatus) GetMinerAddress() common.Address {
 	add := crypto.PubkeyToAddress(pub)
 	return add
 }
-
+func (self *TribeStatus) IsLeader(addr common.Address) bool {
+	for _, a := range self.Leaders {
+		if a == addr {
+			return true
+		}
+	}
+	return false
+}
 func (self *TribeStatus) GetMinerAddressByChan(rtn chan common.Address) {
 	go func() {
 		for {
