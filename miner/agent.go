@@ -22,6 +22,7 @@ import (
 	"sync/atomic"
 
 	"fmt"
+
 	"github.com/SmartMeshFoundation/Spectrum/consensus"
 	"github.com/SmartMeshFoundation/Spectrum/log"
 )
@@ -54,9 +55,11 @@ func (self *CpuAgent) Work() chan<- *Work            { return self.workCh }
 func (self *CpuAgent) SetReturnCh(ch chan<- *Result) { self.returnCh = ch }
 
 func (self *CpuAgent) Stop() {
+	log.Info("call cpu agent stop")
 	if !atomic.CompareAndSwapInt32(&self.isMining, 1, 0) {
 		return // agent already stopped
 	}
+	log.Info("call cpu agent stop2")
 	self.stop <- struct{}{}
 done:
 	// Empty work channel
@@ -101,7 +104,8 @@ out:
 }
 
 func (self *CpuAgent) mine(work *Work, stop <-chan struct{}) {
-	if result, err := self.engine.Seal(self.chain, work.Block, stop); result != nil {
+	result, err := self.engine.Seal(self.chain, work.Block, stop)
+	if result != nil {
 		ch := self.chain.CurrentHeader()
 		if result.Number().Cmp(ch.Number) > 0 {
 			log.Warn(fmt.Sprintf("😄 [%d] == done ==> num=%d, diff=%d, miner=%s", ch.Number, result.Number(), result.Header().Difficulty, result.Header().Coinbase.Hex()))
@@ -112,7 +116,7 @@ func (self *CpuAgent) mine(work *Work, stop <-chan struct{}) {
 		}
 	} else {
 		if err != nil {
-			log.Debug("❌ Block sealing failed", "err", err)
+			log.Error("❌ Block sealing failed", "err", err)
 		}
 		self.returnCh <- nil
 	}

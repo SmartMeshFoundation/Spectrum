@@ -7,7 +7,6 @@ import (
 	"errors"
 	"math/big"
 	"math/rand"
-	"sync"
 	"time"
 
 	"crypto/ecdsa"
@@ -116,8 +115,6 @@ func New(accman *accounts.Manager, config *params.TribeConfig, _ ethdb.Database)
 		config:   &conf,
 		Status:   status,
 		sigcache: sigcache,
-		//SealErrorCh: make(map[int64]error),
-		SealErrorCh: new(sync.Map),
 	}
 	status.setTribe(tribe)
 	return tribe
@@ -139,8 +136,8 @@ func (t *Tribe) Init(hash common.Hash, number *big.Int) {
 			params.InitTribe = nil
 		}
 		log.Debug("init tribe.status when chiefservice start end.", "getnodekey", success.Success)
+		t.isInit = true
 		if number.Int64() >= CHIEF_NUMBER {
-			t.isInit = true
 			t.Status.LoadSignersFromChief(hash, number)
 		}
 		log.Info("init tribe.status success.")
@@ -551,7 +548,7 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 		log.Error("Tribe_Seal", "number", block.Number().Int64(), "err", err)
 		//log.Error("Tribe_Seal", "retry", atomic.LoadUint32(&t.SealErrorCounter), "number", block.Number().Int64(), "err", err)
 		//t.SealErrorCh[chain.CurrentHeader().Number.Int64()] = err
-		t.SealErrorCh.Store(chain.CurrentHeader().Number.Int64(), err) //因为没有收集到update调用的失败,所以再次尝试
+		//t.SealErrorCh.Store(chain.CurrentHeader().Number.Int64(), err) //因为没有收集到update调用的失败,所以再次尝试
 		return nil, err
 	}
 	//atomic.StoreUint32(&t.SealErrorCounter, 0)

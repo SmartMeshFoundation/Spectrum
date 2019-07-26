@@ -77,9 +77,11 @@ func New(eth Backend, config *params.ChainConfig, mux *event.TypeMux, engine con
 	if tribe, ok := miner.engine.(*tribe.Tribe); ok {
 		close(params.TribeReadyForAcceptTxs)
 		go func() {
+			log.Info("miner wait miner address")
 			rtn := make(chan common.Address)
 			tribe.Status.GetMinerAddressByChan(rtn)
 			tma := <-rtn
+			log.Info("miner get miner address")
 			go miner.Start(tma)
 			log.Info("👷 Tribe and miner is started .")
 		}()
@@ -109,6 +111,7 @@ out:
 			atomic.StoreInt32(&self.canStart, 1)
 			atomic.StoreInt32(&self.shouldStart, 0)
 			if shouldStart {
+				log.Info("miner start after sync complete")
 				go self.Start(self.coinbase)
 			}
 			// unsubscribe. we're only interested in this event once
@@ -141,7 +144,7 @@ func (self *Miner) Start(coinbase common.Address) {
 	if tribe, ok := self.engine.(*tribe.Tribe); ok && self.eth.BlockChain().CurrentBlock().NumberU64() > 3 {
 		i := 0
 		for {
-			//log.Info("<<MinerStart>> loop_start", "i", i, "num", self.eth.BlockChain().CurrentBlock().Number())
+			log.Info("<<MinerStart>> loop_start", "i", i, "num", self.eth.BlockChain().CurrentBlock().Number())
 			m := tribe.Status.GetMinerAddress()
 			s, err := self.worker.chain.State()
 			if err != nil {

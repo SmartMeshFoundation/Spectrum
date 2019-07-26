@@ -210,10 +210,8 @@ func (self *worker) pendingBlock() *types.Block {
 }
 
 func (self *worker) start(s chan int) {
-
 	self.mu.Lock()
 	defer self.mu.Unlock()
-
 	//add by liangc : sync mining status
 	wg := new(sync.WaitGroup)
 	if tribe, ok := self.engine.(*tribe.Tribe); ok {
@@ -282,6 +280,7 @@ func (self *worker) update() {
 		select {
 		// Handle ChainHeadEvent
 		case <-self.chainHeadCh:
+			log.Info("worker commitNewWork because of chainHeadCh")
 			self.commitNewWork()
 
 			// Handle ChainSideEvent
@@ -304,6 +303,7 @@ func (self *worker) update() {
 			} else {
 				// If we're mining, but nothing is being processed, wake on new transactions
 				if self.config.Clique != nil && self.config.Clique.Period == 0 {
+					log.Info("worker commitNewWork because of TxPreEvent")
 					self.commitNewWork()
 				}
 			}
@@ -326,25 +326,6 @@ func (self *worker) wait() {
 
 			if result == nil {
 				// add by liangc
-				if tribe, ok := self.engine.(*tribe.Tribe); ok {
-					h := self.chain.CurrentHeader()
-					if sealErr, ok := tribe.SealErrorCh.Load(h.Number.Int64()); ok {
-						log.Error("SealErrorCh", "currentNumber", h.Number.Int64(), "err", sealErr)
-						log.Warn("wait_new_work_will_retry_tribe.update", "current_num", h.Number.Int64(), "current_hash", h.Hash().Hex())
-						tribe.Status.Update(h.Number, h.Hash())
-						self.commitNewWork()
-						log.Warn("wait_new_work_will_retry_commitNewWork", "current_num", h.Number.Int64(), "current_hash", h.Hash().Hex())
-						tribe.SealErrorCh.Delete(h.Number.Int64())
-					}
-					/*		if sealErr, ok := tribe.SealErrorCh[h.Number.Int64()]; ok {
-							log.Error("SealErrorCh", "currentNumber", h.Number.Int64(), "err", sealErr)
-							log.Warn("wait_new_work_will_retry_tribe.update", "current_num", h.Number.Int64(), "current_hash", h.Hash().Hex())
-							tribe.Status.Update(h.Number, h.Hash())
-							self.commitNewWork()
-							log.Warn("wait_new_work_will_retry_commitNewWork", "current_num", h.Number.Int64(), "current_hash", h.Hash().Hex())
-							delete(tribe.SealErrorCh, h.Number.Int64())
-						}*/
-				}
 				continue
 			}
 			block := result.Block
@@ -459,7 +440,7 @@ func (self *worker) commitNewWork() {
 		log.Info("Mining too far in the future", "wait", common.PrettyDuration(wait))
 		time.Sleep(wait)
 	}
-
+	log.Info(fmt.Sprintf("worker commitNewWork ming=%v", self.mining))
 	num := parent.Number()
 	header := &types.Header{
 		ParentHash: parent.Hash(),
