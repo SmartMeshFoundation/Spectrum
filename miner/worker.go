@@ -480,17 +480,21 @@ func (self *worker) commitNewWork() {
 		header.Coinbase = self.coinbase
 	}
 
+	if err := self.engine.Prepare(self.chain, header); err != nil {
+		log.Error("Failed to prepare header for mining", "err", err, "number", header.Number)
+		err := self.makeCurrent(parent, header)
+		if err != nil {
+			log.Error("Failed to create mining context", "err", err)
+			return
+		}
+		return
+	}
+
 	err := self.makeCurrent(parent, header)
 	if err != nil {
 		log.Error("Failed to create mining context", "err", err)
 		return
 	}
-
-	if err := self.engine.Prepare(self.chain, header); err != nil {
-		log.Error("Failed to prepare header for mining", "err", err, "number", header.Number)
-		return
-	}
-
 	// Create the current work task and check any fork transitions needed
 	work := self.current
 
