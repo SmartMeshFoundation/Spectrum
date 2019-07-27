@@ -492,10 +492,15 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 	}
 	header := block.Header()
 	number := header.Number.Int64()
+
 	//number := block.Number().Int64()
 	// add by liangc : seal call this func must skip validate signer
 	if validateSigner {
 		signer, err := ecrecover(header, self.tribe)
+		// verify signer
+		if err != nil {
+			return err
+		}
 		// verify difficulty
 		if number > 3 && !params.IsBeforeChief100block(header.Number) {
 			difficulty := self.InTurnForVerify(number, header.ParentHash, signer)
@@ -504,10 +509,6 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 				return errInvalidDifficulty
 			}
 
-		}
-		// verify signer
-		if err != nil {
-			return err
 		}
 		if !self.validateSigner(parent.Header(), header, signer) {
 			return errUnauthorized
@@ -538,9 +539,8 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 
 	var total = 0
 	for i, tx := range block.Transactions() {
-
+		from := types.GetFromByTx(tx)
 		if params.IsSIP004Block(header.Number) && !params.IsSIP100Block(header.Number) {
-			from := types.GetFromByTx(tx)
 			//verify by anmap bindinfo
 			_, nl, err := params.AnmapBindInfo(*from, parent.Hash())
 
@@ -570,8 +570,26 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 				}
 			}
 		}
-
+		/*
+			must verify tx.from ==signer:
+			otherwise:
+			if miner A minging the block#16,then A can make chief.update tx fail,
+			so signerList will never update, A will make sure he can mine block for every round.
+		*/
 		if tx.To() != nil && params.IsChiefAddress(*tx.To()) && params.IsChiefUpdate(tx.Data()) {
+			if i != 0 {
+				return ErrTribeChiefTxMustAtPositionZero
+			}
+			if validateSigner {
+				signer, err := ecrecover(header, self.tribe)
+				// verify signer
+				if err != nil {
+					return err
+				}
+				if from == nil || *from != signer {
+					return ErrTribeChiefTxSignerAndBlockSignerNotMatch
+				}
+			}
 			//verify volunteer
 			if state != nil {
 				if params.IsSIP100Block(header.Number) {
@@ -598,8 +616,6 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 	}
 	if total == 0 {
 		return ErrTribeMustContainChiefTx
-	} else if total > 1 {
-		return ErrTribeChiefCannotRepeat
 	}
 
 	log.Debug("ValidateBlockp-->", "num", block.NumberU64(), "check_signer", validateSigner)

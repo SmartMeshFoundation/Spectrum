@@ -829,6 +829,7 @@ func (self *TribeService) VerifyMiner(mbox params.Mbox) {
 		blockHash common.Hash
 		addr      common.Address
 		vrfn      []byte
+		result    bool
 	)
 	// hash and number can not nil
 	if h, ok := mbox.Params["hash"]; ok {
@@ -842,9 +843,30 @@ func (self *TribeService) VerifyMiner(mbox params.Mbox) {
 		vrfn = a.([]byte)
 	}
 	success := params.MBoxSuccess{Success: true}
-	success.Entity = self.verifyMiner(addr, blockHash, vrfn)
-	log.Debug("VerifyMiner", "hash", blockHash.Hex(), "miners", success.Entity)
-	mbox.Rtn <- success
+	defer func() {
+		success.Entity = result
+		mbox.Rtn <- success
+	}()
+	result = self.verifyMiner(addr, blockHash, vrfn)
+	if !result {
+		log.Error("VerifyMiner failed", "hash", blockHash.Hex(), "miners", success.Entity)
+		return
+	}
+	//verify chief update Tx must success
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+	defer cancel()
+	r, err := self.ethereum.ApiBackend.GetReceipts(ctx, blockHash)
+	if err != nil {
+		result = false
+		log.Error("GetReceipts failed", "block", blockHash, "err", err)
+		return
+	}
+	if len(r) <= 0 {
+		result = false
+		log.Error("there must be on chief update tx in every block")
+		return
+	}
+	result = r[0].Status == types.ReceiptStatusSuccessful
 }
 
 // poc normalList and meshboxList

@@ -105,12 +105,13 @@ var (
 	// block reward is zero, so an empty block just bloats the chain... fast.
 	errWaitTransactions = errors.New("waiting for transactions")
 	// for tribe consensus block validator
-	ErrTribeNotAllowEmptyTxList               = errors.New("tribe not allow empty tx list")
-	ErrTribeMustContainChiefTx                = errors.New("tribe must contain chief tx")
-	ErrTribeChiefCannotRepeat                 = errors.New("tribe chief tx cannot repeat")
-	ErrTribeChiefVolunteerLowBalance          = errors.New("tribe chief volunteer low balance")
-	ErrTribeChiefVolunteerFail                = errors.New("tribe chief volunteer check fail")
-	ErrTribeValdateTxSenderCannotInSignerList = errors.New("tx sender cannot in signerlist")
+	ErrTribeNotAllowEmptyTxList                 = errors.New("tribe not allow empty tx list")
+	ErrTribeMustContainChiefTx                  = errors.New("tribe must contain chief tx")
+	ErrTribeChiefVolunteerLowBalance            = errors.New("tribe chief volunteer low balance")
+	ErrTribeChiefVolunteerFail                  = errors.New("tribe chief volunteer check fail")
+	ErrTribeChiefTxMustAtPositionZero           = errors.New("tribe chief tx must at postion 0")
+	ErrTribeChiefTxSignerAndBlockSignerNotMatch = errors.New("tribe chief update tx signer and block signer not match")
+	ErrTribeValdateTxSenderCannotInSignerList   = errors.New("tx sender cannot in signerlist")
 
 	Chief100BlockReward, _                      = new(big.Int).SetString("35000000000000000000", 10) //Block reward in wei for successfully mining a block
 	BlockRewardReducedInterval                  = 4505000                                            //half reward about two years
