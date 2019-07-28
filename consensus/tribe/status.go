@@ -380,7 +380,7 @@ func (self *TribeStatus) validateSigner(parentHeader, header *types.Header, sign
 		}
 	}
 
-	if params.IsSIP004Block(header.Number) && header.Coinbase == common.HexToAddress("0x") {
+	if params.IsSIP100Block(header.Number) && header.Coinbase == common.HexToAddress("0x") {
 		log.Error("error_signer", "num", header.Number.String(), "miner", header.Coinbase.Hex(), "signer", signer.Hex())
 		return false
 	}
@@ -468,12 +468,6 @@ func (self *TribeStatus) VerifySignerBalance(state *state.StateDB, addr common.A
 			log.Debug("<<VerifySignerBalance>> 1 :", "f", f.Hex(), "fb", fb, "mb", mb)
 			return ErrTribeChiefVolunteerLowBalance
 		}
-	} else if params.IsSIP004Block(num) {
-		b := state.GetBalance(addr)
-		if b.Cmp(params.GetMinMinerBalance()) < 0 {
-			log.Debug("<<VerifySignerBalance>> 2 :", "n", addr.Hex(), "nb", b, "mb", params.GetMinMinerBalance())
-			return ErrTribeChiefVolunteerLowBalance
-		}
 	}
 	return nil
 }
@@ -482,7 +476,7 @@ func (self *TribeStatus) VerifySignerBalance(state *state.StateDB, addr common.A
 // sync download or mine
 // check chief tx
 func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *types.Block, validateSigner bool) error {
-	if block.Number().Int64() <= 3 {
+	if block.Number().Int64() <= CHIEF_NUMBER {
 		return nil
 	}
 	err := self.LoadSignersFromChief(parent.Hash(), parent.Number())
@@ -502,7 +496,7 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 			return err
 		}
 		// verify difficulty
-		if number > 3 && !params.IsBeforeChief100block(header.Number) {
+		if !params.IsEqualChief100block(header.Number) {
 			difficulty := self.InTurnForVerify(number, header.ParentHash, signer)
 			if difficulty.Cmp(header.Difficulty) != 0 {
 				log.Error("** verifySeal ERROR **", "head.diff", header.Difficulty.String(), "target.diff", difficulty.String(), "err", errInvalidDifficulty)
@@ -529,47 +523,9 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 		return ErrTribeNotAllowEmptyTxList
 	}
 
-	// add by liangc 190412 : SIP004 if the sender in signerList now refuse and skip this tx
-	signerMap := make(map[common.Address]struct{})
-	if params.IsSIP004Block(header.Number) && !params.IsSIP100Block(header.Number) {
-		for _, signer := range self.Signers {
-			signerMap[signer.Address] = struct{}{}
-		}
-	}
-
 	var total = 0
 	for i, tx := range block.Transactions() {
 		from := types.GetFromByTx(tx)
-		if params.IsSIP004Block(header.Number) && !params.IsSIP100Block(header.Number) {
-			//verify by anmap bindinfo
-			_, nl, err := params.AnmapBindInfo(*from, parent.Hash())
-
-			verifyBySignerMap := func(addr common.Address) error {
-				if _, ok := signerMap[addr]; i > 0 && ok {
-					return ErrTribeValdateTxSenderCannotInSignerList
-				}
-				return nil
-			}
-			if err == nil && len(nl) > 0 {
-				// exclude meshbox first
-				fnl := make([]common.Address, 0)
-				for _, n := range nl {
-					if !params.MeshboxExistAddress(n) {
-						fnl = append(fnl[:], n)
-					}
-				}
-				log.Debug("TODO<<TribeStatus.ValidateBlock>> exclude_meshbox_first", "num", number, "i", i, "from", from.Hex(), "to", tx.To(), "nl.len", len(nl), "fnl.len", len(fnl))
-				for _, n := range fnl {
-					if err := verifyBySignerMap(n); err != nil {
-						return err
-					}
-				}
-			} else {
-				if err := verifyBySignerMap(*from); err != nil {
-					return err
-				}
-			}
-		}
 		/*
 			must verify tx.from ==signer:
 			otherwise:

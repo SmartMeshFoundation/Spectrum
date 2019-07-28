@@ -264,7 +264,7 @@ func (t *Tribe) verifyHeader(chain consensus.ChainReader, header *types.Header, 
 		return errInvalidUncleHash
 	}
 	// Ensure that the block's difficulty is meaningful (may not be correct at this point)
-	if number > 0 && !params.IsBeforeChief100block(header.Number) {
+	if number > 0 && !params.IsEqualChief100block(header.Number) {
 		if ci := params.GetChiefInfo(header.Number); ci != nil {
 			switch ci.Version {
 			case "1.0.0":
@@ -413,7 +413,7 @@ func (t *Tribe) verifySeal(chain consensus.ChainReader, header *types.Header, pa
 		return errUnauthorized
 	}
 
-	if number > 3 && !params.IsBeforeChief100block(header.Number) {
+	if number > 3 && !params.IsEqualChief100block(header.Number) {
 		difficulty := t.Status.InTurnForVerify(number, header.ParentHash, signer)
 		if difficulty.Cmp(header.Difficulty) != 0 {
 			log.Error("** verifySeal ERROR **", "diff", header.Difficulty.String(), "err", errInvalidDifficulty)

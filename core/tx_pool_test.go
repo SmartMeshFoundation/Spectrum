@@ -26,6 +26,8 @@ import (
 	"testing"
 	"time"
 
+	"sync"
+
 	"github.com/SmartMeshFoundation/Spectrum/common"
 	"github.com/SmartMeshFoundation/Spectrum/core/state"
 	"github.com/SmartMeshFoundation/Spectrum/core/types"
@@ -33,7 +35,6 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/ethdb"
 	"github.com/SmartMeshFoundation/Spectrum/event"
 	"github.com/SmartMeshFoundation/Spectrum/params"
-	"sync"
 )
 
 // testTxPoolConfig is a transaction pool configuration without stateful disk
@@ -211,7 +212,7 @@ func TestStateChangeDuringTransactionPoolReset(t *testing.T) {
 
 	pool.lockedReset(nil, nil)
 
-	pendingTx, err := pool.Pending(false)
+	pendingTx, err := pool.Pending()
 	if err != nil {
 		t.Fatalf("Could not fetch pending transactions: %v", err)
 	}

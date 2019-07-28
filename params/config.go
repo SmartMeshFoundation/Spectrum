@@ -63,7 +63,6 @@ var (
 		SIP001Block: big.NewInt(0), // new rules for chief.tx of gaspool
 		SIP002Block: big.NewInt(588888),
 		SIP003Block: big.NewInt(808888),
-		SIP004Block: big.NewInt(0),
 
 		// PocBlock must less than Chief100Block
 		PocAddress: common.HexToAddress("0xb9b4ece952c8005f009801e5ec78e116f528c1d0"),
@@ -114,7 +113,7 @@ var (
 		SIP001Block: big.NewInt(176222),
 		SIP002Block: big.NewInt(525233),
 		SIP003Block: big.NewInt(917013),
-		SIP004Block: big.NewInt(2212557),
+		//SIP004Block: big.NewInt(2212557), //回滚位置,记得
 
 		// base block link to Chief100Block
 		ChiefBaseAddress: common.HexToAddress("0x4651817f6595e9908de3dcf9d8b585796e209c32"),
@@ -200,7 +199,6 @@ var (
 		SIP001Block: big.NewInt(0),
 		SIP002Block: big.NewInt(1),
 		SIP003Block: big.NewInt(3),
-		SIP004Block: big.NewInt(3),
 
 		Tribe: &TribeConfig{Period: 3},
 	}
@@ -324,9 +322,6 @@ type ChainConfig struct {
 	SIP002Block *big.Int `json:"sip002Block,omitempty"` // SIP002 HF block
 	// add by liangc : 18-09-13 : incompatible HomesteadSigner begin at this number
 	SIP003Block *big.Int `json:"sip003Block,omitempty"`
-	// add by liangc : 19-03-27 : for smc-0.6.0
-	// https://github.com/SmartMeshFoundation/Spectrum/wiki/%5BChinese%5D-v0.6.0-Standard
-	SIP004Block *big.Int `json:"sip004Block,omitempty"`
 
 	Meshbox001Block   *big.Int       `json:"meshbox001Block,omitempty"`
 	Meshbox001Address common.Address `json:"meshbox001Address,omitempty"`

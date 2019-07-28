@@ -472,7 +472,7 @@ func (self *worker) commitNewWork() {
 			misc.ApplyDAOHardFork(work.state)
 		}*/
 	// SIP004 --> SIP100
-	pending, err := self.eth.TxPool().Pending(false)
+	pending, err := self.eth.TxPool().Pending()
 	//fmt.Println(header.Number.Int64(),err, "====== commitNewWork =======> pending.len:", len(pending))
 	if err != nil {
 		log.Error("Failed to fetch pending transactions", "err", err)

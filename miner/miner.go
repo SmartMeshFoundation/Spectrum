@@ -155,7 +155,7 @@ func (self *Miner) Start(coinbase common.Address) {
 			if params.IsSIP100Block(cn) {
 				break
 			}
-			if params.IsSIP004Block(cn) && params.IsReadyMeshbox(cn) && params.IsReadyAnmap(cn) {
+			if params.IsReadyMeshbox(cn) && params.IsReadyAnmap(cn) {
 				if params.MeshboxExistAddress(m) {
 					break
 				}

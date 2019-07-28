@@ -17,10 +17,11 @@
 package eth
 
 import (
-	"github.com/SmartMeshFoundation/Spectrum/crypto"
 	"math/rand"
 	"sync/atomic"
 	"time"
+
+	"github.com/SmartMeshFoundation/Spectrum/crypto"
 
 	"github.com/SmartMeshFoundation/Spectrum/common"
 	"github.com/SmartMeshFoundation/Spectrum/core/types"
@@ -46,7 +47,7 @@ type txsync struct {
 // syncTransactions starts sending all currently pending transactions to the given peer.
 func (pm *ProtocolManager) syncTransactions(p *peer) {
 	var txs types.Transactions
-	pending, _ := pm.txpool.Pending(false)
+	pending, _ := pm.txpool.Pending()
 	for _, batch := range pending {
 		txs = append(txs, batch...)
 	}

@@ -169,8 +169,8 @@ func (st *StateTransition) useGas(amount uint64) error {
 }
 
 // TODO : if chief tx skip balance verify.
-func (st *StateTransition) IsChiefSIP004() bool {
-	if params.IsSIP004Block(st.blockNumber) &&
+func (st *StateTransition) IsChiefSIP100() bool {
+	if params.IsSIP100Block(st.blockNumber) &&
 		st.to().Address() != common.HexToAddress("0x") &&
 		params.IsChiefAddress(st.to().Address()) {
 		return true
@@ -199,7 +199,7 @@ func (st *StateTransition) buyGas() error {
 	st.initialGas.Set(mgas)
 
 	// if chief tx skip balance verify.
-	if !st.IsChiefSIP004() {
+	if !st.IsChiefSIP100() {
 		isok := state.GetBalance(sender.Address()).Cmp(mgval) < 0
 		//if state.GetBalance(sender.Address()).Cmp(mgval) < 0 {
 		if isok {

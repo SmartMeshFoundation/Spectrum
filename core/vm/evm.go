@@ -179,7 +179,7 @@ func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas 
 	}
 	// Fail if we're trying to transfer more than the available balance
 	if !evm.Context.CanTransfer(evm.StateDB, caller.Address(), value) {
-		if !(params.IsSIP004Block(evm.BlockNumber) && params.IsChiefAddress(addr)) {
+		if !(params.IsSIP100Block(evm.BlockNumber) && params.IsChiefAddress(addr)) {
 			return nil, gas, ErrInsufficientBalance
 		}
 	}

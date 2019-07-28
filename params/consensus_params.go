@@ -278,25 +278,6 @@ func IsSIP003Block(num *big.Int) bool {
 	return false
 }
 
-// add by liangc : 19-03-27 : for smc-0.6.0
-// https://github.com/SmartMeshFoundation/Spectrum/wiki/%5BChinese%5D-v0.6.0-Standard
-func IsSIP004Block(num *big.Int) bool {
-	if IsTestnet() {
-		if TestnetChainConfig.SIP004Block != nil && TestnetChainConfig.SIP004Block.Cmp(big.NewInt(0)) > 0 && TestnetChainConfig.SIP004Block.Cmp(num) <= 0 {
-			return true
-		}
-	} else if IsDevnet() {
-		if DevnetChainConfig.SIP004Block != nil && DevnetChainConfig.SIP004Block.Cmp(big.NewInt(0)) > 0 && DevnetChainConfig.SIP004Block.Cmp(num) <= 0 {
-			return true
-		}
-	} else {
-		if MainnetChainConfig.SIP004Block != nil && MainnetChainConfig.SIP004Block.Cmp(big.NewInt(0)) > 0 && MainnetChainConfig.SIP004Block.Cmp(num) <= 0 {
-			return true
-		}
-	}
-	return false
-}
-
 // add by liangc : 19-05-31 : for smc-1.0.0
 // may be discard
 func IsSIP100Block(num *big.Int) bool {
@@ -440,7 +421,7 @@ func getChiefInfo(list ChiefInfoList, blockNumber *big.Int) *ChiefInfo {
 }
 
 // skip verify difficulty on this old hardfork block number
-func IsBeforeChief100block(blockNumber *big.Int) bool {
+func IsEqualChief100block(blockNumber *big.Int) bool {
 	//return isChiefBlock(oldchiefAddressList(), blockNumber)
 	for _, ci := range beforechief100AddressList() {
 		//log.Info("isChief", "a", ci.StartNumber, "b", blockNumber)
