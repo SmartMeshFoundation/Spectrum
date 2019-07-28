@@ -421,7 +421,7 @@ func getChiefInfo(list ChiefInfoList, blockNumber *big.Int) *ChiefInfo {
 }
 
 // skip verify difficulty on this old hardfork block number
-func IsEqualChief100block(blockNumber *big.Int) bool {
+func IsBeforeChief100block(blockNumber *big.Int) bool {
 	//return isChiefBlock(oldchiefAddressList(), blockNumber)
 	for _, ci := range beforechief100AddressList() {
 		//log.Info("isChief", "a", ci.StartNumber, "b", blockNumber)

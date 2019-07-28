@@ -496,7 +496,7 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 			return err
 		}
 		// verify difficulty
-		if !params.IsEqualChief100block(header.Number) {
+		if !params.IsBeforeChief100block(header.Number) {
 			difficulty := self.InTurnForVerify(number, header.ParentHash, signer)
 			if difficulty.Cmp(header.Difficulty) != 0 {
 				log.Error("** verifySeal ERROR **", "head.diff", header.Difficulty.String(), "target.diff", difficulty.String(), "err", errInvalidDifficulty)
