@@ -365,28 +365,40 @@ func (self *TribeService) chief100FetchNextRoundSigner(mbox params.Mbox) {
 	if params.IsSIP100Block(blockNumber) {
 		nl := self.minerList(blockNumber, hash)
 		v = self.takeMiner(nl, hash, vrfn.Bytes())
-	} else {
-		ch := self.ethereum.BlockChain().GetHeaderByHash(hash)
-		TD := self.ethereum.BlockChain().GetTd(hash, blockNumber.Uint64())
-		min := new(big.Int).Sub(TD, min_td)
-		vsn := params.GetChiefInfo(blockNumber).Version
-		vs := self.ethereum.FetchVolunteers(min, func(pk *ecdsa.PublicKey) bool {
-			log.Debug("fetchVolunteer_callback", "vsn", vsn)
-			if vsn == "0.0.6" || vsn == "0.0.7" {
-				return params.CanNomination(pk)
-			}
-			return true
-		})
+		success.Success = true
+		success.Entity = v
+		mbox.Rtn <- success
+		log.Debug("chief.mbox.rtn chief100: update <-", "addr", v.String())
+		return
+	}
+
+	if chiefInfo := params.GetChiefInfo(blockNumber); chiefInfo != nil {
 		client, err := contracts.GetEthclientInstance()
 		if err != nil {
-			panic(fmt.Sprintf("GetEthclientInstance err:%s", err))
+			success.Entity = err
+			mbox.Rtn <- success
+			return
 		}
-		v = self.fetchVolunteer_0_0_6__0_0_7(client, blockNumber, vsn, vs, ch)
+		switch chiefInfo.Version {
+		case "0.0.2":
+			v = self.fetchVolunteer(client, blockNumber, chiefInfo.Version)
+		case "0.0.3":
+			v = self.fetchVolunteer(client, blockNumber, chiefInfo.Version)
+		case "0.0.4":
+			self.fetchVolunteer(client, blockNumber, chiefInfo.Version)
+		case "0.0.5":
+			self.fetchVolunteer(client, blockNumber, chiefInfo.Version)
+		case "0.0.6":
+			v = self.fetchVolunteer(client, blockNumber, chiefInfo.Version)
+			log.Debug("<<TribeService.fetchVolunteer.result>>", "num", blockNumber, "v", v.Hex())
+		case "0.0.7":
+			v = self.fetchVolunteer(client, blockNumber, chiefInfo.Version)
+		}
 	}
 	success.Success = true
 	success.Entity = v
 	mbox.Rtn <- success
-	log.Debug("chief.mbox.rtn chief100: update <-", "addr", v.String())
+	log.Debug("chief.mbox.rtn: update <-", "success", success)
 
 }
 
@@ -745,33 +757,8 @@ func (self *TribeService) fetchVolunteer_0_0_6__0_0_7(client *ethclient.Client, 
 							return v
 						}
 						log.Debug("TribeService.fetchVolunteer << FilterVolunteer.skip >> not_a_meshbox", "addr", v.Hex())
-					}
-					// second : if vlist not in meshbox contract the balance great than 10w SMT is requirement
-					// check nodeid&account mapping contract and review balance
-					as, err := statute.GetAnmapService()
-					log.Debug("TribeService.fetchVolunteer <<statute.GetAnmapService>> GetAnmapService", "num", blockNumber, "err", err)
-					if err == nil {
-						cbh := ch.Hash()
-						f, nl, err := as.BindInfo(v, nil, &cbh)
-						log.Debug("TribeService.fetchVolunteer <<statute.GetAnmapService>> BindInfo", "num", blockNumber, "f", f.Hex(), "v", v.Hex(), "nl.len", len(nl), "err", err)
-						if err == nil && len(nl) > 0 {
-							// exclude meshbox n in nl
-							noBox := int64(0)
-							for _, n := range nl {
-								if !params.MeshboxExistAddress(n) {
-									noBox++
-								}
-							}
-							if noBox == 0 {
-								return v
-							}
-							fb := sdb.GetBalance(f)
-							mb := new(big.Int).Mul(params.GetMinMinerBalance(), big.NewInt(noBox))
-							log.Info("2 TribeService.fetchVolunteer <<statute.GetAnmapService>>", "v", v.Hex(), "f", f.Hex(), "nl.len", len(nl), "nobox", noBox, "fb", fb, "mb", mb)
-							if fb.Cmp(mb) >= 0 {
-								return v
-							}
-						}
+					} else {
+						return v
 					}
 
 				}
