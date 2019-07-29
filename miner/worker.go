@@ -280,7 +280,7 @@ func (self *worker) update() {
 		select {
 		// Handle ChainHeadEvent
 		case <-self.chainHeadCh:
-			log.Info("worker commitNewWork because of chainHeadCh")
+			log.Debug("worker commitNewWork because of chainHeadCh")
 			self.commitNewWork()
 
 			// Handle ChainSideEvent
@@ -303,7 +303,7 @@ func (self *worker) update() {
 			} else {
 				// If we're mining, but nothing is being processed, wake on new transactions
 				if self.config.Clique != nil && self.config.Clique.Period == 0 {
-					log.Info("worker commitNewWork because of TxPreEvent")
+					log.Debug("worker commitNewWork because of TxPreEvent")
 					self.commitNewWork()
 				}
 			}
@@ -438,7 +438,7 @@ func (self *worker) commitNewWork() {
 		log.Info("Mining too far in the future", "wait", common.PrettyDuration(wait))
 		time.Sleep(wait)
 	}
-	log.Info(fmt.Sprintf("worker commitNewWork ming=%v", self.mining))
+	log.Debug(fmt.Sprintf("worker commitNewWork ming=%v", self.mining))
 	num := parent.Number()
 	header := &types.Header{
 		ParentHash: parent.Hash(),

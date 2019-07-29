@@ -144,7 +144,7 @@ func (self *Miner) Start(coinbase common.Address) {
 	if tribe, ok := self.engine.(*tribe.Tribe); ok && self.eth.BlockChain().CurrentBlock().NumberU64() > 3 {
 		i := 0
 		for {
-			log.Info("<<MinerStart>> loop_start", "i", i, "num", self.eth.BlockChain().CurrentBlock().Number())
+			log.Debug("<<MinerStart>> loop_start", "i", i, "num", self.eth.BlockChain().CurrentBlock().Number())
 			m := tribe.Status.GetMinerAddress()
 			s, err := self.worker.chain.State()
 			if err != nil {
