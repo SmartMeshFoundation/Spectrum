@@ -154,22 +154,19 @@ func (self *TribeStatus) resetSignersLevel(hash common.Hash, number *big.Int) {
 	self.SignerLevel = LevelNone
 }
 
+//每一块都会调用
 func (self *TribeStatus) loadSigners(sl []*Signer) error {
 	self.Signers = append(self.Signers[:0], sl...)
 	return nil
 }
 
-func (self *TribeStatus) GetSigners() []*Signer {
-	return self.Signers
-}
-
-//InTurnForCalcChief100 计算规则参考inTurnForCalcChief100
-func (self *TribeStatus) InTurnForCalcChief100(signer common.Address, parent *types.Header) *big.Int {
-	return self.inTurnForCalcChief100(parent.Number.Int64()+1, parent.Hash(), signer)
+//InTurnForCalcDiffcultyChief100 计算规则参考inTurnForCalcChief100
+func (self *TribeStatus) InTurnForCalcDiffcultyChief100(signer common.Address, parent *types.Header) *big.Int {
+	return self.inTurnForCalcDifficultyChief100(parent.Number.Int64()+1, parent.Hash(), signer)
 }
 
 /*
-inTurnForCalcChief100 计算如果当前出块节点是signer的话,它对应的难度是多少.
+inTurnForCalcDifficultyChief100 计算如果当前出块节点是signer的话,它对应的难度是多少.
 signers:[0,...,16] 0号对应的是常委会节点,1-16对应的是普通出块节点
 场景1:
 1. 当前应该出块节点应该是3,如果signer是3,那么难度就是6.
@@ -180,7 +177,7 @@ signers:[0,...,16] 0号对应的是常委会节点,1-16对应的是普通出块�
 
 这里的number参数主要是选定合约版本,而parentHash则是用来选择读取哪个block时候的合约状态
 */
-func (self *TribeStatus) inTurnForCalcChief100(number int64, parentHash common.Hash, signer common.Address) *big.Int {
+func (self *TribeStatus) inTurnForCalcDifficultyChief100(number int64, parentHash common.Hash, signer common.Address) *big.Int {
 	var (
 		signers, _ = self.GetSignersFromChiefByHash(parentHash, big.NewInt(number)) //self.GetSigners()
 		sl         = len(signers)
@@ -210,9 +207,9 @@ func (self *TribeStatus) inTurnForCalcChief100(number int64, parentHash common.H
 	return diffNoTurn
 }
 
-//InTurnForVerifyChief100: 计算规则参考inTurnForCalcChief100
-func (self *TribeStatus) InTurnForVerifyChief100(number int64, parentHash common.Hash, signer common.Address) *big.Int {
-	return self.inTurnForCalcChief100(number, parentHash, signer)
+//InTurnForVerifyDifficultyChief100: 计算规则参考inTurnForCalcChief100
+func (self *TribeStatus) InTurnForVerifyDifficultyChief100(number int64, parentHash common.Hash, signer common.Address) *big.Int {
+	return self.inTurnForCalcDifficultyChief100(number, parentHash, signer)
 }
 
 /*
@@ -220,6 +217,7 @@ func (self *TribeStatus) InTurnForVerifyChief100(number int64, parentHash common
 first=3,那么返回[4,5,1,2]
 如果first=2,返回[3,4,5,1]
 如果first=5,返回[1,2,3,4]
+不允许返回错误,是因为考虑到运行过程中leader可能会被删除,从而导致找不到leader
 */
 func leaderSort(first common.Address, list []common.Address) ([]common.Address, error) {
 	for i, o := range list {
@@ -231,10 +229,10 @@ func leaderSort(first common.Address, list []common.Address) ([]common.Address, 
 	return list, nil
 }
 
-//InTurnForCalc 在0.6版本计算难度
-func (self *TribeStatus) InTurnForCalc(signer common.Address, parent *types.Header) *big.Int {
+//InTurnForCalcDifficulty 在0.6版本yiqian 计算难度
+func (self *TribeStatus) InTurnForCalcDifficulty(signer common.Address, parent *types.Header) *big.Int {
 	number := parent.Number.Int64() + 1
-	signers := self.GetSigners()
+	signers := self.Signers
 	if idx, _, err := self.fetchOnSigners(signer, signers); err == nil {
 		sl := len(signers)
 		if params.IsSIP002Block(big.NewInt(number)) {
@@ -253,13 +251,14 @@ func (self *TribeStatus) InTurnForCalc(signer common.Address, parent *types.Head
 	return diffNoTurn
 }
 
-func (self *TribeStatus) InTurnForVerify(number int64, parentHash common.Hash, signer common.Address) *big.Int {
+//0.6版本之前校验难度
+func (self *TribeStatus) InTurnForVerifyDiffculty(number int64, parentHash common.Hash, signer common.Address) *big.Int {
 
 	if ci := params.GetChiefInfo(big.NewInt(number)); ci != nil {
 		switch ci.Version {
 		case "1.0.0":
 			//TODO max value is a var ???
-			return self.InTurnForVerifyChief100(number, parentHash, signer)
+			return self.InTurnForVerifyDifficultyChief100(number, parentHash, signer)
 		}
 	}
 
@@ -316,7 +315,10 @@ func (self *TribeStatus) fetchOnSigners(address common.Address, signers []*Signe
 // called by end of WriteBlockAndState
 // if miner then execute chief.update and chief.getStatus
 // else execute chief.getStatus only
+//update 函数是否可以完全去掉了?
+//这个函数目前唯一的功能就是更新chief合约状态,但是在validateBlock(我验证新块的时候,我出块完毕写入数据库以后, 都会更新chief合约状态)的时候,
 func (self *TribeStatus) Update(currentNumber *big.Int, hash common.Hash) {
+	return
 	if currentNumber.Int64() >= CHIEF_NUMBER && atomic.LoadInt32(&self.mining) == 1 {
 		// mining start
 		//log.Debug("<<TribeStatus.Update_begin>>", "num", currentNumber.Int64())
@@ -337,7 +339,8 @@ func verifyVrfNum(parent, header *types.Header) (err error) {
 	)
 	pubbuf, err := ecrecoverPubkey(header, sig)
 	if err != nil {
-		panic(err)
+		//panic(err) //这地方不能panic,否则一个节点出一个恶意的块,所以的节点就全崩了.
+		return err
 	}
 	x, y := elliptic.Unmarshal(crypto.S256(), pubbuf)
 	pubkey := ecdsa.PublicKey{crypto.S256(), x, y}
@@ -369,7 +372,6 @@ func (self *TribeStatus) validateSigner(parentHeader, header *types.Header, sign
 	}
 
 	if params.IsSIP002Block(header.Number) {
-
 		// second time of verification block time
 		period := self.tribe.GetPeriod(header, signers)
 		pt := parentHeader.Time.Uint64()
@@ -400,7 +402,7 @@ func (self *TribeStatus) validateSigner(parentHeader, header *types.Header, sign
 		} else {
 			// other leader
 			for _, leader := range self.Leaders {
-				if signer == leader {
+				if signer == leader { //有没有测试过多个常委会节点同时出块的情况呢?
 					return true
 				}
 			}
@@ -488,26 +490,21 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 	number := header.Number.Int64()
 
 	//number := block.Number().Int64()
-	// add by liangc : seal call this func must skip validate signer
+	// add by liangc : seal call this func must skip validate signer 因为这时候签名都还没准备好
 	if validateSigner {
 		signer, err := ecrecover(header, self.tribe)
 		// verify signer
 		if err != nil {
 			return err
 		}
-		// verify difficulty
+		// verify difficulty 就算是
 		if !params.IsBeforeChief100block(header.Number) {
-			difficulty := self.InTurnForVerify(number, header.ParentHash, signer)
+			difficulty := self.InTurnForVerifyDiffculty(number, header.ParentHash, signer)
 			if difficulty.Cmp(header.Difficulty) != 0 {
 				log.Error("** verifySeal ERROR **", "head.diff", header.Difficulty.String(), "target.diff", difficulty.String(), "err", errInvalidDifficulty)
 				return errInvalidDifficulty
 			}
-
 		}
-		if !self.validateSigner(parent.Header(), header, signer) {
-			return errUnauthorized
-		}
-
 		// verify vrf num
 		if params.IsSIP100Block(header.Number) {
 			err = verifyVrfNum(parent.Header(), header)
@@ -516,7 +513,9 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 				return err
 			}
 		}
-
+		if !self.validateSigner(parent.Header(), header, signer) {
+			return errUnauthorized
+		}
 	}
 	// check first tx , must be chief.tx , and onely one chief.tx in tx list
 	if block != nil && block.Transactions().Len() == 0 {

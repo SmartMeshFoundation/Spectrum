@@ -26,12 +26,10 @@ import (
 	"time"
 
 	"crypto/ecdsa"
-	"runtime/debug"
 
 	"github.com/SmartMeshFoundation/Spectrum/common"
 	"github.com/SmartMeshFoundation/Spectrum/core/state"
 	"github.com/SmartMeshFoundation/Spectrum/core/types"
-	"github.com/SmartMeshFoundation/Spectrum/crypto"
 	"github.com/SmartMeshFoundation/Spectrum/event"
 	"github.com/SmartMeshFoundation/Spectrum/log"
 	"github.com/SmartMeshFoundation/Spectrum/metrics"
@@ -717,30 +715,6 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	return nil
 }
 
-// add by liangc : chief contract's tx only be one , Keep up with the latest
-func (pool *TxPool) addChief(tx *types.Transaction) bool {
-	from := types.GetFromByTx(tx)
-	if pool.nodeKey != nil && from != nil && tx.To() != nil && params.IsChiefAddress(*tx.To()) {
-		log.Debug("TODO<<TxPool.addChief>>", "tx", tx.Hash().Hex(), "from", (*from).Hex(), "nk", crypto.PubkeyToAddress(pool.nodeKey.PublicKey).Hex())
-		if tx.To() != nil && params.IsChiefAddress(*tx.To()) && params.IsChiefUpdate(tx.Data()) {
-			if *from == crypto.PubkeyToAddress(pool.nodeKey.PublicKey) {
-				pool.chiefTx = tx
-				log.Debug("TODO<<TxPool.addChief>> add_success", "txNonce", tx.Nonce())
-				return true
-			} else {
-				debug.PrintStack()
-				log.Debug("TODO<<TxPool.addChief>> repeat_chiefTx", "from", from.Hex(), "txid", tx.Hash().Hex())
-				pool.removeTx(tx.Hash())
-				return true
-			}
-		} else {
-			log.Debug("TODO<<TxPool.addChief>> skip", "txid", tx.Hash().Hex(), "input", tx.Data())
-			return true
-		}
-	}
-	return false
-}
-
 // add validates a transaction and inserts it into the non-executable queue for
 // later pending promotion and execution. If the transaction is a replacement for
 // an already pending or queued one, it overwrites the previous and returns this
@@ -753,10 +727,6 @@ func (pool *TxPool) add(tx *types.Transaction, local bool) (bool, error) {
 	// add by liangc : 18-09-13 : error block : incompatible HomesteadSigner
 	if !tx.Protected() {
 		return false, fmt.Errorf("TxPool incompatible HomesteadSigner tx=%s", tx.Hash().Hex())
-	}
-
-	if pool.addChief(tx) {
-		return true, nil
 	}
 
 	// If the transaction is already known, discard it

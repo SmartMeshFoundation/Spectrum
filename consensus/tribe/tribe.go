@@ -151,7 +151,6 @@ func (t *Tribe) WaitingNomination() {
 		}
 		<-time.After(time.Second * time.Duration(t.config.Period/2)) //每半块检查一次,这样保证等待时间不超过一块
 	}
-	return
 }
 
 // called by worker.start and worker.stop
@@ -227,15 +226,10 @@ func (t *Tribe) verifyHeader(chain consensus.ChainReader, header *types.Header, 
 			log.Info(fmt.Sprintf("verifyHeader err return number=%s,err=%s", header.Number, err))
 		}
 	}()
-	extraVanity := extraVanityFn(header.Number)
-	//if !t.isInit && header.Number.Int64() >= CHIEF_NUMBER {
-	//	log.Info(fmt.Sprintf("verifyHeader init, header=%#v,parents=%#v", header, parents))
-	//	t.Init(header.Hash(), header.Number)
-	//}
-
 	if header.Number == nil {
 		return errUnknownBlock
 	}
+	extraVanity := extraVanityFn(header.Number)
 	number := header.Number.Uint64()
 
 	// Don't waste time checking blocks from the future
@@ -243,10 +237,9 @@ func (t *Tribe) verifyHeader(chain consensus.ChainReader, header *types.Header, 
 		return consensus.ErrFutureBlock
 	}
 	// Nonces must be 0x00..0 or 0xff..f, zeroes enforced on checkpoints
-	/*
-		if !bytes.Equal(header.Nonce[:], nonceSync) && !bytes.Equal(header.Nonce[:], nonceAsync) {
-			return errInvalidNonce
-		}*/
+	if !bytes.Equal(header.Nonce[:], nonceSync) && !bytes.Equal(header.Nonce[:], nonceAsync) {
+		return errInvalidNonce
+	}
 
 	// Check that the extra-data contains both the vanity and signature
 	if len(header.Extra) < extraVanity {
@@ -388,7 +381,9 @@ func (t *Tribe) VerifyUncles(chain consensus.ChainReader, block *types.Block) er
 
 // VerifySeal implements consensus.Engine, checking whether the signature contained
 // in the header satisfies the consensus protocol requirements.
+// don't support remote miner agent, these code never reached
 func (t *Tribe) VerifySeal(chain consensus.ChainReader, header *types.Header) error {
+	panic("never reach")
 	e := t.verifySeal(chain, header, nil)
 	if e != nil {
 		log.Error("Tribe.VerifySeal", "err", e)
@@ -414,7 +409,7 @@ func (t *Tribe) verifySeal(chain consensus.ChainReader, header *types.Header, pa
 	}
 
 	if number > CHIEF_NUMBER && !params.IsBeforeChief100block(header.Number) {
-		difficulty := t.Status.InTurnForVerify(number, header.ParentHash, signer)
+		difficulty := t.Status.InTurnForVerifyDiffculty(number, header.ParentHash, signer)
 		if difficulty.Cmp(header.Difficulty) != 0 {
 			log.Error("** verifySeal ERROR **", "diff", header.Difficulty.String(), "err", errInvalidDifficulty)
 			return errInvalidDifficulty
@@ -472,13 +467,8 @@ func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error
 	if parent == nil {
 		return consensus.ErrUnknownAncestor
 	}
-	// tribe : in-turn signers[ block.number % len(signers) ] == currentSigner
 	// Set the correct difficulty
-	if number > 3 {
-		header.Difficulty = t.CalcDifficulty(chain, header.Time.Uint64(), parent)
-	} else {
-		header.Difficulty = diffInTurn
-	}
+	header.Difficulty = t.CalcDifficulty(chain, header.Time.Uint64(), parent)
 	if params.IsSIP002Block(header.Number) {
 		//modify by liangc : change period rule
 		header.Time = new(big.Int).Add(parent.Time, new(big.Int).SetUint64(t.GetPeriod(header, nil)))
@@ -496,9 +486,11 @@ var chiefGasPrice = big.NewInt(18000000000)
 
 /*
 获取要插入的chief Tx
+1.0之后是通过vrf来选择下一轮出块人
+1.0之前因为没有奖励,所以是现有signer任意指定候选人
 */
 func (t *Tribe) GetChiefUpdateTx(chain consensus.ChainReader, header *types.Header, state *state.StateDB) *types.Transaction {
-	if header.Number.Uint64() <= uint64(CHIEF_NUMBER) {
+	if header.Number.Cmp(big.NewInt(CHIEF_NUMBER)) <= 0 {
 		return nil
 	}
 	parentHash := header.ParentHash
@@ -538,6 +530,9 @@ func (t *Tribe) Finalize(chain consensus.ChainReader, header *types.Header, stat
 // Seal implements consensus.Engine, attempting to create a sealed block using
 // the local signing credentials.
 func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-chan struct{}) (*types.Block, error) {
+	if block.Number().Cmp(big.NewInt(CHIEF_NUMBER)) <= 0 {
+		return nil, errors.New("never mining block before #3")
+	}
 	if err := t.Status.ValidateBlock(nil, chain.GetBlock(block.ParentHash(), block.NumberU64()-1), block, false); err != nil {
 		log.Error("Tribe_Seal", "number", block.Number().Int64(), "err", err)
 		//log.Error("Tribe_Seal", "retry", atomic.LoadUint32(&t.SealErrorCounter), "number", block.Number().Int64(), "err", err)
@@ -547,16 +542,9 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 	header := block.Header()
 	// Sealing the genesis block is not supported
 	number := header.Number.Int64()
-	if number == 0 {
-		if genesisSigner, e := t.Status.genesisSigner(header); e == nil && genesisSigner == t.Status.GetMinerAddress() {
-			t.Status.SignerLevel = LevelSigner
-		}
-		return nil, errUnknownBlock
-	}
 	// For 0-period chains, refuse to seal empty blocks (no reward but would spin sealing)
-	// TODO liangc : How to stop the empty block ???
-	if t.config.Period == 0 && len(block.Transactions()) == 0 {
-		return nil, errWaitTransactions
+	if len(block.Transactions()) == 0 {
+		panic("at least one chief update tx")
 	}
 	if !t.Status.validateSigner(chain.GetHeaderByHash(block.ParentHash()), block.Header(), t.Status.GetMinerAddress()) {
 		return nil, errUnauthorized
@@ -597,10 +585,10 @@ func (t *Tribe) CalcDifficulty(chain consensus.ChainReader, time uint64, parent 
 	if ci := params.GetChiefInfo(currentNumber); ci != nil {
 		switch ci.Version {
 		case "1.0.0":
-			return t.Status.InTurnForCalcChief100(t.Status.GetMinerAddress(), parent)
+			return t.Status.InTurnForCalcDiffcultyChief100(t.Status.GetMinerAddress(), parent)
 		}
 	}
-	return t.Status.InTurnForCalc(t.Status.GetMinerAddress(), parent)
+	return t.Status.InTurnForCalcDifficulty(t.Status.GetMinerAddress(), parent)
 }
 
 // APIs implements consensus.Engine, returning the user facing RPC API to allow
