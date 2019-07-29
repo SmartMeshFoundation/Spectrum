@@ -11,7 +11,6 @@ import (
 
 	"crypto/ecdsa"
 	"fmt"
-	"sync/atomic"
 
 	"github.com/SmartMeshFoundation/Spectrum/accounts"
 	"github.com/SmartMeshFoundation/Spectrum/accounts/abi/bind"
@@ -151,23 +150,6 @@ func (t *Tribe) WaitingNomination() {
 		}
 		<-time.After(time.Second * time.Duration(t.config.Period/2)) //每半块检查一次,这样保证等待时间不超过一块
 	}
-}
-
-// called by worker.start and worker.stop
-// 1 mining start
-// 0 mining stop
-func (t *Tribe) SetMining(i int32, currentNumber *big.Int, currentBlockHash common.Hash) {
-	log.Info("tribe.setMining", "mining", i)
-	log.Debug("tribe.setMining_lock", "mining", i)
-	atomic.StoreInt32(&t.Status.mining, i)
-	if i == 1 {
-		if currentNumber.Int64() >= CHIEF_NUMBER {
-			log.Debug("><> tribe.SetMining -> Status.Update : may be pending")
-			t.Status.Update(currentNumber, currentBlockHash)
-			log.Debug("><> tribe.SetMining -> Status.Update : done")
-		}
-	}
-	log.Debug("tribe.setMining_unlock", "mining", i)
 }
 
 // Author implements consensus.Engine, returning the Ethereum address recovered

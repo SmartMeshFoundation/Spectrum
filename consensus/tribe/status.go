@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
-	"sync/atomic"
 	"time"
 
 	"github.com/SmartMeshFoundation/Spectrum/core/state"
@@ -310,25 +309,6 @@ func (self *TribeStatus) fetchOnSigners(address common.Address, signers []*Signe
 		}
 	}
 	return nil, nil, errors.New("not_found")
-}
-
-// called by end of WriteBlockAndState
-// if miner then execute chief.update and chief.getStatus
-// else execute chief.getStatus only
-//update 函数是否可以完全去掉了?
-//这个函数目前唯一的功能就是更新chief合约状态,但是在validateBlock(我验证新块的时候,我出块完毕写入数据库以后, 都会更新chief合约状态)的时候,
-func (self *TribeStatus) Update(currentNumber *big.Int, hash common.Hash) {
-	return
-	if currentNumber.Int64() >= CHIEF_NUMBER && atomic.LoadInt32(&self.mining) == 1 {
-		// mining start
-		//log.Debug("<<TribeStatus.Update_begin>>", "num", currentNumber.Int64())
-		//success := <-params.SendToMsgBoxWithNumber("Update", currentNumber)
-		//log.Debug("<<TribeStatus.Update_end>>", "num", currentNumber.Int64(), "success", success.Success, "entity", success.Entity)
-		err := self.LoadSignersFromChief(hash, currentNumber)
-		if err != nil {
-			log.Error("[TribeStatus.Update] LoadSignersFromChief ", "number", currentNumber, "err", err)
-		}
-	}
 }
 
 func verifyVrfNum(parent, header *types.Header) (err error) {

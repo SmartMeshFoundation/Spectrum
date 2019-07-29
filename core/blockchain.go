@@ -32,7 +32,6 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/common"
 	"github.com/SmartMeshFoundation/Spectrum/common/mclock"
 	"github.com/SmartMeshFoundation/Spectrum/consensus"
-	"github.com/SmartMeshFoundation/Spectrum/consensus/tribe"
 	"github.com/SmartMeshFoundation/Spectrum/core/state"
 	"github.com/SmartMeshFoundation/Spectrum/core/types"
 	"github.com/SmartMeshFoundation/Spectrum/core/vm"
@@ -44,7 +43,7 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/params"
 	"github.com/SmartMeshFoundation/Spectrum/rlp"
 	"github.com/SmartMeshFoundation/Spectrum/trie"
-	"github.com/hashicorp/golang-lru"
+	lru "github.com/hashicorp/golang-lru"
 )
 
 var (
@@ -808,9 +807,6 @@ func (bc *BlockChain) WriteBlockAndState(block *types.Block, receipts []*types.R
 	bc.mu.Lock()
 	defer func() {
 		bc.mu.Unlock()
-		if tribe, ok := bc.engine.(*tribe.Tribe); ok {
-			tribe.Status.Update(bc.currentBlock.Number(), bc.currentBlock.Hash())
-		}
 	}()
 
 	localTd := bc.GetTd(bc.currentBlock.Hash(), bc.currentBlock.NumberU64())

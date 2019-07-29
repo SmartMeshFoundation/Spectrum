@@ -223,7 +223,6 @@ func (self *worker) start(s chan int) {
 				tribe.WaitingNomination()
 				log.Warn("Everything is ready , signer started.")
 			}
-			tribe.SetMining(1, self.chain.CurrentBlock().Number(), self.chain.CurrentHeader().Hash())
 		}()
 	}
 
@@ -243,10 +242,6 @@ func (self *worker) stop() {
 
 	self.mu.Lock()
 	defer self.mu.Unlock()
-	//add by liangc : sync mining status
-	if tribe, ok := self.engine.(*tribe.Tribe); ok {
-		tribe.SetMining(0, self.chain.CurrentBlock().Number(), self.chain.CurrentHeader().Hash())
-	}
 	if atomic.LoadInt32(&self.mining) == 1 {
 		for agent := range self.agents {
 			agent.Stop()

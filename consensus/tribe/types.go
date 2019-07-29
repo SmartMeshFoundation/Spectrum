@@ -174,7 +174,6 @@ type TribeStatus struct {
 	Vsn         string   `json:"version"` // chief version
 
 	blackList []common.Address
-	mining    int32 // 1 mining start , 0 mining stop
 	nodeKey   *ecdsa.PrivateKey
 	tribe     *Tribe
 }
