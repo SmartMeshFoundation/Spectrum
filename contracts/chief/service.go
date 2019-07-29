@@ -740,16 +740,9 @@ func (self *TribeService) fetchVolunteer_0_0_6__0_0_7(client *ethclient.Client, 
 		}
 		if err == nil {
 			log.Debug("=> TribeService.fetchVolunteer :", "vsn", vsn, "len", len(rlist), "rlist", rlist)
-			sdb, _ := self.ethereum.BlockChain().State()
 			for i, r := range rlist {
 				if r.Int64() > 0 {
 					v := vlist[i]
-					b := sdb.GetBalance(v)
-					if b.Cmp(params.GetMinMinerBalance()) >= 0 {
-						log.Error("1 TribeService.fetchVolunteer <<statute.GetAnmapService>>", "v", v.Hex(), "balance", b.String())
-						return v
-					}
-
 					if ms, err := statute.GetMeshboxService(); err == nil {
 						// first : meshbox.sol
 						log.Debug("TribeService.fetchVolunteer << FilterVolunteer.meshbox-rule >>")
