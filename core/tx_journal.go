@@ -25,8 +25,6 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/core/types"
 	"github.com/SmartMeshFoundation/Spectrum/log"
 	"github.com/SmartMeshFoundation/Spectrum/rlp"
-	"github.com/SmartMeshFoundation/Spectrum/params"
-	"fmt"
 )
 
 // errNoActiveJournal is returned if a transaction is attempted to be inserted
@@ -103,11 +101,6 @@ func (journal *txJournal) load(add func(*types.Transaction) error) error {
 
 // insert adds the specified transaction to the local disk journal.
 func (journal *txJournal) insert(tx *types.Transaction) error {
-	// add by liangc : only for dev and test
-	if tx.To()!=nil && params.IsChiefAddress(*tx.To()) && params.IsChiefUpdate(tx.Data()) {
-		fmt.Println("><> txJournal.insert : chief tx do not save to disk : ",tx.Hash().Hex())
-		return nil
-	}
 	if journal.writer == nil {
 		return errNoActiveJournal
 	}

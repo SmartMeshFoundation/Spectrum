@@ -266,7 +266,6 @@ type TxPool struct {
 	locals  *accountSet // Set of local transaction to exempt from eviction rules
 	journal *txJournal  // Journal of local transaction to back up to disk
 
-	chiefTx *types.Transaction // add by liangc : chief contract's tx index for remove when new block come in
 	nodeKey *ecdsa.PrivateKey
 
 	//pending map[common.Address]*txList         // All currently processable transactions
@@ -629,7 +628,6 @@ func (pool *TxPool) Pending() (map[common.Address]types.Transactions, error) {
 	defer pool.mu.Unlock()
 
 	var (
-		mid     common.Address
 		pending = make(map[common.Address]types.Transactions)
 	)
 
@@ -637,21 +635,6 @@ func (pool *TxPool) Pending() (map[common.Address]types.Transactions, error) {
 		addr, list := kv.key, kv.val
 		pending[addr] = list.Flatten()
 	}
-
-	//add by liangc : append chiefTx and delete
-	if pool.chiefTx != nil {
-		chiefTx := pool.chiefTx
-		pool.chiefTx = nil
-		mid, _ = types.Sender(pool.signer, chiefTx)
-		if _txs, ok := pending[mid]; ok {
-			pending[mid] = append(_txs[:], chiefTx)
-		} else {
-			pending[mid] = types.Transactions{chiefTx}
-		}
-		ff := types.GetFromByTx(chiefTx)
-		log.Debug("TODO<<TxPool.Pending>> cheifTx", "from", mid.Hash().Hex(), "tx", chiefTx.Hash().Hex(), "ff", ff.Hex())
-	}
-
 	return pending, nil
 }
 
@@ -715,6 +698,11 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	return nil
 }
 
+// add by liangc : chief contract's tx only be one , Keep up with the latest
+func (pool *TxPool) isChiefUpdateTx(tx *types.Transaction) bool {
+	return tx.To() != nil && params.IsChiefAddress(*tx.To()) && params.IsChiefUpdate(tx.Data())
+}
+
 // add validates a transaction and inserts it into the non-executable queue for
 // later pending promotion and execution. If the transaction is a replacement for
 // an already pending or queued one, it overwrites the previous and returns this
@@ -728,7 +716,9 @@ func (pool *TxPool) add(tx *types.Transaction, local bool) (bool, error) {
 	if !tx.Protected() {
 		return false, fmt.Errorf("TxPool incompatible HomesteadSigner tx=%s", tx.Hash().Hex())
 	}
-
+	if pool.isChiefUpdateTx(tx) {
+		return false, errors.New("can not accept chief update tx")
+	}
 	// If the transaction is already known, discard it
 	hash := tx.Hash()
 	if pool.all[hash] != nil {
