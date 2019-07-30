@@ -396,35 +396,35 @@ func (self *TribeStatus) validateSigner(parentHeader, header *types.Header, sign
 /*
 VerifySignerBalance: 在chief1.0之前直接通过账号余额来判断是否具有出块资格,chief1.0之后只能通过抵押到poc合约中才具有资格.
 */
-func (self *TribeStatus) VerifySignerBalance(state *state.StateDB, addr common.Address, header *types.Header) error {
-	// SIP100 skip this verify
-	if params.IsSIP100Block(header.Number) {
-		return nil
-	}
-	var (
-		pnum, num *big.Int
-	)
-	if addr == common.HexToAddress("0x") {
-		if _addr, err := ecrecover(header, self.tribe); err == nil {
-			addr = _addr
-		} else {
-			return err
-		}
-	}
-	if header != nil {
-		num = header.Number
-		pnum = new(big.Int).Sub(num, big.NewInt(1))
-	} else {
-		return errors.New("params of header can not be null")
-	}
-	// skip when v in meshbox.sol
-	if params.IsReadyMeshbox(pnum) && params.MeshboxExistAddress(addr) {
-		return nil
-	}
-
-	return nil
-
-}
+//func (self *TribeStatus) VerifySignerBalance(state *state.StateDB, addr common.Address, header *types.Header) error {
+//	// SIP100 skip this verify
+//	if params.IsSIP100Block(header.Number) {
+//		return nil
+//	}
+//	var (
+//		pnum, num *big.Int
+//	)
+//	if addr == common.HexToAddress("0x") {
+//		if _addr, err := ecrecover(header, self.tribe); err == nil {
+//			addr = _addr
+//		} else {
+//			return err
+//		}
+//	}
+//	if header != nil {
+//		num = header.Number
+//		pnum = new(big.Int).Sub(num, big.NewInt(1))
+//	} else {
+//		return errors.New("params of header can not be null")
+//	}
+//	// skip when v in meshbox.sol
+//	if params.IsReadyMeshbox(pnum) && params.MeshboxExistAddress(addr) {
+//		return nil
+//	}
+//
+//	return nil
+//
+//}
 
 // every block
 // sync download or mine
@@ -507,16 +507,17 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 					if !params.VerifyMiner(header.ParentHash, volunteer, vrfn) {
 						return errors.New("verify_volunteer_fail")
 					}
-				} else {
-					volunteerHex := common.Bytes2Hex(tx.Data()[4:])
-					volunteer := common.HexToAddress(volunteerHex)
-					if volunteer != common.HexToAddress("0x") {
-						log.Debug("<<TribeStatus.ValidateBlock>> verify_volunteer =>", "num", number, "v", volunteer.Hex())
-						if err := self.VerifySignerBalance(state, volunteer, parent.Header()); err != nil {
-							return err
-						}
-					}
 				}
+				//else {
+				//	volunteerHex := common.Bytes2Hex(tx.Data()[4:])
+				//	volunteer := common.HexToAddress(volunteerHex)
+				//	if volunteer != common.HexToAddress("0x") {
+				//		log.Debug("<<TribeStatus.ValidateBlock>> verify_volunteer =>", "num", number, "v", volunteer.Hex())
+				//		if err := self.VerifySignerBalance(state, volunteer, parent.Header()); err != nil {
+				//			return err
+				//		}
+				//	}
+				//}
 			}
 			total++
 		}

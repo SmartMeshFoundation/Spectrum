@@ -18,7 +18,6 @@ package core
 
 import (
 	"fmt"
-	"github.com/SmartMeshFoundation/Spectrum/common"
 	"math/big"
 
 	"github.com/SmartMeshFoundation/Spectrum/common/math"
@@ -117,13 +116,13 @@ func (v *BlockValidator) ValidateState(block, parent *types.Block, statedb *stat
 	if root := statedb.IntermediateRoot(v.config.IsEIP158(header.Number)); header.Root != root {
 		return fmt.Errorf("invalid merkle root (remote: %x local: %x)", header.Root, root)
 	}
-	if t, ok := v.engine.(*tribe.Tribe); ok {
-		log.Debug("<<ValidateState>> verify_signer =>", "num", header.Number, "coinbase", header.Coinbase.Hex())
-		//if err := tribe.VerifySignerBalance(statedb, header.Coinbase, header); err != nil {
-		if err := t.Status.VerifySignerBalance(statedb, common.HexToAddress("0x"), header); err != nil {
-			return err
-		}
-	}
+	//if t, ok := v.engine.(*tribe.Tribe); ok {
+	//	log.Debug("<<ValidateState>> verify_signer =>", "num", header.Number, "coinbase", header.Coinbase.Hex())
+	//	//if err := tribe.VerifySignerBalance(statedb, header.Coinbase, header); err != nil {
+	//	if err := t.Status.VerifySignerBalance(statedb, common.HexToAddress("0x"), header); err != nil {
+	//		return err
+	//	}
+	//}
 	return nil
 }
 
