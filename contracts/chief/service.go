@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/SmartMeshFoundation/Spectrum/contracts/statute"
-	"github.com/SmartMeshFoundation/Spectrum/ethclient"
 
 	"fmt"
 
@@ -15,7 +14,6 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/common"
 	chieflib "github.com/SmartMeshFoundation/Spectrum/contracts/chief/lib"
 	"github.com/SmartMeshFoundation/Spectrum/core/types"
-	"github.com/SmartMeshFoundation/Spectrum/crypto"
 	"github.com/SmartMeshFoundation/Spectrum/eth"
 	"github.com/SmartMeshFoundation/Spectrum/internal/ethapi"
 	"github.com/SmartMeshFoundation/Spectrum/les"
@@ -553,29 +551,6 @@ func (self *TribeService) isVolunteer(dict map[common.Address]interface{}, add c
 		return false
 	}
 	return true
-}
-
-//0.0.6 : volunteerList is nil on vsn0.0.6
-func (self *TribeService) fetchVolunteer(client *ethclient.Client, blockNumber *big.Int, vsn string) common.Address {
-	var (
-		ch   = self.ethereum.BlockChain().CurrentHeader()
-		hash = ch.Hash()
-	)
-
-	switch vsn {
-	case "1.0.0":
-		nl := self.minerList(ch.Number, ch.Hash())
-		msg := append(ch.Number.Bytes(), ch.Extra[:32]...)
-		vrfnp, err := crypto.SimpleVRF2Bytes(self.server.PrivateKey, msg)
-		if err != nil {
-			panic(err)
-		}
-		v := self.takeMiner(nl, hash, vrfnp[:32])
-		log.Info("fetchVolunteer ->", "num", ch.Number, "nl", len(nl), "v", v.Hex())
-		return v
-	}
-	return common.Address{}
-
 }
 
 func (self *TribeService) VerifyMiner(mbox params.Mbox) {
