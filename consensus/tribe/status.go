@@ -421,10 +421,9 @@ func (self *TribeStatus) VerifySignerBalance(state *state.StateDB, addr common.A
 	if params.IsReadyMeshbox(pnum) && params.MeshboxExistAddress(addr) {
 		return nil
 	}
-	if params.IsDevnet() {
-		return nil //skip test on devnet
-	}
-	return errors.New("disallow node not in meshbox to mining")
+
+	return nil
+
 }
 
 // every block

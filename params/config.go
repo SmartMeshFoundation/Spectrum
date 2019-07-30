@@ -58,7 +58,6 @@ var (
 
 		Anmap001Block:   big.NewInt(2686801),
 		Anmap001Address: common.HexToAddress("0x23fb7fa0f6f88ce56b70ac3d671315f5baf84bb9"),
-		MinMinerBalance: new(big.Int).Mul(big.NewInt(100000), big.NewInt(Ether)),
 
 		SIP001Block: big.NewInt(0), // new rules for chief.tx of gaspool
 		SIP002Block: big.NewInt(588888),
@@ -106,8 +105,6 @@ var (
 
 		Anmap001Block:   big.NewInt(2200050),
 		Anmap001Address: common.HexToAddress("0xffab698a4cead35a6f52569e328f9127e66413bb"),
-
-		MinMinerBalance: new(big.Int).Mul(big.NewInt(10), big.NewInt(Ether)),
 
 		// new rules for chief.tx of gaspool
 		SIP001Block: big.NewInt(176222),
@@ -192,8 +189,6 @@ var (
 		// ############
 		// # DEBUG <<<<
 		// ############
-
-		MinMinerBalance: new(big.Int).Mul(big.NewInt(1), big.NewInt(Ether)),
 
 		// new rules for chief.tx of gaspool
 		SIP001Block: big.NewInt(0),
@@ -331,8 +326,6 @@ type ChainConfig struct {
 
 	Anmap001Block   *big.Int       `json:"anmap001Block,omitempty"`
 	Anmap001Address common.Address `json:"anmap001Address,omitempty"`
-
-	MinMinerBalance *big.Int `json:"minMinerBalance,omitempty"`
 }
 
 // EthashConfig is the consensus engine configs for proof-of-work based sealing.
