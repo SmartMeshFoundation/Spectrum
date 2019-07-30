@@ -19,7 +19,6 @@ package miner
 
 import (
 	"fmt"
-	"math/big"
 	"sync"
 	"sync/atomic"
 
@@ -155,37 +154,14 @@ func (self *Miner) Start(coinbase common.Address) {
 			if params.IsSIP100Block(cn) {
 				break
 			}
-			if params.IsReadyMeshbox(cn) && params.IsReadyAnmap(cn) {
+			if params.IsReadyMeshbox(cn) {
 				if params.MeshboxExistAddress(m) {
 					break
 				}
-				f, nl, err := params.AnmapBindInfo(m, self.eth.BlockChain().CurrentHeader().Hash())
-				//log.Info("<<MinerStart>> AnmapBindInfo", "i", i, "num", self.eth.BlockChain().CurrentBlock().Number(), "f", f.Hex(), "nl.len", len(nl), "err", err)
-				if err == nil && f != common.HexToAddress("0x") && len(nl) > 0 {
-					// exclude meshbox n in nl
-					noBox := int64(0)
-					for _, n := range nl {
-						if !params.MeshboxExistAddress(n) {
-							noBox++
-						}
-					}
-					if noBox > 0 {
-						fb := s.GetBalance(f)
-						mb := new(big.Int).Mul(params.GetMinMinerBalance(), big.NewInt(noBox))
-						if fb.Cmp(mb) >= 0 {
-							break
-						}
-					}
-				} else {
-					b := s.GetBalance(m)
-					if b.Cmp(params.GetMinMinerBalance()) >= 0 {
-						break
-					}
-				}
-			} else if s.GetBalance(m).Cmp(params.ChiefBaseBalance) >= 0 {
+			}
+			if s.GetBalance(m).Cmp(params.ChiefBaseBalance) >= 0 {
 				break
 			}
-
 			if atomic.LoadInt32(&self.mining) == 0 {
 				return
 			}

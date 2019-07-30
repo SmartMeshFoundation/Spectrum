@@ -403,9 +403,6 @@ func (self *TribeStatus) VerifySignerBalance(state *state.StateDB, addr common.A
 	}
 	var (
 		pnum, num *big.Int
-		f         common.Address
-		nl        []common.Address
-		err       error
 	)
 	if addr == common.HexToAddress("0x") {
 		if _addr, err := ecrecover(header, self.tribe); err == nil {
@@ -424,34 +421,10 @@ func (self *TribeStatus) VerifySignerBalance(state *state.StateDB, addr common.A
 	if params.IsReadyMeshbox(pnum) && params.MeshboxExistAddress(addr) {
 		return nil
 	}
-
-	if params.IsReadyAnmap(pnum) {
-		f, nl, err = params.AnmapBindInfo(addr, header.Hash())
-	} else {
-		err = errors.New("anmap_not_ready")
+	if params.IsDevnet() {
+		return nil //skip test on devnet
 	}
-	log.Debug("<<VerifySignerBalance_AnmapBindInfo>>", "num", num, "addr", addr.Hex(), "f", f.Hex(), "nl.len", len(nl), "err", err)
-	if err == nil && f != common.HexToAddress("0x") && len(nl) > 0 {
-		// exclude meshbox n in nl
-		noBox := int64(0)
-		for _, n := range nl {
-			if !params.MeshboxExistAddress(n) {
-				noBox++
-			}
-		}
-		if noBox == 0 {
-			return nil
-		}
-		fb := state.GetBalance(f)
-		mb := new(big.Int).Mul(params.GetMinMinerBalance(), big.NewInt(noBox))
-		log.Debug("<<VerifySignerBalance>> 0 :", "nl.len", len(nl), "nobox", noBox, "fb", fb, "mb", mb)
-		//nb := state.GetBalance(n)
-		if fb.Cmp(mb) < 0 {
-			log.Debug("<<VerifySignerBalance>> 1 :", "f", f.Hex(), "fb", fb, "mb", mb)
-			return ErrTribeChiefVolunteerLowBalance
-		}
-	}
-	return nil
+	return errors.New("disallow node not in meshbox to mining")
 }
 
 // every block

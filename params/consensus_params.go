@@ -10,7 +10,6 @@ import (
 	"sync"
 
 	"github.com/SmartMeshFoundation/Spectrum/common"
-	"github.com/SmartMeshFoundation/Spectrum/log"
 )
 
 const (
@@ -21,7 +20,6 @@ const (
 	POC_METHOD_WITHDRAW_SURPLUS = "poc_withdrawsurplus"
 	POC_METHOD_GET_STATUS       = "poc_getall"
 
-	ChiefUpdate    = "Update"
 	Chief100Update = "SIP100Update"
 )
 
@@ -93,17 +91,6 @@ var (
 	//abiCache *lru.Cache = nil
 	chiefContractCodeCache = new(sync.Map)
 )
-
-func GetMinMinerBalance() (mb *big.Int) {
-	if IsTestnet() {
-		mb = TestnetChainConfig.MinMinerBalance
-	} else if IsDevnet() {
-		mb = DevnetChainConfig.MinMinerBalance
-	} else {
-		mb = MainnetChainConfig.MinMinerBalance
-	}
-	return
-}
 
 func ChainID() (id *big.Int) {
 	if IsTestnet() {
@@ -731,26 +718,6 @@ func SendToMsgBoxForFilterVolunteer(hash common.Hash, number *big.Int, addr comm
 	}
 	m.Params = map[string]interface{}{"hash": hash, "number": number, "address": addr}
 	MboxChan <- m
-	return rtn
-}
-
-// called by chief.Update
-func SendToMsgBoxWithNumber(method string, number *big.Int) chan MBoxSuccess {
-	rtn := make(chan MBoxSuccess)
-	m := Mbox{
-		Method: method,
-		Rtn:    rtn,
-	}
-	if number != nil {
-		m.Params = map[string]interface{}{"number": number}
-	}
-	if method == ChiefUpdate {
-		log.Debug("TODO <<SendToMsgBoxWithNumber>> begin", "num", number)
-	}
-	MboxChan <- m
-	if method == ChiefUpdate {
-		log.Debug("TODO <<SendToMsgBoxWithNumber>> end", "num", number)
-	}
 	return rtn
 }
 

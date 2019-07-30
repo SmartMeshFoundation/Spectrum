@@ -6,7 +6,6 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/SmartMeshFoundation/Spectrum/contracts"
 	"github.com/SmartMeshFoundation/Spectrum/contracts/statute"
 	"github.com/SmartMeshFoundation/Spectrum/ethclient"
 
@@ -15,7 +14,6 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/accounts/abi/bind"
 	"github.com/SmartMeshFoundation/Spectrum/common"
 	chieflib "github.com/SmartMeshFoundation/Spectrum/contracts/chief/lib"
-	"github.com/SmartMeshFoundation/Spectrum/core"
 	"github.com/SmartMeshFoundation/Spectrum/core/types"
 	"github.com/SmartMeshFoundation/Spectrum/crypto"
 	"github.com/SmartMeshFoundation/Spectrum/eth"
@@ -167,8 +165,6 @@ func (self *TribeService) loop() {
 				self.getstatus(mbox)
 			case "GetNodeKey":
 				self.getnodekey(mbox)
-			case params.ChiefUpdate:
-				self.update(mbox)
 			case params.Chief100Update:
 				self.chief100FetchNextRoundSigner(mbox)
 			case "FilterVolunteer":
@@ -364,130 +360,13 @@ func (self *TribeService) chief100FetchNextRoundSigner(mbox params.Mbox) {
 	if params.IsSIP100Block(blockNumber) {
 		nl := self.minerList(blockNumber, hash)
 		v = self.takeMiner(nl, hash, vrfn.Bytes())
-		success.Success = true
-		success.Entity = v
-		mbox.Rtn <- success
 		log.Debug("chief.mbox.rtn chief100: update <-", "addr", v.String())
-		return
-	}
-
-	if chiefInfo := params.GetChiefInfo(blockNumber); chiefInfo != nil {
-		client, err := contracts.GetEthclientInstance()
-		if err != nil {
-			success.Entity = err
-			mbox.Rtn <- success
-			return
-		}
-		switch chiefInfo.Version {
-		case "0.0.2":
-			v = self.fetchVolunteer(client, blockNumber, chiefInfo.Version)
-		case "0.0.3":
-			v = self.fetchVolunteer(client, blockNumber, chiefInfo.Version)
-		case "0.0.4":
-			self.fetchVolunteer(client, blockNumber, chiefInfo.Version)
-		case "0.0.5":
-			self.fetchVolunteer(client, blockNumber, chiefInfo.Version)
-		case "0.0.6":
-			v = self.fetchVolunteer(client, blockNumber, chiefInfo.Version)
-			log.Debug("<<TribeService.fetchVolunteer.result>>", "num", blockNumber, "v", v.Hex())
-		case "0.0.7":
-			v = self.fetchVolunteer(client, blockNumber, chiefInfo.Version)
-		}
 	}
 	success.Success = true
 	success.Entity = v
 	mbox.Rtn <- success
 	log.Debug("chief.mbox.rtn: update <-", "success", success)
 
-}
-
-func (self *TribeService) update(mbox params.Mbox) {
-	if true {
-		panic("not used  ")
-	}
-	prv := self.server.PrivateKey
-	auth := bind.NewKeyedTransactor(prv)
-	auth.GasPrice = eth.DefaultConfig.GasPrice
-	//auth.GasLimit = params.GenesisGasLimit
-	//auth.GasLimit = big.NewInt(params.ChiefTxGas.Int64())
-	success := params.MBoxSuccess{Success: false}
-
-	client, err := contracts.GetEthclientInstance()
-	if err != nil {
-		success.Entity = err
-		mbox.Rtn <- success
-		return
-	}
-	//if params.ChiefTxNonce > 0 {
-	pnonce, perr := client.NonceAt(context.Background(), crypto.PubkeyToAddress(prv.PublicKey), nil)
-	if perr != nil {
-		log.Warn(">>=== nonce_err=", "err", perr)
-	} else {
-		log.Debug(">>=== nonce=", "nonce", pnonce)
-		auth.Nonce = new(big.Int).SetUint64(pnonce)
-	}
-	//}
-	var (
-		t           *types.Transaction
-		e           error
-		blockNumber *big.Int
-	)
-	// not nil
-	if n, ok := mbox.Params["number"]; ok {
-		blockNumber = n.(*big.Int)
-		_b, _e := client.BlockByNumber(context.Background(), blockNumber)
-		if _b == nil || _e != nil {
-			log.Error("Tribe.update : getBlockError", "err", _e, "num", blockNumber.Int64())
-			success.Entity = errors.New(fmt.Sprintf("TribeService.update : get_block_error : %d", blockNumber))
-			mbox.Rtn <- success
-			return
-		}
-		auth.GasLimit = core.CalcGasLimit(_b)
-		log.Debug("-> TribeService.update", "blockNumber", blockNumber.Int64())
-	} else {
-		success.Entity = errors.New("TribeService.update : blockNumber not nil")
-		mbox.Rtn <- success
-		return
-	}
-	if params.IsSIP100Block(blockNumber) {
-		success.Entity = common.Hash{}
-		mbox.Rtn <- success
-		return //Chief100Block不再这里,直接在tribe中添加chief Update Tx
-	}
-	if chiefInfo := params.GetChiefInfo(blockNumber); chiefInfo != nil {
-		switch chiefInfo.Version {
-		case "0.0.2":
-			t, e = self.tribeChief_0_0_2.Update(auth, self.fetchVolunteer(client, blockNumber, chiefInfo.Version))
-		case "0.0.3":
-			t, e = self.tribeChief_0_0_3.Update(auth, self.fetchVolunteer(client, blockNumber, chiefInfo.Version))
-		case "0.0.4":
-			t, e = self.tribeChief_0_0_4.Update(auth, self.fetchVolunteer(client, blockNumber, chiefInfo.Version))
-		case "0.0.5":
-			t, e = self.tribeChief_0_0_5.Update(auth, self.fetchVolunteer(client, blockNumber, chiefInfo.Version))
-		case "0.0.6":
-			v := self.fetchVolunteer(client, blockNumber, chiefInfo.Version)
-			log.Debug("<<TribeService.fetchVolunteer.result>>", "num", blockNumber, "v", v.Hex())
-			t, e = self.tribeChief_0_0_6.Update(auth, v)
-		case "0.0.7":
-			v := self.fetchVolunteer(client, blockNumber, chiefInfo.Version)
-			t, e = self.tribeChief_0_0_7.Update(auth, v)
-			log.Debug("<<TribeService.fetchVolunteer.result>>", "num", blockNumber, "v", v.Hex(), "chainid", t.ChainId())
-		case "1.0.0":
-			v := self.fetchVolunteer(client, blockNumber, chiefInfo.Version)
-			t, e = self.tribeChief_1_0_0.Update(auth, v)
-			log.Debug("<<TribeService.fetchVolunteer.result>>", "num", blockNumber, "v", v.Hex(), "chainid", t.ChainId())
-		}
-	}
-
-	if e != nil {
-		log.Error("<<TribeService.update>>", "err", e, "from", auth.From.Hex())
-		success.Entity = e
-	} else {
-		success.Success = true
-		success.Entity = t.Hash().Hex()
-	}
-	mbox.Rtn <- success
-	log.Debug("chief.mbox.rtn: update <-", "success", success)
 }
 
 // --------------------------------------------------------------------------------------------------
