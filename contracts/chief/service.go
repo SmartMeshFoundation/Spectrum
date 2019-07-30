@@ -10,7 +10,6 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/contracts/statute"
 	"github.com/SmartMeshFoundation/Spectrum/ethclient"
 
-	"crypto/ecdsa"
 	"fmt"
 
 	"github.com/SmartMeshFoundation/Spectrum/accounts/abi/bind"
@@ -677,98 +676,11 @@ func (self *TribeService) isVolunteer(dict map[common.Address]interface{}, add c
 	return true
 }
 
-/*
-0.0.2 / 0.0.3 / 0.0.4 / 0.0.5
-*/
-func (self *TribeService) fetchVolunteer_0_0_2__0_0_5(client *ethclient.Client, blockNumber *big.Int, vsn string, vs []*ecdsa.PublicKey, ch *types.Header) common.Address {
-	if len(vs) > 0 {
-		chiefStatus, err := self.getChiefStatus(blockNumber, nil)
-		if err != nil {
-			log.Error("getChiefStatus fail", "err", err)
-		}
-		// exclude signers
-		vl := chiefStatus.SignerList
-		if chiefStatus.VolunteerList != nil {
-			// exclude volunteers
-			vl = append(vl[:], chiefStatus.VolunteerList...)
-		}
-		if chiefStatus.BlackList != nil {
-			// exclude blacklist
-			vl = append(vl[:], chiefStatus.BlackList...)
-		}
-		vmap := make(map[common.Address]interface{})
-		for _, v := range vl {
-			vmap[v] = struct{}{}
-		}
-		for _, pub := range vs {
-			add := crypto.PubkeyToAddress(*pub)
-			ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
-			defer cancel()
-			b, e := client.BalanceAt(ctx, add, nil)
-			if e == nil && b.Cmp(params.ChiefBaseBalance) >= 0 && self.isVolunteer(vmap, add) {
-				return add
-			}
-		}
-	}
-	return common.Address{}
-}
-
-// only for devnet and testnet
-func (self *TribeService) fetchVolunteer_0_0_6__0_0_7(client *ethclient.Client, blockNumber *big.Int, vsn string, vs []*ecdsa.PublicKey, ch *types.Header) common.Address {
-	vlist := make([]common.Address, 0, 0)
-	for _, pub := range vs {
-		add := crypto.PubkeyToAddress(*pub)
-		vlist = append(vlist, add)
-	}
-	log.Debug("=> TribeService.fetchVolunteer :", "vsn", vsn, "vlist", len(vlist))
-	if len(vlist) > 0 {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
-		defer cancel()
-		opts := new(bind.CallOptsWithNumber)
-		opts.Context = ctx
-		// only one instance between 0.0.6 and 0.0.7
-		var (
-			err   error
-			rlist []*big.Int
-		)
-		if self.tribeChief_0_0_6 != nil {
-			rlist, err = self.tribeChief_0_0_6.FilterVolunteer(opts, vlist)
-		} else if self.tribeChief_0_0_7 != nil {
-			rlist, err = self.tribeChief_0_0_7.FilterVolunteer(opts, vlist)
-		} else {
-			panic("tribeChief not ready")
-		}
-		if err == nil {
-			log.Debug("=> TribeService.fetchVolunteer :", "vsn", vsn, "len", len(rlist), "rlist", rlist)
-			for i, r := range rlist {
-				if r.Int64() > 0 {
-					v := vlist[i]
-					if ms, err := statute.GetMeshboxService(); err == nil {
-						// first : meshbox.sol
-						log.Debug("TribeService.fetchVolunteer << FilterVolunteer.meshbox-rule >>")
-						if w, err := ms.ExistAddress(v); err == nil && w != nil && w.Int64() > 0 {
-							return v
-						}
-						log.Debug("TribeService.fetchVolunteer << FilterVolunteer.skip >> not_a_meshbox", "addr", v.Hex())
-					} else {
-						return v
-					}
-
-				}
-			}
-
-		}
-	}
-	return common.Address{}
-}
-
 //0.0.6 : volunteerList is nil on vsn0.0.6
 func (self *TribeService) fetchVolunteer(client *ethclient.Client, blockNumber *big.Int, vsn string) common.Address {
 	var (
 		ch   = self.ethereum.BlockChain().CurrentHeader()
 		hash = ch.Hash()
-		TD   = self.ethereum.BlockChain().GetTd(hash, ch.Number.Uint64())
-		min  = new(big.Int).Sub(TD, min_td)
 	)
 
 	switch vsn {
@@ -783,25 +695,8 @@ func (self *TribeService) fetchVolunteer(client *ethclient.Client, blockNumber *
 		log.Info("fetchVolunteer ->", "num", ch.Number, "nl", len(nl), "v", v.Hex())
 		return v
 	}
-
-	vs := self.ethereum.FetchVolunteers(min, func(pk *ecdsa.PublicKey) bool {
-		log.Debug("fetchVolunteer_callback", "vsn", vsn)
-		if vsn == "0.0.6" || vsn == "0.0.7" {
-			return params.CanNomination(pk)
-		}
-		return true
-	})
-
-	if len(vs) > 0 {
-		switch vsn {
-		case "0.0.2", "0.0.3", "0.0.4", "0.0.5":
-			return self.fetchVolunteer_0_0_2__0_0_5(client, blockNumber, vsn, vs, ch)
-		case "0.0.6", "0.0.7":
-			return self.fetchVolunteer_0_0_6__0_0_7(client, blockNumber, vsn, vs, ch)
-		}
-	}
-
 	return common.Address{}
+
 }
 
 func (self *TribeService) VerifyMiner(mbox params.Mbox) {
