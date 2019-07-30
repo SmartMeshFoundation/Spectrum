@@ -179,7 +179,10 @@ func (st *StateTransition) IsChiefSIP100() bool {
 }
 
 func (st *StateTransition) buyGas() error {
-	mgas := st.msg.Gas()
+	mgas := big.NewInt(0)
+	if !(params.IsSIP001Block(st.blockNumber) && st.msg.To() != nil && params.IsChiefAddress(*st.msg.To()) && params.IsChiefUpdate(st.msg.Data())) {
+		mgas = st.msg.Gas()
+	}
 	if mgas.BitLen() > 64 {
 		return vm.ErrOutOfGas
 	}
