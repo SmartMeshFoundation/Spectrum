@@ -463,7 +463,12 @@ func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error
 	return nil
 }
 
-var chiefGasLimit = big.NewInt(0)
+/*
+这个数值是经验书数值,统计了过去一万块后得到的,
+1. 在chief100以后此数值不起作用,
+2. 在chief100之前,最好通过estimateGas来估算
+*/
+var chiefGasLimit = big.NewInt(4712388)
 var chiefGasPrice = big.NewInt(18000000000)
 
 /*
