@@ -568,7 +568,7 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 // current signer.
 func (t *Tribe) CalcDifficulty(chain consensus.ChainReader, time uint64, parent *types.Header) *big.Int {
 	log.Debug("CalcDifficulty", "ParentNumber", parent.Number.Int64(), "CurrentNumber:", chain.CurrentHeader().Number.Int64())
-	currentNumber := new(big.Int).Add(chain.CurrentHeader().Number, big.NewInt(1))
+	currentNumber := new(big.Int).Add(parent.Number, big.NewInt(1))
 	if ci := params.GetChiefInfo(currentNumber); ci != nil {
 		switch ci.Version {
 		case "1.0.0":
