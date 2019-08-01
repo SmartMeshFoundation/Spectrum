@@ -371,6 +371,7 @@ func (self *TribeService) chief100FetchNextRoundSigner(mbox params.Mbox) {
 // inner private
 // --------------------------------------------------------------------------------------------------
 func (self *TribeService) getChiefStatus(blockNumber *big.Int, blockHash *common.Hash) (params.ChiefStatus, error) {
+	log.Debug(fmt.Sprintf("[getChiefStatus],blockNumber=%s,blockHash=%s", blockNumber, blockHash.String()))
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 	defer cancel()
 	//opts := &bind.CallOpts{Context: ctx}

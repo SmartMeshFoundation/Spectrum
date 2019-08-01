@@ -177,10 +177,17 @@ signers:[0,...,16] 0号对应的是常委会节点,1-16对应的是普通出块�
 这里的number参数主要是选定合约版本,而parentHash则是用来选择读取哪个block时候的合约状态
 */
 func (self *TribeStatus) inTurnForCalcDifficultyChief100(number int64, parentHash common.Hash, signer common.Address) *big.Int {
-	var (
-		signers, _ = self.GetSignersFromChiefByHash(parentHash, big.NewInt(number)) //self.GetSigners()
-		sl         = len(signers)
-	)
+
+	signers, err := self.GetSignersFromChiefByHash(parentHash, big.NewInt(number)) //self.GetSigners()
+	if err != nil {
+		log.Error(fmt.Sprintf("GetSignersFromChiefByHash err=%s", err))
+	}
+	sl := len(signers)
+
+	defer func() {
+		log.Debug(fmt.Sprintf("inTurnForCalcDifficultyChief100  numer=%s,parentHash=%s signer=%s  ", number, parentHash.String(), signer.String()),
+			"signers", signers)
+	}()
 	//	log.Info(fmt.Sprintf("singers=%v,signer=%s,leaders=%v,number=%d,parentHash=%s", signers, signer.String(), self.Leaders, number, parentHash.String()))
 	if idx, _, err := self.fetchOnSigners(signer, signers); err == nil {
 		// main
@@ -252,7 +259,6 @@ func (self *TribeStatus) InTurnForCalcDifficulty(signer common.Address, parent *
 
 //0.6版本之前校验难度
 func (self *TribeStatus) InTurnForVerifyDiffculty(number int64, parentHash common.Hash, signer common.Address) *big.Int {
-
 	if ci := params.GetChiefInfo(big.NewInt(number)); ci != nil {
 		switch ci.Version {
 		case "1.0.0":
@@ -348,7 +354,7 @@ func (self *TribeStatus) validateSigner(parentHeader, header *types.Header, sign
 
 	signers, err = self.GetSignersFromChiefByHash(parentHash, big.NewInt(number))
 	if err != nil {
-		log.Warn("TribeStatus.ValidateSigner : GetSignersFromChiefByNumber :", "err", err)
+		log.Error("TribeStatus.ValidateSigner : GetSignersFromChiefByNumber :", "err", err)
 	}
 
 	if params.IsSIP002Block(header.Number) {
@@ -453,7 +459,7 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 		if !params.IsBeforeChief100block(header.Number) {
 			difficulty := self.InTurnForVerifyDiffculty(number, header.ParentHash, signer)
 			if difficulty.Cmp(header.Difficulty) != 0 {
-				log.Error("** verifySeal ERROR **", "head.diff", header.Difficulty.String(), "target.diff", difficulty.String(), "err", errInvalidDifficulty)
+				log.Error("** ValidateBlock ERROR **", "head.diff", header.Difficulty.String(), "target.diff", difficulty.String(), "err", errInvalidDifficulty, "validateFromSeal", !validateSigner)
 				return errInvalidDifficulty
 			}
 		}
