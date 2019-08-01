@@ -29,7 +29,10 @@ func (api *API) BindSign(from *common.Address) (string, error) {
 	}
 	nodekey := api.tribe.Status.getNodekey()
 	msg := crypto.Keccak256(from.Bytes())
-	sig, _ := crypto.Sign(msg, nodekey)
+	sig, err := crypto.Sign(msg, nodekey)
+	if err != nil {
+		return "", err
+	}
 	sigHex := hex.EncodeToString(sig)
 	return sigHex, nil
 }
@@ -66,7 +69,10 @@ func (api *API) Bind(from *common.Address, passphrase string) (string, error) {
 	nodekey := api.tribe.Status.getNodekey()
 	nodeid := crypto.PubkeyToAddress(nodekey.PublicKey)
 	msg := crypto.Keccak256(from.Bytes())
-	sig, _ := crypto.Sign(msg, nodekey)
+	sig, err := crypto.Sign(msg, nodekey)
+	if err != nil {
+		return "", err
+	}
 	sigHex := hex.EncodeToString(sig)
 	tx, e := params.AnmapBind(*from, nodeid, sigHex)
 	if e != nil {
@@ -89,7 +95,10 @@ func (api *API) PocDeposit(from *common.Address, passphrase string) (string, err
 	nodekey := api.tribe.Status.getNodekey()
 	nodeid := crypto.PubkeyToAddress(nodekey.PublicKey)
 	msg := crypto.Keccak256(from.Bytes())
-	sig, _ := crypto.Sign(msg, nodekey)
+	sig, err := crypto.Sign(msg, nodekey)
+	if err != nil {
+		return "", err
+	}
 	sigHex := hex.EncodeToString(sig)
 	tx, e := params.PocDeposit(*from, sigHex)
 	if e != nil {
@@ -182,7 +191,10 @@ func (api *API) Unbind(from *common.Address, passphrase string) (string, error) 
 		return "", e
 	}
 	msg := crypto.Keccak256(from.Bytes())
-	sig, _ := crypto.Sign(msg, nodekey)
+	sig, err := crypto.Sign(msg, nodekey)
+	if err != nil {
+		return "", err
+	}
 	sigHex := hex.EncodeToString(sig)
 	tx, e := params.AnmapUnbind(*from, nodeid, sigHex)
 	if e != nil {

@@ -203,14 +203,22 @@ func (self *TribeService) _getVolunteers(blockNumber *big.Int, blockHash common.
 				log.Error("=>TribeService.getVolunteers", "err", err, "blockNumber", blockNumber, "blockHash", blockHash.Hex())
 				return empty, err
 			}
-			return params.ChiefVolunteers{v.VolunteerList, v.WeightList, v.Length}, nil
+			return params.ChiefVolunteers{
+				VolunteerList: v.VolunteerList,
+				WeightList:    v.WeightList,
+				Length:        v.Length,
+			}, nil
 		case "0.0.7":
 			v, err := self.tribeChief_0_0_7.GetVolunteers(opts)
 			if err != nil {
 				log.Error("=>TribeService.getVolunteers", "err", err, "blockNumber", blockNumber, "blockHash", blockHash.Hex())
 				return empty, err
 			}
-			return params.ChiefVolunteers{v.VolunteerList, v.WeightList, v.Length}, nil
+			return params.ChiefVolunteers{
+				VolunteerList: v.VolunteerList,
+				WeightList:    v.WeightList,
+				Length:        v.Length,
+			}, nil
 		case "1.0.0":
 			// TODO
 			v, err := self.tribeChief_1_0_0.GetVolunteers(opts)
@@ -218,7 +226,11 @@ func (self *TribeService) _getVolunteers(blockNumber *big.Int, blockHash common.
 				log.Error("=>TribeService.getVolunteers", "err", err, "blockNumber", blockNumber, "blockHash", blockHash.Hex())
 				return empty, err
 			}
-			return params.ChiefVolunteers{v.VolunteerList, v.WeightList, v.Length}, nil
+			return params.ChiefVolunteers{
+				VolunteerList: v.VolunteerList,
+				WeightList:    v.WeightList,
+				Length:        v.Length,
+			}, nil
 		default:
 			log.Error("=>TribeService.getVolunteers", "fail_vsn", chiefInfo.Version, "blockNumber", blockNumber, "blockHash", blockHash.Hex())
 			return empty, errors.New("fail_vsn_now")

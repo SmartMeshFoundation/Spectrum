@@ -9,6 +9,8 @@ import (
 	"math/big"
 	"time"
 
+	lru "github.com/hashicorp/golang-lru"
+
 	"github.com/SmartMeshFoundation/Spectrum/core/state"
 
 	"github.com/SmartMeshFoundation/Spectrum/common"
@@ -23,6 +25,11 @@ func NewTribeStatus() *TribeStatus {
 		Signers:     make([]*Signer, 0),
 		SignerLevel: LevelNone,
 	}
+	cache, err := lru.NewARC(5)
+	if err != nil {
+		panic(err)
+	}
+	ts.signersCache = cache
 	return ts
 }
 
@@ -67,6 +74,10 @@ func (self *TribeStatus) GetMinerAddressByChan(rtn chan common.Address) {
 }
 
 func (self *TribeStatus) GetSignersFromChiefByHash(hash common.Hash, number *big.Int) ([]*Signer, error) {
+	sc, ok := self.signersCache.Get(hash)
+	if ok {
+		return sc.([]*Signer), nil
+	}
 	rtn := params.SendToMsgBoxWithHash("GetStatus", hash, number)
 	r := <-rtn
 	if !r.Success {
@@ -80,6 +91,7 @@ func (self *TribeStatus) GetSignersFromChiefByHash(hash common.Hash, number *big
 		score := scores[i]
 		sl = append(sl, &Signer{signer, score.Int64()})
 	}
+	self.signersCache.Add(hash, sl)
 	return sl, nil
 }
 
@@ -105,10 +117,7 @@ func (self *TribeStatus) LoadSignersFromChief(hash common.Hash, number *big.Int)
 	}
 	self.Number = cs.Number.Int64()
 	self.blackList = cs.BlackList
-	err = self.loadSigners(sl)
-	if err != nil {
-		return err
-	}
+	self.loadSigners(sl)
 	self.Epoch, self.SignerLimit = cs.Epoch, cs.SignerLimit
 	go self.resetSignersLevel(hash, number)
 	return nil
@@ -154,9 +163,8 @@ func (self *TribeStatus) resetSignersLevel(hash common.Hash, number *big.Int) {
 }
 
 //每一块都会调用
-func (self *TribeStatus) loadSigners(sl []*Signer) error {
+func (self *TribeStatus) loadSigners(sl []*Signer) {
 	self.Signers = append(self.Signers[:0], sl...)
-	return nil
 }
 
 //InTurnForCalcDiffcultyChief100 计算规则参考inTurnForCalcChief100
@@ -185,7 +193,7 @@ func (self *TribeStatus) inTurnForCalcDifficultyChief100(number int64, parentHas
 	sl := len(signers)
 
 	defer func() {
-		log.Debug(fmt.Sprintf("inTurnForCalcDifficultyChief100  numer=%s,parentHash=%s signer=%s  ", number, parentHash.String(), signer.String()),
+		log.Debug(fmt.Sprintf("inTurnForCalcDifficultyChief100  numer=%d,parentHash=%s signer=%s  ", number, parentHash.String(), signer.String()),
 			"signers", signers)
 	}()
 	//	log.Info(fmt.Sprintf("singers=%v,signer=%s,leaders=%v,number=%d,parentHash=%s", signers, signer.String(), self.Leaders, number, parentHash.String()))
@@ -329,7 +337,7 @@ func verifyVrfNum(parent, header *types.Header) (err error) {
 		return err
 	}
 	x, y := elliptic.Unmarshal(crypto.S256(), pubbuf)
-	pubkey := ecdsa.PublicKey{crypto.S256(), x, y}
+	pubkey := ecdsa.PublicKey{Curve: crypto.S256(), X: x, Y: y}
 	err = crypto.SimpleVRFVerify(&pubkey, msg, np)
 	log.Debug("[verifyVrfNum]", "err", err, "num", header.Number, "vrfn", new(big.Int).SetBytes(np[:32]), "parent", header.ParentHash.Bytes())
 	return

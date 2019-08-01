@@ -187,8 +187,11 @@ func GetMeshboxService() (MeshboxService, error) {
 }
 
 func sigSplit(sigHex string) (R, S [32]byte, V uint8) {
-	bR, _ := hex.DecodeString(sigHex[:64])
-	bS, _ := hex.DecodeString(sigHex[64:128])
+	bR, err := hex.DecodeString(sigHex[:64])
+	bS, err := hex.DecodeString(sigHex[64:128])
+	if err != nil {
+		log.Error("sigSplit ", "sigHex", sigHex, "err", err)
+	}
 	copy(R[:], bR)
 	copy(S[:], bS)
 	V = 27
@@ -230,7 +233,10 @@ func (self *StatuteService) BindInfo(addr common.Address, blockNumber *big.Int, 
 
 func (self *StatuteService) Bind(from, nodeAddr common.Address, sigHex string) (common.Hash, error) {
 	a := accounts.Account{Address: from}
-	w, _ := self.accman.Find(a)
+	w, err := self.accman.Find(a)
+	if err != nil {
+		return common.Hash{}, err
+	}
 	opts := &bind.TransactOpts{
 		From: from,
 		Signer: func(signer types.Signer, address common.Address, tx *types.Transaction) (*types.Transaction, error) {
@@ -262,7 +268,10 @@ func (self *StatuteService) Bind(from, nodeAddr common.Address, sigHex string) (
 
 func (self *StatuteService) Unbind(from, nodeAddr common.Address, sigHex string) (common.Hash, error) {
 	a := accounts.Account{Address: from}
-	w, _ := self.accman.Find(a)
+	w, err := self.accman.Find(a)
+	if err != nil {
+		log.Error("Unbindb find", "err", err)
+	}
 	opts := &bind.TransactOpts{
 		From: from,
 		Signer: func(signer types.Signer, address common.Address, tx *types.Transaction) (*types.Transaction, error) {
@@ -295,7 +304,10 @@ func (self *StatuteService) Unbind(from, nodeAddr common.Address, sigHex string)
 func (self *StatuteService) getBalance(mbox params.Mbox) {
 	success := params.MBoxSuccess{Success: true}
 	addr := mbox.Params["addr"].(common.Address)
-	sdb, _ := self.ethereum.BlockChain().State()
+	sdb, err := self.ethereum.BlockChain().State()
+	if err != nil {
+		log.Error("BlockChain().State()", "err", err)
+	}
 	success.Entity = map[string]interface{}{"addr": addr, "balance": sdb.GetBalance(addr)}
 	mbox.Rtn <- success
 }
@@ -406,7 +418,10 @@ func (self *StatuteService) pocDeposit(mbox params.Mbox) {
 		log.Error(fmt.Sprintf("query min deposit err %s,poc addr=%s", err, params.POCInfo().String()))
 		return
 	}
-	sdb, _ := self.ethereum.BlockChain().State()
+	sdb, err := self.ethereum.BlockChain().State()
+	if err != nil {
+		return
+	}
 	balance := sdb.GetBalance(from)
 	if balance.Cmp(min) <= 0 {
 		err = fmt.Errorf("addr %s doesn't have enough balance, need=%s, have=%s", from.String(), min, balance)

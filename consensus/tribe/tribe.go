@@ -40,7 +40,7 @@ import (
 func sigHash(header *types.Header) (hash common.Hash) {
 	hasher := sha3.NewKeccak256()
 
-	rlp.Encode(hasher, []interface{}{
+	err := rlp.Encode(hasher, []interface{}{
 		header.ParentHash,
 		header.UncleHash,
 		header.Coinbase,
@@ -57,6 +57,9 @@ func sigHash(header *types.Header) (hash common.Hash) {
 		header.MixDigest,
 		header.Nonce,
 	})
+	if err != nil {
+		panic(err)
+	}
 	hasher.Sum(hash[:0])
 	return hash
 }
@@ -104,7 +107,10 @@ func ecrecover(header *types.Header, t *Tribe) (common.Address, error) {
 // signers set to the ones provided by the user.
 func New(accman *accounts.Manager, config *params.TribeConfig, _ ethdb.Database) *Tribe {
 	status := NewTribeStatus()
-	sigcache, _ := lru.NewARC(historyLimit)
+	sigcache, err := lru.NewARC(historyLimit)
+	if err != nil {
+		panic(err)
+	}
 	conf := *config
 	if conf.Period <= 0 {
 		conf.Period = blockPeriod
@@ -136,7 +142,10 @@ func (t *Tribe) Init(hash common.Hash, number *big.Int) {
 		log.Debug("init tribe.status when chiefservice start end.", "getnodekey", success.Success)
 		t.isInit = true
 		if number.Int64() >= CHIEF_NUMBER {
-			t.Status.LoadSignersFromChief(hash, number)
+			err := t.Status.LoadSignersFromChief(hash, number)
+			if err != nil {
+				log.Error("LoadSignersFromChief on Init", "err", err)
+			}
 		}
 		log.Info("init tribe.status success.")
 	}()
@@ -489,7 +498,10 @@ func (t *Tribe) GetChiefUpdateTx(chain consensus.ChainReader, header *types.Head
 	}
 	nextRoundSigner := params.Chief100GetNextRoundSigner(parentHash, parentNumber, vrf)
 	nonce := state.GetNonce(t.Status.GetMinerAddress())
-	txData, _ := hex.DecodeString("1c1b8772000000000000000000000000") //这个是4字节chiefUpdate函数标识以及12字节的0
+	txData, err := hex.DecodeString("1c1b8772000000000000000000000000") //这个是4字节chiefUpdate函数标识以及12字节的0
+	if err != nil {
+		panic(err)
+	}
 	txData = append(txData, nextRoundSigner[:]...)
 	rawTx := types.NewTransaction(nonce, params.GetChiefInfo(parentNumber).Addr, big.NewInt(0), chiefGasLimit, chiefGasPrice, txData)
 	auth := bind.NewKeyedTransactor(t.Status.getNodekey())
@@ -621,18 +633,20 @@ func (t *Tribe) GetPeriodChief100(header *types.Header, signers []*Signer) (p ui
 	if bytes.Equal(signature, empty) {
 		miner = t.Status.GetMinerAddress()
 	} else {
-		miner, _ = ecrecover(header, t)
+		miner, err = ecrecover(header, t)
+		if err != nil {
+			log.Error("ecrecover on getPeriod", "header", header, "err", err)
+			return
+		}
 	}
 
 	if signers == nil {
 		signers, err = t.Status.GetSignersFromChiefByHash(parentHash, number)
+		if err != nil {
+			log.Error("GetPeriod_getsigners_err", "err", err)
+			return
+		}
 	}
-
-	if err != nil {
-		log.Error("GetPeriod_getsigners_err", "err", err)
-		return
-	}
-
 	sl := len(signers)
 	if sl == 0 {
 		log.Error("GetPeriod_signers_cannot_empty")
@@ -694,7 +708,11 @@ func (t *Tribe) GetPeriod(header *types.Header, signers []*Signer) (p uint64) {
 	if bytes.Equal(signature, empty) {
 		miner = t.Status.GetMinerAddress()
 	} else {
-		miner, _ = ecrecover(header, t)
+		miner, err = ecrecover(header, t)
+		if err != nil {
+			log.Error("ecrecover on getPeriod", "header", header, "err", err)
+			return
+		}
 	}
 
 	if number.Int64() <= 3 {

@@ -173,13 +173,14 @@ type TribeStatus struct {
 	SignerLimit *big.Int `json:"signerLimit"`
 	Vsn         string   `json:"version"` // chief version
 
-	blackList []common.Address
-	nodeKey   *ecdsa.PrivateKey
-	tribe     *Tribe
+	blackList    []common.Address
+	nodeKey      *ecdsa.PrivateKey
+	tribe        *Tribe
+	signersCache *lru.ARCCache
 }
 
 type TribeVolunteers struct {
-	Length     *big.Int     `json:length`
+	Length     *big.Int     `json:"length"`
 	Volunteers []*Volunteer `json:"volunteers"`
 }
 
