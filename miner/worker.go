@@ -293,7 +293,7 @@ func (self *worker) update() {
 				txs := map[common.Address]types.Transactions{acc: {ev.Tx}}
 				txset := types.NewTransactionsByPriceAndNonce(self.current.signer, txs)
 				//fmt.Println("1111111",ev.Tx.Hash().Hex())
-				self.current.commitTransactions(self.mux, txset, self.chain, self.coinbase)
+				self.current.commitTransactions(self.mux, txset, self.chain, self.coinbase, nil)
 				self.currentMu.Unlock()
 			} else {
 				// If we're mining, but nothing is being processed, wake on new transactions
@@ -481,7 +481,7 @@ func (self *worker) commitNewWork() {
 	}
 	log.Debug("pending_len", "cn", parent.Number().Int64(), "len", len(pending))
 	txs := types.NewTransactionsByPriceAndNonce(self.current.signer, pending)
-	work.commitTransactions(self.mux, txs, self.chain, self.coinbase)
+	work.commitTransactions(self.mux, txs, self.chain, self.coinbase, header)
 
 	// compute uncles for the new block.
 	var (
@@ -534,17 +534,25 @@ func (self *worker) commitUncle(work *Work, uncle *types.Header) error {
 	return nil
 }
 
-func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsByPriceAndNonce, bc *core.BlockChain, coinbase common.Address) {
+func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsByPriceAndNonce, bc *core.BlockChain, coinbase common.Address, currentHeader *types.Header) {
 	//gp := new(core.GasPool).AddGas(env.header.GasLimit)
 	// modified by cai.zhihong
 	gp := new(core.GasPool).AddGas(env.header.GasLimit)
 
 	var coalescedLogs []*types.Log
-
+	timeout := time.Now().Add(time.Hour)
+	if currentHeader != nil {
+		timeout = time.Unix(currentHeader.Time.Int64(), 0)
+	}
 	for {
 		// Retrieve the next transaction and abort if all done
 		tx := txs.Peek()
 		if tx == nil {
+			break
+		}
+		log.Debug(fmt.Sprintf("timeout=%s", timeout))
+		//there may be too many transactions, thus missing the block time
+		if timeout.Before(time.Now()) && len(env.txs) > 0 {
 			break
 		}
 		/*
