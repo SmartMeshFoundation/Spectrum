@@ -540,7 +540,7 @@ func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsB
 	gp := new(core.GasPool).AddGas(env.header.GasLimit)
 
 	var coalescedLogs []*types.Log
-	timeout := time.Now().Add(time.Hour)
+	var timeout time.Time
 	if currentHeader != nil {
 		timeout = time.Unix(currentHeader.Time.Int64(), 0)
 	}
@@ -552,7 +552,7 @@ func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsB
 		}
 		log.Debug(fmt.Sprintf("timeout=%s", timeout))
 		//there may be too many transactions, thus missing the block time
-		if timeout.Before(time.Now()) && len(env.txs) > 0 {
+		if currentHeader != nil && timeout.Before(time.Now()) && len(env.txs) > 0 {
 			break
 		}
 		/*
