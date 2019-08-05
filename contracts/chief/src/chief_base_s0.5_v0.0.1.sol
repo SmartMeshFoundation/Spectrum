@@ -30,6 +30,8 @@ contract ChiefBase_1_0_0 {
     uint public signerLimit = 3;
     uint public epoch = 6171; // block time 14s, 6171 block = 24H
     uint public volunteerLimit = signerLimit - 1; //留0号位置给Leader
+    //只有一次修改pocInitBlockNumber的机会
+    bool public pocUpdatedInitBlockNumber;
     //config <<<<
     //function setEpoch(uint _epoch) public payable {epoch = _epoch;}
     //function setSignerLimit(uint _signerLimit) public payable {signerLimit = _signerLimit;}
@@ -55,6 +57,7 @@ contract ChiefBase_1_0_0 {
         epoch = _epoch;
         signerLimit = _signerLimit;
         volunteerLimit = signerLimit - 1;
+        pocUpdatedInitBlockNumber=false;
     }
 
     function appendLeader(address addr) public owner() {
@@ -97,7 +100,16 @@ contract ChiefBase_1_0_0 {
             _tribe = tribeAddr;
         }
     }
-
+    /*
+    影响奖励减半启用周期,只能调用一次
+    保证生效块数要在当前块之前,否则会造成poc.minDepositAmount立即降到定额的八分之一
+    */
+    function pocSetInitBlockNumber(uint256 num) owner() public{
+        require(!pocUpdatedInitBlockNumber);
+        require(num<=block.number);
+        pocUpdatedInitBlockNumber=true;
+        poc.ownerSetInitBlockNumber(num);
+    }
     function pocChangeOwner(address newOwner, uint256 num) owner() public {
         poc.changeOwner(newOwner, num);
     }
