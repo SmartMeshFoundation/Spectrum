@@ -60,12 +60,12 @@ var (
 		SIP002Block: big.NewInt(588888),
 		SIP003Block: big.NewInt(808888),
 
-		ChiefBaseAddress: common.HexToAddress("0xfef169e9af4acff13b0c139d13e264747c6a6cb9"),
+		ChiefBaseAddress: common.HexToAddress("0x4eb995858e99d2d96ede8d0f8b651183528a0475"),
 		// PocBlock must less than Chief100Block
 		PocAddress: common.HexToAddress("0xb9b4ece952c8005f009801e5ec78e116f528c1d0"),
 
 		Chief100Block:   big.NewInt(2823366),
-		Chief100Address: common.HexToAddress("0x071ba81e698bcb71c7dbe27c6d0a1d3ab8c29832"),
+		Chief100Address: common.HexToAddress("0x18915b8ee8c6d2a670148e80989f6bcb9709057d"),
 
 		Tribe: &TribeConfig{},
 	}
