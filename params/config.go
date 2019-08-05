@@ -52,9 +52,6 @@ var (
 
 		Meshbox001Block:   big.NewInt(1870333),
 		Meshbox001Address: common.HexToAddress("0xf0ced0b1ce8738eeac06fdca51e0ff398328634b"),
-		// Note that : meshbox002 must is superset of meshbox001
-
-		ChiefBaseAddress: common.HexToAddress("0x"),
 
 		Anmap001Block:   big.NewInt(2686801),
 		Anmap001Address: common.HexToAddress("0x23fb7fa0f6f88ce56b70ac3d671315f5baf84bb9"),
@@ -63,8 +60,12 @@ var (
 		SIP002Block: big.NewInt(588888),
 		SIP003Block: big.NewInt(808888),
 
+		ChiefBaseAddress: common.HexToAddress("0xfef169e9af4acff13b0c139d13e264747c6a6cb9"),
 		// PocBlock must less than Chief100Block
 		PocAddress: common.HexToAddress("0xb9b4ece952c8005f009801e5ec78e116f528c1d0"),
+
+		Chief100Block:   big.NewInt(2823366),
+		Chief100Address: common.HexToAddress("0x071ba81e698bcb71c7dbe27c6d0a1d3ab8c29832"),
 
 		Tribe: &TribeConfig{},
 	}
