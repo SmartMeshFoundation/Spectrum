@@ -157,17 +157,17 @@ var (
 
 		// base block link to Chief100Block
 		//ChiefBaseAddress: common.HexToAddress("0xad61f1201f592fbf13d2645f9c59d8d5f82a1837"), //liang
-		ChiefBaseAddress: common.HexToAddress("0xe551a89706753b64eaa74198b1d0d19cbc97489a"),
+		ChiefBaseAddress: common.HexToAddress("0xf096d7f8ae3cd0a85e593accac5e7bc38a756111"),
 
 		// PocBlock must less than Chief100Block
 		//PocBlock: big.NewInt(35),
 		//PocAddress: common.HexToAddress("0x901c0636c4fc83f353bca2db85e2ace886a9416d"), //liang
-		PocAddress: common.HexToAddress("0xe62e6655dd0737794335a1b8f1f51204919d2ced"),
+		PocAddress: common.HexToAddress("0x48e0f07faf58bc6e713d5c6373ce4f2a8b5c359a"),
 
-		Chief100Block: big.NewInt(50),
+		Chief100Block: big.NewInt(63),
 		//Chief100Address: common.HexToAddress("0x"),
 		//Chief100Address: common.HexToAddress("0x6d05f6aa4e19e20cd781fa3def97bbfd0b980534"), // liang
-		Chief100Address: common.HexToAddress("0x3f81857b5b2637c954b8a5a7c467d22814c4ec53"),
+		Chief100Address: common.HexToAddress("0x21c5dc409138205291d6a7ef2dbb1701ac02ff96"),
 
 		/*
 			Meshbox002Block:   big.NewInt(6),
