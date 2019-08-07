@@ -348,7 +348,7 @@ func chiefAddressList() (list ChiefInfoList) {
 			newChiefInfo(TestnetChainConfig.Chief004Block, "0.0.4", TestnetChainConfig.Chief004Address),
 			newChiefInfo(TestnetChainConfig.Chief005Block, "0.0.5", TestnetChainConfig.Chief005Address),
 			newChiefInfo(TestnetChainConfig.Chief006Block, "0.0.6", TestnetChainConfig.Chief006Address),
-			newChiefInfoWithPocBase(TestnetChainConfig.Chief100Block, "1.0.0", TestnetChainConfig.Chief100Address, TestnetChainConfig.PocAddress, TestnetChainConfig.ChiefBaseAddress),
+			//newChiefInfoWithPocBase(TestnetChainConfig.Chief100Block, "1.0.0", TestnetChainConfig.Chief100Address, TestnetChainConfig.PocAddress, TestnetChainConfig.ChiefBaseAddress),
 		}
 	} else if IsDevnet() {
 		list = ChiefInfoList{
