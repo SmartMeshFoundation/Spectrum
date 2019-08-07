@@ -119,7 +119,7 @@ var (
 		// PocBlock must less than Chief100Block
 		PocAddress: common.HexToAddress("0x0dd01c0fe8c015ac2b5a70d3975d1323741f8230"),
 
-		Chief100Block:   big.NewInt(2212800),
+		Chief100Block:   big.NewInt(2213800),
 		Chief100Address: common.HexToAddress("0xdbe0898d63f381cc853788f631c5fb280a8b03b0"),
 
 		Tribe: &TribeConfig{},
