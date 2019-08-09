@@ -149,6 +149,7 @@ func (self *Miner) Start(coinbase common.Address) {
 			if err != nil {
 				log.Error("miner start fail", err)
 			}
+			break
 			cn := self.eth.BlockChain().CurrentBlock().Number()
 			// SIP100 skip this verfiy
 			if params.IsSIP100Block(cn) {

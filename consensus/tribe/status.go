@@ -125,6 +125,8 @@ func (self *TribeStatus) LoadSignersFromChief(hash common.Hash, number *big.Int)
 
 func (self *TribeStatus) resetSignersLevel(hash common.Hash, number *big.Int) {
 	m := self.GetMinerAddress()
+	self.SignerLevel = LevelSigner
+	return
 	for _, s := range self.Signers {
 		if s.Address == m {
 			self.SignerLevel = LevelSigner
