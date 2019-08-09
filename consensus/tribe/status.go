@@ -518,7 +518,7 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 					volunteerHex := common.Bytes2Hex(tx.Data()[4:])
 					volunteer := common.HexToAddress(volunteerHex)
 					vrfn := header.Extra[:32]
-					if !params.VerifyMiner(header.Hash(), header.ParentHash, volunteer, vrfn) {
+					if !params.VerifyMiner(header.ParentHash, volunteer, vrfn) {
 						return errors.New("verify_volunteer_fail")
 					}
 				}

@@ -13,7 +13,6 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/accounts/abi/bind"
 	"github.com/SmartMeshFoundation/Spectrum/common"
 	chieflib "github.com/SmartMeshFoundation/Spectrum/contracts/chief/lib"
-	"github.com/SmartMeshFoundation/Spectrum/core/types"
 	"github.com/SmartMeshFoundation/Spectrum/eth"
 	"github.com/SmartMeshFoundation/Spectrum/internal/ethapi"
 	"github.com/SmartMeshFoundation/Spectrum/les"
@@ -568,18 +567,12 @@ func (self *TribeService) isVolunteer(dict map[common.Address]interface{}, add c
 
 func (self *TribeService) VerifyMiner(mbox params.Mbox) {
 	var (
-		currentblockHash common.Hash
-		parentblockHash  common.Hash
-		addr             common.Address
-		vrfn             []byte
-		result           bool
+		parentblockHash common.Hash
+		addr            common.Address
+		vrfn            []byte
+		result          bool
 	)
 
-	// hash and number can not nil
-	if currenthash, ok := mbox.Params["currenthash"]; ok {
-		bh := currenthash.(common.Hash)
-		currentblockHash = bh
-	}
 	// hash and number can not nil
 	if parenthash, ok := mbox.Params["parenthash"]; ok {
 		bh := parenthash.(common.Hash)
@@ -601,21 +594,6 @@ func (self *TribeService) VerifyMiner(mbox params.Mbox) {
 		log.Error("VerifyMiner failed", "hash", parentblockHash.Hex(), "miners", success.Entity)
 		return
 	}
-	//verify chief update Tx must success
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
-	defer cancel()
-	r, err := self.ethereum.ApiBackend.GetReceipts(ctx, currentblockHash)
-	if err != nil {
-		result = false
-		log.Error("GetReceipts failed", "block", currentblockHash, "err", err)
-		return
-	}
-	if len(r) <= 0 {
-		result = false
-		log.Error("there must be on chief update tx in every block")
-		return
-	}
-	result = r[0].Status == types.ReceiptStatusSuccessful
 }
 
 // poc normalList and meshboxList

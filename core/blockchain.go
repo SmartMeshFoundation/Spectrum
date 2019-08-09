@@ -990,6 +990,12 @@ func (bc *BlockChain) insertChain(chain types.Blocks) (int, []interface{}, []*ty
 			bc.reportBlock(block, receipts, err)
 			return i, events, coalescedLogs, err
 		}
+		if params.IsSIP100Block(block.Number()) {
+			if len(receipts) <= 0 || receipts[0].Status != types.ReceiptStatusSuccessful {
+				err = errors.New("there must be one chief update tx,and it must be successful")
+				return i, events, coalescedLogs, err
+			}
+		}
 		// Validate the state using the default validator
 		err = bc.Validator().ValidateState(block, parent, state, receipts, usedGas)
 		if err != nil {

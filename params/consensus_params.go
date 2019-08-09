@@ -761,19 +761,19 @@ func SendToMsgBox(method string) chan MBoxSuccess {
 	return rtn
 }
 
-func VerifyMiner(currenthash common.Hash, parenthash common.Hash, addr common.Address, vrfn []byte) bool {
+func VerifyMiner(parenthash common.Hash, addr common.Address, vrfn []byte) bool {
 	rtn := make(chan MBoxSuccess)
 	m := Mbox{
 		Method: "VerifyMiner",
 		Rtn:    rtn,
 	}
-	if currenthash == common.HexToHash("0x") || parenthash == common.HexToHash("0x") {
+	if parenthash == common.HexToHash("0x") {
 		panic(errors.New("hash can not nil"))
 	}
 	if vrfn == nil {
 		panic(errors.New("vrfn can not nil"))
 	}
-	m.Params = map[string]interface{}{"currenthash": currenthash, "parenthash": parenthash, "addr": addr, "vrfn": vrfn}
+	m.Params = map[string]interface{}{"parenthash": parenthash, "addr": addr, "vrfn": vrfn}
 	MboxChan <- m
 	success := <-rtn
 	if success.Success {
