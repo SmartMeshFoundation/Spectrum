@@ -2,12 +2,7 @@ package chief
 
 import (
 	"context"
-	"crypto/ecdsa"
 	"errors"
-	"github.com/SmartMeshFoundation/Spectrum/contracts"
-	"github.com/SmartMeshFoundation/Spectrum/core/types"
-	"github.com/SmartMeshFoundation/Spectrum/crypto"
-	"github.com/SmartMeshFoundation/Spectrum/ethclient"
 	"math/big"
 	"time"
 
@@ -375,58 +370,12 @@ func (self *TribeService) chief100FetchNextRoundSigner(mbox params.Mbox) {
 		nl := self.minerList(blockNumber, hash)
 		v = self.takeMiner(nl, hash, vrfn.Bytes())
 		log.Debug("chief.mbox.rtn chief100: update <-", "addr", v.String())
-	} else {
-		ch := self.ethereum.BlockChain().GetHeaderByHash(hash)
-		TD := self.ethereum.BlockChain().GetTd(hash, blockNumber.Uint64())
-		min := new(big.Int).Sub(TD, min_td)
-		vsn := params.GetChiefInfo(blockNumber).Version
-		vs := self.ethereum.FetchVolunteers(min, func(pk *ecdsa.PublicKey) bool {
-			log.Debug("fetchVolunteer_callback", "vsn", vsn)
-			if vsn == "0.0.6" {
-				return params.CanNomination(pk)
-			}
-			return true
-		})
-		client, err := contracts.GetEthclientInstance()
-		if err != nil {
-			panic(fmt.Sprintf("GetEthclientInstance err:%s", err))
-		}
-		v = self.fetchVolunteer_0_0_6(client, blockNumber, vsn, vs, ch)
 	}
 	success.Success = true
 	success.Entity = v
 	mbox.Rtn <- success
 	log.Debug("chief.mbox.rtn: update <-", "success", success)
 
-}
-
-// only for devnet and testnet
-func (self *TribeService) fetchVolunteer_0_0_6(client *ethclient.Client, blockNumber *big.Int, vsn string, vs []*ecdsa.PublicKey, ch *types.Header) common.Address {
-	vlist := make([]common.Address, 0, 0)
-	for _, pub := range vs {
-		add := crypto.PubkeyToAddress(*pub)
-		vlist = append(vlist, add)
-	}
-	log.Debug("=> TribeService.fetchVolunteer :", "vsn", vsn, "vlist", len(vlist))
-	if len(vlist) > 0 {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
-		defer cancel()
-		opts := new(bind.CallOptsWithNumber)
-		opts.Context = ctx
-		// only one instance between 0.0.6 and 0.0.7
-		var (
-			err   error
-			rlist []*big.Int
-		)
-
-		rlist, err = self.tribeChief_0_0_6.FilterVolunteer(opts, vlist)
-		if err == nil && len(rlist) > 0 {
-			v := vlist[0]
-			return v
-		}
-
-	}
-	return common.Address{}
 }
 
 // --------------------------------------------------------------------------------------------------
