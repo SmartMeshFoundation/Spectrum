@@ -568,15 +568,22 @@ func (self *TribeService) isVolunteer(dict map[common.Address]interface{}, add c
 
 func (self *TribeService) VerifyMiner(mbox params.Mbox) {
 	var (
-		blockHash common.Hash
-		addr      common.Address
-		vrfn      []byte
-		result    bool
+		currentblockHash common.Hash
+		parentblockHash  common.Hash
+		addr             common.Address
+		vrfn             []byte
+		result           bool
 	)
+
 	// hash and number can not nil
-	if h, ok := mbox.Params["hash"]; ok {
-		bh := h.(common.Hash)
-		blockHash = bh
+	if currenthash, ok := mbox.Params["currenthash"]; ok {
+		bh := currenthash.(common.Hash)
+		currentblockHash = bh
+	}
+	// hash and number can not nil
+	if parenthash, ok := mbox.Params["parenthash"]; ok {
+		bh := parenthash.(common.Hash)
+		parentblockHash = bh
 	}
 	if a, ok := mbox.Params["addr"]; ok {
 		addr = a.(common.Address)
@@ -589,18 +596,18 @@ func (self *TribeService) VerifyMiner(mbox params.Mbox) {
 		success.Entity = result
 		mbox.Rtn <- success
 	}()
-	result = self.verifyMiner(addr, blockHash, vrfn)
+	result = self.verifyMiner(addr, parentblockHash, vrfn)
 	if !result {
-		log.Error("VerifyMiner failed", "hash", blockHash.Hex(), "miners", success.Entity)
+		log.Error("VerifyMiner failed", "hash", parentblockHash.Hex(), "miners", success.Entity)
 		return
 	}
 	//verify chief update Tx must success
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 	defer cancel()
-	r, err := self.ethereum.ApiBackend.GetReceipts(ctx, blockHash)
+	r, err := self.ethereum.ApiBackend.GetReceipts(ctx, currentblockHash)
 	if err != nil {
 		result = false
-		log.Error("GetReceipts failed", "block", blockHash, "err", err)
+		log.Error("GetReceipts failed", "block", currentblockHash, "err", err)
 		return
 	}
 	if len(r) <= 0 {

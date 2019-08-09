@@ -655,6 +655,32 @@ func isChiefAddress(list ChiefInfoList, addr common.Address) bool {
 	return false
 }
 
+func IsChiefAddressOnBlock(number *big.Int, addr common.Address) (yes bool) {
+	yes = isChiefAddressOnBlock(number, chiefAddressList(), addr)
+	//t := stack.Trace()
+	return
+}
+func isChiefAddressOnBlock(number *big.Int, list ChiefInfoList, addr common.Address) bool {
+	if addr == common.HexToAddress("0x") {
+		return false
+	}
+	if IsSIP001Block(number) { //sip100以后需要验证to地址必须和新的共识合约相同
+		for _, ci := range list {
+			if ci.Addr == addr && ci.Version == "1.0.0" {
+				return true
+			}
+		}
+	} else {
+		for _, ci := range list {
+			if ci.Addr == addr {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
 // chief service message box obj
 type Mbox struct {
 	Method string
@@ -735,19 +761,19 @@ func SendToMsgBox(method string) chan MBoxSuccess {
 	return rtn
 }
 
-func VerifyMiner(hash common.Hash, addr common.Address, vrfn []byte) bool {
+func VerifyMiner(currenthash common.Hash, parenthash common.Hash, addr common.Address, vrfn []byte) bool {
 	rtn := make(chan MBoxSuccess)
 	m := Mbox{
 		Method: "VerifyMiner",
 		Rtn:    rtn,
 	}
-	if hash == common.HexToHash("0x") {
+	if currenthash == common.HexToHash("0x") || parenthash == common.HexToHash("0x") {
 		panic(errors.New("hash can not nil"))
 	}
 	if vrfn == nil {
 		panic(errors.New("vrfn can not nil"))
 	}
-	m.Params = map[string]interface{}{"hash": hash, "addr": addr, "vrfn": vrfn}
+	m.Params = map[string]interface{}{"currenthash": currenthash, "parenthash": parenthash, "addr": addr, "vrfn": vrfn}
 	MboxChan <- m
 	success := <-rtn
 	if success.Success {

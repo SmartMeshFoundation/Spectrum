@@ -497,7 +497,7 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 			if miner A minging the block#16,then A can make chief.update tx fail,
 			so signerList will never update, A will make sure he can mine block for every round.
 		*/
-		if tx.To() != nil && params.IsChiefAddress(*tx.To()) && params.IsChiefUpdate(tx.Data()) {
+		if tx.To() != nil && params.IsChiefAddressOnBlock(block.Number(), *tx.To()) && params.IsChiefUpdate(tx.Data()) {
 			if i != 0 {
 				return ErrTribeChiefTxMustAtPositionZero
 			}
@@ -518,7 +518,7 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 					volunteerHex := common.Bytes2Hex(tx.Data()[4:])
 					volunteer := common.HexToAddress(volunteerHex)
 					vrfn := header.Extra[:32]
-					if !params.VerifyMiner(header.ParentHash, volunteer, vrfn) {
+					if !params.VerifyMiner(header.Hash(), header.ParentHash, volunteer, vrfn) {
 						return errors.New("verify_volunteer_fail")
 					}
 				}

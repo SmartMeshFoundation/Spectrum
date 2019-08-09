@@ -503,7 +503,7 @@ func (t *Tribe) GetChiefUpdateTx(chain consensus.ChainReader, header *types.Head
 		panic(err)
 	}
 	txData = append(txData, nextRoundSigner[:]...)
-	rawTx := types.NewTransaction(nonce, params.GetChiefInfo(parentNumber).Addr, big.NewInt(0), chiefGasLimit, chiefGasPrice, txData)
+	rawTx := types.NewTransaction(nonce, params.GetChiefInfo(header.Number).Addr, big.NewInt(0), chiefGasLimit, chiefGasPrice, txData)
 	auth := bind.NewKeyedTransactor(t.Status.getNodekey())
 	signedTx, err := auth.Signer(types.NewEIP155Signer(chain.Config().ChainId), auth.From, rawTx)
 	if err != nil {
