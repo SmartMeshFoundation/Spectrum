@@ -382,7 +382,7 @@ func (self *TribeService) chief100FetchNextRoundSigner(mbox params.Mbox) {
 		vsn := params.GetChiefInfo(blockNumber).Version
 		vs := self.ethereum.FetchVolunteers(min, func(pk *ecdsa.PublicKey) bool {
 			log.Debug("fetchVolunteer_callback", "vsn", vsn)
-			if vsn == "0.0.6" || vsn == "0.0.7" {
+			if vsn == "0.0.6" {
 				return params.CanNomination(pk)
 			}
 			return true
