@@ -46,5 +46,5 @@ var BadHashes = map[common.Hash]bool{
 
 	//common.HexToHash("0x777220ca88f6c847e8323f4e1c3d444aeb86c8c8fcb0c5517eae8816139090d1"): true,
 	// testnet rollback to 2212593
-	common.HexToHash("0x579218d8353eb6a2bcccf6fc369e3a1dd19bbf53a902a6d276407ee4593218af"): true,
+	//common.HexToHash("0x579218d8353eb6a2bcccf6fc369e3a1dd19bbf53a902a6d276407ee4593218af"): true,
 }
