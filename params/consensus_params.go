@@ -664,7 +664,7 @@ func isChiefAddressOnBlock(number *big.Int, list ChiefInfoList, addr common.Addr
 	if addr == common.HexToAddress("0x") {
 		return false
 	}
-	if IsSIP001Block(number) { //sip100以后需要验证to地址必须和新的共识合约相同
+	if IsSIP100Block(number) { //sip100以后需要验证to地址必须和新的共识合约相同
 		for _, ci := range list {
 			if ci.Addr == addr && ci.Version == "1.0.0" {
 				return true
