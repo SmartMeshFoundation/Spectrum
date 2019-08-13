@@ -104,8 +104,8 @@ var (
 		Meshbox001Address: common.HexToAddress("0x0f15e1e44322b2946215705d2ed60cba899f0b38"),
 		// Note that : meshbox002 must is superset of meshbox001
 
-		Anmap001Block:   big.NewInt(2200050),
-		Anmap001Address: common.HexToAddress("0xffab698a4cead35a6f52569e328f9127e66413bb"),
+		Anmap001Block:   big.NewInt(1310056),
+		Anmap001Address: common.HexToAddress("0x7449931e38dd938d2e8558eda9fe225acf4d14e6"),
 
 		// new rules for chief.tx of gaspool
 		SIP001Block: big.NewInt(176222),
@@ -113,14 +113,14 @@ var (
 		SIP003Block: big.NewInt(917013),
 		//SIP004Block: big.NewInt(2212557), //回滚位置,记得
 
-		//// base block link to Chief100Block
-		//ChiefBaseAddress: common.HexToAddress("0x0d6ca4ca5650fb0f5cbcde14bc5664656032636b"),
-		//
-		//// PocBlock must less than Chief100Block
-		//PocAddress: common.HexToAddress("0xda1acbb55d210d59876166fc077a75b13fcc8dfd"),
-		//
-		//Chief100Block:   big.NewInt(2212610),
-		//Chief100Address: common.HexToAddress("0xc94113a7d0f57970746f771bcd0cde0dd4d5642c"),
+		// base block link to Chief100Block
+		ChiefBaseAddress: common.HexToAddress("0xeb97d5201a79717675c03e80ef3ed0c00ec777fc"),
+
+		// PocBlock must less than Chief100Block
+		PocAddress: common.HexToAddress("0xe3d5627f6f854481b23da37cea623411bf090881"),
+
+		Chief100Block:   big.NewInt(1310056),
+		Chief100Address: common.HexToAddress("0x695249d987d10bcccda9bcaa3090db8565c317d1"),
 
 		Tribe: &TribeConfig{},
 	}
