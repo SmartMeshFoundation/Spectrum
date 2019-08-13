@@ -441,7 +441,7 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 	var err error
 	if validateSigner {
 		//The miner updates the chife contract information when prepare, and the follower  updates the chief contract information whenValidateBlock.
-		err = self.LoadSignersFromChief(parent.Hash(), parent.Number())
+		err = self.LoadSignersFromChief(parent.Hash(), block.Number())
 		if err != nil {
 			log.Error(fmt.Sprintf("[ValidateBlock] LoadSignersFromChief ,parent=%s,current=%s,currentNumber=%s", parent.Hash().String(), block.Hash().String(), block.Number()))
 			return err
