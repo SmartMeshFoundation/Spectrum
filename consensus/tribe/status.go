@@ -186,10 +186,7 @@ signers:[0,...,16] 0号对应的是常委会节点,1-16对应的是普通出块�
 */
 func (self *TribeStatus) inTurnForCalcDifficultyChief100(number int64, parentHash common.Hash, signer common.Address) *big.Int {
 
-	signers, err := self.GetSignersFromChiefByHash(parentHash, big.NewInt(number)) //self.GetSigners()
-	if err != nil {
-		log.Error(fmt.Sprintf("GetSignersFromChiefByHash err=%s", err))
-	}
+	signers := self.Signers
 	sl := len(signers)
 
 	defer func() {
@@ -350,19 +347,13 @@ validateSigner:
 */
 func (self *TribeStatus) validateSigner(parentHeader, header *types.Header, signer common.Address) bool {
 	var (
-		err        error
-		signers    []*Signer
-		number     = header.Number.Int64()
-		parentHash = header.ParentHash
+		err     error
+		signers = self.Signers
+		number  = header.Number.Int64()
 	)
 	//if number > 1 && self.Number != parentNumber {
 	if number <= CHIEF_NUMBER {
 		return true
-	}
-
-	signers, err = self.GetSignersFromChiefByHash(parentHash, big.NewInt(number))
-	if err != nil {
-		log.Error("TribeStatus.ValidateSigner : GetSignersFromChiefByNumber :", "err", err)
 	}
 
 	if params.IsSIP002Block(header.Number) {
@@ -447,11 +438,16 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 	if block.Number().Int64() <= CHIEF_NUMBER {
 		return nil
 	}
-	err := self.LoadSignersFromChief(parent.Hash(), parent.Number())
-	if err != nil {
-		log.Error(fmt.Sprintf("[ValidateBlock] LoadSignersFromChief ,parent=%s,current=%s,currentNumber=%s", parent.Hash().String(), block.Hash().String(), block.Number()))
-		return err
+	var err error
+	if validateSigner {
+		//The miner updates the chife contract information when prepare, and the follower  updates the chief contract information whenValidateBlock.
+		err = self.LoadSignersFromChief(parent.Hash(), parent.Number())
+		if err != nil {
+			log.Error(fmt.Sprintf("[ValidateBlock] LoadSignersFromChief ,parent=%s,current=%s,currentNumber=%s", parent.Hash().String(), block.Hash().String(), block.Number()))
+			return err
+		}
 	}
+
 	header := block.Header()
 	number := header.Number.Int64()
 

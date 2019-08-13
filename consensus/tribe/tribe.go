@@ -412,6 +412,10 @@ func (t *Tribe) verifySeal(chain consensus.ChainReader, header *types.Header, pa
 // Prepare implements consensus.Engine, preparing all the consensus fields of the
 // header for running the transactions on top.
 func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error {
+	err := t.Status.LoadSignersFromChief(header.ParentHash, header.Number)
+	if err != nil {
+		return err
+	}
 	number := header.Number.Uint64()
 	if f, _, err := params.AnmapBindInfo(t.Status.GetMinerAddress(), chain.CurrentHeader().Hash()); err == nil && f != common.HexToAddress("0x") {
 		header.Coinbase = f
@@ -626,7 +630,7 @@ func (t *Tribe) GetPeriodChief100(header *types.Header, signers []*Signer) (p ui
 		miner                   common.Address
 		empty                   = make([]byte, len(signature))
 		Main, Subs, Other, Else = t.config.Period - 1, t.config.Period + 3, t.config.Period + 7, uint64(86400 * 7)
-		number, parentHash      = header.Number, header.ParentHash
+		number                  = header.Number
 	)
 
 	p = Else
@@ -641,11 +645,7 @@ func (t *Tribe) GetPeriodChief100(header *types.Header, signers []*Signer) (p ui
 	}
 
 	if signers == nil {
-		signers, err = t.Status.GetSignersFromChiefByHash(parentHash, number)
-		if err != nil {
-			log.Error("GetPeriod_getsigners_err", "err", err)
-			return
-		}
+		signers = t.Status.Signers
 	}
 	sl := len(signers)
 	if sl == 0 {
