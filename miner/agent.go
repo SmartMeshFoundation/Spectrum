@@ -59,7 +59,7 @@ func (self *CpuAgent) Stop() {
 	if !atomic.CompareAndSwapInt32(&self.isMining, 1, 0) {
 		return // agent already stopped
 	}
-	log.Info("call cpu agent stop2")
+	//log.Info("call cpu agent stop2")
 	self.stop <- struct{}{}
 done:
 	// Empty work channel
