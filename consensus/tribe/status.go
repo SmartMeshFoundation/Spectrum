@@ -9,8 +9,6 @@ import (
 	"math/big"
 	"time"
 
-	lru "github.com/hashicorp/golang-lru"
-
 	"github.com/SmartMeshFoundation/Spectrum/core/state"
 
 	"github.com/SmartMeshFoundation/Spectrum/common"
@@ -25,11 +23,6 @@ func NewTribeStatus() *TribeStatus {
 		Signers:     make([]*Signer, 0),
 		SignerLevel: LevelNone,
 	}
-	cache, err := lru.NewARC(5)
-	if err != nil {
-		panic(err)
-	}
-	ts.signersCache = cache
 	return ts
 }
 
@@ -73,27 +66,27 @@ func (self *TribeStatus) GetMinerAddressByChan(rtn chan common.Address) {
 	}()
 }
 
-func (self *TribeStatus) GetSignersFromChiefByHash(hash common.Hash, number *big.Int) ([]*Signer, error) {
-	sc, ok := self.signersCache.Get(hash)
-	if ok {
-		return sc.([]*Signer), nil
-	}
-	rtn := params.SendToMsgBoxWithHash("GetStatus", hash, number)
-	r := <-rtn
-	if !r.Success {
-		return nil, r.Entity.(error)
-	}
-	cs := r.Entity.(params.ChiefStatus)
-	signers := cs.SignerList
-	scores := cs.ScoreList
-	sl := make([]*Signer, 0, len(signers))
-	for i, signer := range signers {
-		score := scores[i]
-		sl = append(sl, &Signer{signer, score.Int64()})
-	}
-	self.signersCache.Add(hash, sl)
-	return sl, nil
-}
+//func (self *TribeStatus) GetSignersFromChiefByHash(hash common.Hash, number *big.Int) ([]*Signer, error) {
+//	sc, ok := self.signersCache.Get(hash)
+//	if ok {
+//		return sc.([]*Signer), nil
+//	}
+//	rtn := params.SendToMsgBoxWithHash("GetStatus", hash, number)
+//	r := <-rtn
+//	if !r.Success {
+//		return nil, r.Entity.(error)
+//	}
+//	cs := r.Entity.(params.ChiefStatus)
+//	signers := cs.SignerList
+//	scores := cs.ScoreList
+//	sl := make([]*Signer, 0, len(signers))
+//	for i, signer := range signers {
+//		score := scores[i]
+//		sl = append(sl, &Signer{signer, score.Int64()})
+//	}
+//	self.signersCache.Add(hash, sl)
+//	return sl, nil
+//}
 
 // 在 加载完所有 node.service 后，需要主动调用一次
 func (self *TribeStatus) LoadSignersFromChief(hash common.Hash, number *big.Int) error {
@@ -274,11 +267,7 @@ func (self *TribeStatus) InTurnForVerifyDiffculty(number int64, parentHash commo
 
 	var signers []*Signer
 	if number > 3 {
-		var err error
-		signers, err = self.GetSignersFromChiefByHash(parentHash, big.NewInt(number))
-		if err != nil {
-			log.Warn("InTurn:GetSignersFromChiefByNumber:", "err", err)
-		}
+		signers = self.Signers
 	} else {
 		return diffInTurn
 	}

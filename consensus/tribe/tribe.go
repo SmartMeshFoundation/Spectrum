@@ -144,16 +144,6 @@ func (t *Tribe) Init() {
 	}()
 }
 
-// called by miner.start
-func (t *Tribe) WaitingNomination() {
-	for {
-		if t.Status.SignerLevel != LevelNone {
-			return
-		}
-		<-time.After(time.Second * time.Duration(t.config.Period/2)) //每半块检查一次,这样保证等待时间不超过一块
-	}
-}
-
 // Author implements consensus.Engine, returning the Ethereum address recovered
 // from the signature in the header's extra-data section.
 func (t *Tribe) Author(header *types.Header) (common.Address, error) {
@@ -693,8 +683,8 @@ func (t *Tribe) GetPeriod(header *types.Header, signers []*Signer) (p uint64) {
 		/*
 			替补出块按照顺序依次增加4秒的延迟
 		*/
-		Main, Subs, Other  = t.config.Period - 1, t.config.Period + 3, t.config.Period + 7
-		number, parentHash = header.Number, header.ParentHash
+		Main, Subs, Other = t.config.Period - 1, t.config.Period + 3, t.config.Period + 7
+		number            = header.Number
 	)
 
 	p = Other
@@ -714,13 +704,7 @@ func (t *Tribe) GetPeriod(header *types.Header, signers []*Signer) (p uint64) {
 	}
 
 	if signers == nil {
-		signers, err = t.Status.GetSignersFromChiefByHash(parentHash, number)
-	}
-
-	if err != nil {
-		log.Error("GetPeriod_getsigners_err", "err", err)
-		p = Other
-		return
+		signers = t.Status.Signers
 	}
 
 	sl := len(signers)
