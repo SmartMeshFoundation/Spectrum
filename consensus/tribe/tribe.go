@@ -125,7 +125,7 @@ func New(accman *accounts.Manager, config *params.TribeConfig, _ ethdb.Database)
 	return tribe
 }
 
-func (t *Tribe) Init(hash common.Hash, number *big.Int) {
+func (t *Tribe) Init() {
 	go func() {
 		t.lock.Lock()
 		defer t.lock.Unlock()
@@ -139,14 +139,7 @@ func (t *Tribe) Init(hash common.Hash, number *big.Int) {
 		if params.InitTribe != nil {
 			close(params.InitTribe)
 		}
-		log.Debug("init tribe.status when chiefservice start end.", "getnodekey", success.Success)
 		t.isInit = true
-		if number.Int64() >= CHIEF_NUMBER {
-			err := t.Status.LoadSignersFromChief(hash, number)
-			if err != nil {
-				log.Error("LoadSignersFromChief on Init", "err", err)
-			}
-		}
 		log.Info("init tribe.status success.")
 	}()
 }

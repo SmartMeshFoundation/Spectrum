@@ -182,7 +182,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Ethereum, error) {
 	eth.ApiBackend.gpo = gasprice.NewOracle(eth.ApiBackend, gpoParams)
 	// add by liangc
 	if tribe, ok := eth.engine.(*tribe.Tribe); ok {
-		tribe.Init(eth.BlockChain().CurrentHeader().Hash(), eth.BlockChain().CurrentHeader().Number)
+		tribe.Init()
 	}
 	return eth, nil
 }

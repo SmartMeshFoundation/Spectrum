@@ -212,23 +212,9 @@ func (self *worker) pendingBlock() *types.Block {
 func (self *worker) start(s chan int) {
 	self.mu.Lock()
 	defer self.mu.Unlock()
-	//add by liangc : sync mining status
-	wg := new(sync.WaitGroup)
-	if tribe, ok := self.engine.(*tribe.Tribe); ok {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			if self.chain.CurrentHeader().Number.Int64() > 3 { // free for genesis signer
-				// pending until miner level upgrade
-				tribe.WaitingNomination()
-				log.Warn("Everything is ready , signer started.")
-			}
-		}()
-	}
 
 	go func() {
 		defer func() { close(s) }()
-		wg.Wait()
 		atomic.StoreInt32(&self.mining, 1)
 		// spin up agents
 		for agent := range self.agents {
