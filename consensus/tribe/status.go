@@ -88,8 +88,8 @@ func (self *TribeStatus) GetMinerAddressByChan(rtn chan common.Address) {
 //	return sl, nil
 //}
 
-// 在 加载完所有 node.service 后，需要主动调用一次
-func (self *TribeStatus) LoadSignersFromChief(hash common.Hash, number *big.Int) error {
+// 在每次出块prepare的时候去获取一次，同时在同步区块的时候去获取一次，同步区块获取的是最新块的父区块信息，出块时获取的是当前本地最新块的状态信息
+func (self *TribeStatus) LoadStatusFromChief(hash common.Hash, number *big.Int) error {
 	//log.Info(fmt.Sprintf("LoadSignersFromChief hash=%s,number=%s", hash.String(), number))
 	cs, err := params.TribeGetStatus(number, hash)
 	if err != nil {
@@ -430,7 +430,7 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 	var err error
 	if validateSigner {
 		//The miner updates the chife contract information when prepare, and the follower  updates the chief contract information whenValidateBlock.
-		err = self.LoadSignersFromChief(parent.Hash(), block.Number())
+		err = self.LoadStatusFromChief(parent.Hash(), block.Number())
 		if err != nil {
 			log.Error(fmt.Sprintf("[ValidateBlock] LoadSignersFromChief ,parent=%s,current=%s,currentNumber=%s", parent.Hash().String(), block.Hash().String(), block.Number()))
 			return err

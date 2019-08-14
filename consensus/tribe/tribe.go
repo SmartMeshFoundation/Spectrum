@@ -395,7 +395,7 @@ func (t *Tribe) verifySeal(chain consensus.ChainReader, header *types.Header, pa
 // Prepare implements consensus.Engine, preparing all the consensus fields of the
 // header for running the transactions on top.
 func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error {
-	err := t.Status.LoadSignersFromChief(header.ParentHash, header.Number)
+	err := t.Status.LoadStatusFromChief(header.ParentHash, header.Number)
 	if err != nil {
 		return err
 	}
