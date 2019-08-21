@@ -501,7 +501,7 @@ func (self *worker) commitNewWork() {
 		log.Debug("Commit new mining work", "number", work.Block.Number(), "txs", work.tcount, "uncles", len(uncles), "elapsed", common.PrettyDuration(time.Since(tstart)))
 		self.unconfirmed.Shift(work.Block.NumberU64() - 1)
 	}
-	log.Info(fmt.Sprintf("xxxxxxxx work=%#v", work))
+	//log.Info(fmt.Sprintf("xxxxxxxx work=%#v", work))
 	self.push(work)
 }
 

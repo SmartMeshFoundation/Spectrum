@@ -539,7 +539,6 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 	now := time.Now()
 	delay := time.Unix(header.Time.Int64(), 0).Sub(now)
 	//fmt.Println(" ---->", "diff", header.Difficulty, "header.time=", header.Time.Int64(), "now=", now.Unix(), "delay=", delay)
-	log.Info(fmt.Sprintf("Seal -> num=%d, diff=%d, miner=%s, delay=%d", number, header.Difficulty, header.Coinbase.Hex(), delay))
 
 	if !params.IsSIP100Block(header.Number) && header.Difficulty.Cmp(diffNoTurn) == 0 {
 		wiggle := time.Duration(len(t.Status.Signers)/2+1) * wiggleTime
