@@ -713,7 +713,9 @@ func (pm *ProtocolManager) BroadcastBlock(block *types.Block, propagate bool) {
 		transfer := peers[:int(math.Sqrt(float64(len(peers))))]
 		for _, peer := range transfer {
 			err := peer.SendNewBlock(block, td)
-			log.Info("SendNewBlock----->", "number", block.Number(), "peer", peer.String(), "err", err)
+			if err != nil {
+				log.Info("SendNewBlock----->", "number", block.Number(), "peer", peer.String(), "err", err)
+			}
 		}
 		log.Info("Propagated block", "hash", hash, "recipients", len(transfer), "duration", common.PrettyDuration(time.Since(block.ReceivedAt)))
 		return
