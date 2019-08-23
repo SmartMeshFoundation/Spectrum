@@ -261,7 +261,7 @@ func (self *worker) update() {
 		select {
 		// Handle ChainHeadEvent
 		case <-self.chainHeadCh:
-			log.Debug("worker commitNewWork because of chainHeadCh")
+			log.Info("worker commitNewWork because of chainHeadCh")
 			self.commitNewWork()
 
 			// Handle ChainSideEvent
@@ -439,6 +439,7 @@ func (self *worker) commitNewWork() {
 		log.Error("Failed to prepare header for mining", "err", err, "number", header.Number)
 		return
 	}
+	log.Info("self.engine.Prepare", "elapsed", common.PrettyDuration(time.Since(tstart)))
 
 	err := self.makeCurrent(parent, header)
 	if err != nil {
@@ -468,7 +469,7 @@ func (self *worker) commitNewWork() {
 	log.Debug("pending_len", "cn", parent.Number().Int64(), "len", len(pending))
 	txs := types.NewTransactionsByPriceAndNonce(self.current.signer, pending)
 	work.commitTransactions(self.mux, txs, self.chain, self.coinbase, header)
-
+	log.Info("commitTransactions", "elapsed", common.PrettyDuration(time.Since(tstart)))
 	// compute uncles for the new block.
 	var (
 		uncles    []*types.Header

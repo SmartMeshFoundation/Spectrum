@@ -1030,6 +1030,7 @@ func (bc *BlockChain) insertChain(chain types.Blocks) (int, []interface{}, []*ty
 	}
 	// Append a single chain head event if we've progressed the chain
 	if lastCanon != nil && bc.LastBlockHash() == lastCanon.Hash() {
+		log.Info("Inserted new block", "number", lastCanon.Number(), "hash", lastCanon.Hash())
 		events = append(events, ChainHeadEvent{lastCanon})
 	}
 	return 0, events, coalescedLogs, nil
