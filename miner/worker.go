@@ -622,9 +622,10 @@ func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsB
 
 func (env *Work) commitTransaction(tx *types.Transaction, bc *core.BlockChain, coinbase common.Address, gp *core.GasPool) (error, []*types.Log) {
 	snap := env.state.Snapshot()
+	tstart := time.Now()
 	log.Info("commitTransaction", "hash", tx.Hash())
 	receipt, _, err := core.ApplyTransaction(env.config, bc, &coinbase, gp, env.state, env.header, tx, env.header.GasUsed, vm.Config{})
-	log.Info("ApplyTransaction", "hash", tx.Hash())
+	log.Info("ApplyTransaction", "hash", tx.Hash(), "elapsed", common.PrettyDuration(time.Since(tstart)))
 	if err != nil {
 		env.state.RevertToSnapshot(snap)
 		return err, nil
