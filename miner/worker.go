@@ -434,7 +434,7 @@ func (self *worker) commitNewWork() {
 	if atomic.LoadInt32(&self.mining) == 1 {
 		header.Coinbase = self.coinbase
 	}
-
+	log.Info("commitNewWork", "elapsed", common.PrettyDuration(time.Since(tstart)))
 	if err := self.engine.Prepare(self.chain, header); err != nil {
 		log.Error("Failed to prepare header for mining", "err", err, "number", header.Number)
 		return
@@ -466,7 +466,7 @@ func (self *worker) commitNewWork() {
 			pending[tribe.Status.GetMinerAddress()] = types.Transactions{chiefTx}
 		}
 	}
-	log.Debug("pending_len", "cn", parent.Number().Int64(), "len", len(pending))
+	log.Info("pending_len", "cn", parent.Number().Int64(), "len", len(pending), "elapsed", common.PrettyDuration(time.Since(tstart)))
 	txs := types.NewTransactionsByPriceAndNonce(self.current.signer, pending)
 	work.commitTransactions(self.mux, txs, self.chain, self.coinbase, header)
 	log.Info("commitTransactions", "elapsed", common.PrettyDuration(time.Since(tstart)))
@@ -622,7 +622,9 @@ func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsB
 
 func (env *Work) commitTransaction(tx *types.Transaction, bc *core.BlockChain, coinbase common.Address, gp *core.GasPool) (error, []*types.Log) {
 	snap := env.state.Snapshot()
+	log.Info("commitTransaction", "hash", tx.Hash())
 	receipt, _, err := core.ApplyTransaction(env.config, bc, &coinbase, gp, env.state, env.header, tx, env.header.GasUsed, vm.Config{})
+	log.Info("ApplyTransaction", "hash", tx.Hash())
 	if err != nil {
 		env.state.RevertToSnapshot(snap)
 		return err, nil
