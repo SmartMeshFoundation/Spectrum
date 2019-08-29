@@ -49,6 +49,7 @@ Building Spectrum requires both a Go (version 1.9.2 or later) and a C compiler. 
     > tribe.bind("account","passwd") 
     
     Or Users can only generate binding signatures at the terminal:
+    
     > tribe.bindSign("account") 
 
 ## Deposit smt to POC
