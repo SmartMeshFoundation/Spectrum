@@ -104,7 +104,6 @@ type worker struct {
 	chainHeadSub event.Subscription
 	chainSideCh  chan core.ChainSideEvent
 	chainSideSub event.Subscription
-	wg           sync.WaitGroup
 
 	agents map[Agent]struct{}
 	recv   chan *Result
@@ -224,7 +223,6 @@ func (self *worker) start(s chan int) {
 }
 
 func (self *worker) stop() {
-	self.wg.Wait()
 
 	self.mu.Lock()
 	defer self.mu.Unlock()
