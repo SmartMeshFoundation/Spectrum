@@ -432,12 +432,12 @@ func (self *worker) commitNewWork() {
 	if atomic.LoadInt32(&self.mining) == 1 {
 		header.Coinbase = self.coinbase
 	}
-	log.Info("commitNewWork", "elapsed", common.PrettyDuration(time.Since(tstart)))
+	log.Info("commitNewWork", "num", parent.Number().Int64(), "elapsed", common.PrettyDuration(time.Since(tstart)))
 	if err := self.engine.Prepare(self.chain, header); err != nil {
 		log.Error("Failed to prepare header for mining", "err", err, "number", header.Number)
 		return
 	}
-	log.Info("self.engine.Prepare", "elapsed", common.PrettyDuration(time.Since(tstart)))
+	log.Info("self.engine.Prepare", "num", parent.Number().Int64(), "elapsed", common.PrettyDuration(time.Since(tstart)))
 
 	err := self.makeCurrent(parent, header)
 	if err != nil {
@@ -447,6 +447,7 @@ func (self *worker) commitNewWork() {
 	// Create the current work task and check any fork transitions needed
 	work := self.current
 
+	log.Info("smakeCurrent", "num", parent.Number().Int64(), "elapsed", common.PrettyDuration(time.Since(tstart)))
 	/*
 		if self.config.DAOForkSupport && self.config.DAOForkBlock != nil && self.config.DAOForkBlock.Cmp(header.Number) == 0 {
 			misc.ApplyDAOHardFork(work.state)
@@ -464,10 +465,10 @@ func (self *worker) commitNewWork() {
 			pending[tribe.Status.GetMinerAddress()] = types.Transactions{chiefTx}
 		}
 	}
-	log.Info("pending_len", "cn", parent.Number().Int64(), "len", len(pending), "elapsed", common.PrettyDuration(time.Since(tstart)))
+	log.Info("pending_len", "num", parent.Number().Int64(), "len", len(pending), "elapsed", common.PrettyDuration(time.Since(tstart)))
 	txs := types.NewTransactionsByPriceAndNonce(self.current.signer, pending)
 	work.commitTransactions(self.mux, txs, self.chain, self.coinbase, header)
-	log.Info("commitTransactions", "elapsed", common.PrettyDuration(time.Since(tstart)))
+	log.Info("commitTransactions", "num", parent.Number().Int64(), "elapsed", common.PrettyDuration(time.Since(tstart)))
 	// compute uncles for the new block.
 	var (
 		uncles    []*types.Header
@@ -620,10 +621,7 @@ func (env *Work) commitTransactions(mux *event.TypeMux, txs *types.TransactionsB
 
 func (env *Work) commitTransaction(tx *types.Transaction, bc *core.BlockChain, coinbase common.Address, gp *core.GasPool) (error, []*types.Log) {
 	snap := env.state.Snapshot()
-	tstart := time.Now()
-	log.Info("commitTransaction", "hash", tx.Hash())
 	receipt, _, err := core.ApplyTransaction(env.config, bc, &coinbase, gp, env.state, env.header, tx, env.header.GasUsed, vm.Config{})
-	log.Info("ApplyTransaction", "hash", tx.Hash(), "elapsed", common.PrettyDuration(time.Since(tstart)))
 	if err != nil {
 		env.state.RevertToSnapshot(snap)
 		return err, nil
