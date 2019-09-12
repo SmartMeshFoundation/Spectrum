@@ -18,12 +18,13 @@
 package consensus
 
 import (
+	"math/big"
+
 	"github.com/SmartMeshFoundation/Spectrum/common"
 	"github.com/SmartMeshFoundation/Spectrum/core/state"
 	"github.com/SmartMeshFoundation/Spectrum/core/types"
 	"github.com/SmartMeshFoundation/Spectrum/params"
 	"github.com/SmartMeshFoundation/Spectrum/rpc"
-	"math/big"
 )
 
 // ChainReader defines a small collection of methods needed to access the local
@@ -52,7 +53,7 @@ type ChainReader interface {
 type Engine interface {
 	// Author retrieves the Ethereum address of the account that minted the given
 	// block, which may be different from the header's coinbase if a consensus
-	// engine is based on signatures.
+	// engine is based on signatures
 	Author(header *types.Header) (common.Address, error)
 
 	// VerifyHeader checks whether a header conforms to the consensus rules of a

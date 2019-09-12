@@ -447,7 +447,7 @@ func (self *worker) commitNewWork() {
 	// Create the current work task and check any fork transitions needed
 	work := self.current
 
-	log.Info("smakeCurrent", "num", parent.Number().Int64(), "elapsed", common.PrettyDuration(time.Since(tstart)))
+	log.Info("makeCurrent", "num", parent.Number().Int64(), "elapsed", common.PrettyDuration(time.Since(tstart)))
 	/*
 		if self.config.DAOForkSupport && self.config.DAOForkBlock != nil && self.config.DAOForkBlock.Cmp(header.Number) == 0 {
 			misc.ApplyDAOHardFork(work.state)

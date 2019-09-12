@@ -22,10 +22,11 @@ import (
 	"math/big"
 	"sort"
 
+	"sync"
+
 	"github.com/SmartMeshFoundation/Spectrum/common"
 	"github.com/SmartMeshFoundation/Spectrum/core/types"
 	"github.com/SmartMeshFoundation/Spectrum/log"
-	"sync"
 )
 
 // nonceHeap is a heap.Interface implementation over 64bit unsigned integers for
@@ -51,10 +52,10 @@ func (h *nonceHeap) Pop() interface{} {
 // txSortedMap is a nonce->transaction hash map with a heap based index to allow
 // iterating over the contents in a nonce-incrementing way.
 type txSortedMap struct {
-	sync.RWMutex // add by liangc
-	items map[uint64]*types.Transaction // Hash map storing the transaction data
-	index *nonceHeap                    // Heap of nonces of all the stored transactions (non-strict mode)
-	cache types.Transactions            // Cache of the transactions already sorted
+	sync.RWMutex                               // add by liangc
+	items        map[uint64]*types.Transaction // Hash map storing the transaction data
+	index        *nonceHeap                    // Heap of nonces of all the stored transactions (non-strict mode)
+	cache        types.Transactions            // Cache of the transactions already sorted
 }
 
 // newTxSortedMap creates a new nonce-sorted transaction map.
@@ -219,7 +220,11 @@ func (m *txSortedMap) Len() int {
 // sorted internal representation. The result of the sorting is cached in case
 // it's requested again before any modifications are made to the contents.
 func (m *txSortedMap) Flatten() types.Transactions {
+	log.Info("enter flattern...")
 	m.Lock()
+	defer func() {
+		log.Info("exit flattern...")
+	}()
 	defer m.Unlock()
 	// If the sorting was not cached yet, create and cache it
 	if m.cache == nil {
