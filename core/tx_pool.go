@@ -213,11 +213,7 @@ func (self *safePending) asList() (list []struct {
 	key common.Address
 	val *txList
 }) {
-	log.Info("enter aslist...")
 	self.RLock()
-	defer func() {
-		log.Info("exit aslist...")
-	}()
 	defer self.RUnlock()
 	size := len(self.pending)
 	list = make([]struct {
@@ -628,11 +624,7 @@ func (pool *TxPool) Content() (map[common.Address]types.Transactions, map[common
 // account and sorted by nonce. The returned transaction set is a copy and can be
 // freely modified by calling code.
 func (pool *TxPool) Pending() (map[common.Address]types.Transactions, error) {
-	log.Info("enter pending...")
 	pool.mu.Lock()
-	defer func() {
-		log.Info("exit pending...")
-	}()
 	defer pool.mu.Unlock()
 
 	var (

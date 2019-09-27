@@ -259,7 +259,7 @@ func (self *worker) update() {
 		select {
 		// Handle ChainHeadEvent
 		case <-self.chainHeadCh:
-			log.Info("worker commitNewWork because of chainHeadCh")
+			log.Debug("worker commitNewWork because of chainHeadCh")
 			self.commitNewWork()
 
 			// Handle ChainSideEvent
@@ -432,12 +432,11 @@ func (self *worker) commitNewWork() {
 	if atomic.LoadInt32(&self.mining) == 1 {
 		header.Coinbase = self.coinbase
 	}
-	log.Info("commitNewWork", "num", parent.Number().Int64(), "elapsed", common.PrettyDuration(time.Since(tstart)))
+
 	if err := self.engine.Prepare(self.chain, header); err != nil {
 		log.Error("Failed to prepare header for mining", "err", err, "number", header.Number)
 		return
 	}
-	log.Info("self.engine.Prepare", "num", parent.Number().Int64(), "elapsed", common.PrettyDuration(time.Since(tstart)))
 
 	err := self.makeCurrent(parent, header)
 	if err != nil {
@@ -447,7 +446,6 @@ func (self *worker) commitNewWork() {
 	// Create the current work task and check any fork transitions needed
 	work := self.current
 
-	log.Info("makeCurrent", "num", parent.Number().Int64(), "elapsed", common.PrettyDuration(time.Since(tstart)))
 	/*
 		if self.config.DAOForkSupport && self.config.DAOForkBlock != nil && self.config.DAOForkBlock.Cmp(header.Number) == 0 {
 			misc.ApplyDAOHardFork(work.state)
@@ -465,10 +463,10 @@ func (self *worker) commitNewWork() {
 			pending[tribe.Status.GetMinerAddress()] = types.Transactions{chiefTx}
 		}
 	}
-	log.Info("pending_len", "num", parent.Number().Int64(), "len", len(pending), "elapsed", common.PrettyDuration(time.Since(tstart)))
+	log.Debug("pending_len", "cn", parent.Number().Int64(), "len", len(pending))
 	txs := types.NewTransactionsByPriceAndNonce(self.current.signer, pending)
 	work.commitTransactions(self.mux, txs, self.chain, self.coinbase, header)
-	log.Info("commitTransactions", "num", parent.Number().Int64(), "elapsed", common.PrettyDuration(time.Since(tstart)))
+
 	// compute uncles for the new block.
 	var (
 		uncles    []*types.Header
@@ -498,9 +496,10 @@ func (self *worker) commitNewWork() {
 	}
 	// We only care about logging if we're actually mining.
 	if atomic.LoadInt32(&self.mining) == 1 {
-		log.Info("Commit new mining work", "number", work.Block.Number(), "txs", work.tcount, "uncles", len(uncles), "elapsed", common.PrettyDuration(time.Since(tstart)))
+		log.Debug("Commit new mining work", "number", work.Block.Number(), "txs", work.tcount, "uncles", len(uncles), "elapsed", common.PrettyDuration(time.Since(tstart)))
 		self.unconfirmed.Shift(work.Block.NumberU64() - 1)
 	}
+	//log.Info(fmt.Sprintf("xxxxxxxx work=%#v", work))
 	self.push(work)
 }
 

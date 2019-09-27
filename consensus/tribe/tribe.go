@@ -483,9 +483,7 @@ func (t *Tribe) GetChiefUpdateTx(chain consensus.ChainReader, header *types.Head
 	if params.IsSIP100Block(parentNumber) {
 		vrf = new(big.Int).SetBytes(header.Extra[:32])
 	}
-	tstart := time.Now()
 	nextRoundSigner := params.Chief100GetNextRoundSigner(parentHash, parentNumber, vrf)
-	log.Info("GetChiefUpdateTx", "num", parentNumber.Int64(), "elapsed", common.PrettyDuration(time.Since(tstart)))
 	nonce := state.GetNonce(t.Status.GetMinerAddress())
 	txData, err := hex.DecodeString("1c1b8772000000000000000000000000") //这个是4字节chiefUpdate函数标识以及12字节的0
 	if err != nil {
@@ -495,7 +493,6 @@ func (t *Tribe) GetChiefUpdateTx(chain consensus.ChainReader, header *types.Head
 	rawTx := types.NewTransaction(nonce, params.GetChiefInfo(header.Number).Addr, big.NewInt(0), chiefGasLimit, chiefGasPrice, txData)
 	auth := bind.NewKeyedTransactor(t.Status.getNodekey())
 	signedTx, err := auth.Signer(types.NewEIP155Signer(chain.Config().ChainId), auth.From, rawTx)
-	log.Info("auth.Signer", "num", parentNumber.Int64(), "elapsed", common.PrettyDuration(time.Since(tstart)))
 	if err != nil {
 		panic(fmt.Sprintf("sign tx:%s", err))
 	}
