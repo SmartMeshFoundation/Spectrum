@@ -215,9 +215,8 @@ func (self *safePending) asList() (list []struct {
 }) {
 	log.Info("enter aslist...")
 	self.RLock()
-	log.Info("aslist got lock...")
 	defer func() {
-		log.Info(fmt.Sprintf("exit aslist...,pendings=%d", len(self.pending)))
+		log.Info("exit aslist...")
 	}()
 	defer self.RUnlock()
 	size := len(self.pending)
