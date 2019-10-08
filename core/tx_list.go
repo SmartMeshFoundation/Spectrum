@@ -220,11 +220,7 @@ func (m *txSortedMap) Len() int {
 // sorted internal representation. The result of the sorting is cached in case
 // it's requested again before any modifications are made to the contents.
 func (m *txSortedMap) Flatten() types.Transactions {
-	log.Info("enter flattern...")
 	m.Lock()
-	defer func() {
-		log.Info("exit flattern...")
-	}()
 	defer m.Unlock()
 	// If the sorting was not cached yet, create and cache it
 	if m.cache == nil {
