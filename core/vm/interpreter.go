@@ -120,6 +120,7 @@ func (in *Interpreter) Run(contract *Contract, input []byte) (ret []byte, err er
 
 	// Don't bother with the execution if there's no code.
 	if len(contract.Code) == 0 {
+		fmt.Println("=>>>>>>>>>>>>>Run=>>>>contract.Code", contract.CodeAddr.Hex())
 		return nil, nil
 	}
 
@@ -235,7 +236,7 @@ func (in *Interpreter) Run(contract *Contract, input []byte) (ret []byte, err er
 		case operation.reverts:
 			return res, errExecutionReverted
 		case operation.halts:
-			//fmt.Println("<2><.><.>", codehash.Hex(), "op = ", op, ", cost = ", cost, " , final.contract.Gas = ", contract.Gas)
+			//fmt.Println("<2><.><.>", contract.CodeAddr.Hex(), "op = ", op, ", cost = ", cost, " , final.contract.Gas = ", contract.Gas)
 			return res, nil
 		case !operation.jumps:
 			pc++
