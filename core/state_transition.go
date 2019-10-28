@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"strings"
 
 	"github.com/SmartMeshFoundation/Spectrum/common"
 	"github.com/SmartMeshFoundation/Spectrum/common/math"
@@ -277,12 +278,15 @@ func (st *StateTransition) TransitionDb() (ret []byte, requiredGas, usedGas *big
 		// Increment the nonce for the next transaction
 		st.state.SetNonce(sender.Address(), st.state.GetNonce(sender.Address())+1)
 		ret, st.gas, vmerr = evm.Call(sender, st.to().Address(), st.data, st.gas, st.value)
-		if len(ret) == 0 {
+		if len(ret) == 0 && strings.EqualFold(st.to().Address().Hex(), params.MainnetChainConfig.PocAddress.Hex()) {
 			fmt.Println(sender.Address().Hex(), "--->", st.to().Address().Hex(), " : gas =", st.gas, "vmerr =", vmerr)
 		}
 	}
 	if vmerr != nil {
-		log.Debug("VM returned with error", "err", vmerr)
+		if strings.EqualFold(st.to().Address().Hex(), params.MainnetChainConfig.PocAddress.Hex()) {
+			log.Error("VM returned with error", "err", vmerr)
+		}
+
 		// The only possible consensus-error would be if there wasn't
 		// sufficient balance to make the transfer happen. The first
 		// balance transfer may never fail.
