@@ -603,7 +603,7 @@ func (self *TribeService) minerList(num *big.Int, hash common.Hash) []common.Add
 		nl   = make([]common.Address, 0)
 		opts = new(bind.CallOptsWithNumber)
 	)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 	opts.Context = ctx
 	opts.Hash = &hash

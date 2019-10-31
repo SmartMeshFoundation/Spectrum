@@ -537,7 +537,7 @@ func (self *StatuteService) pocGetAll(mbox params.Mbox) {
 		}
 		mbox.Rtn <- success
 	}()
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 	opts := &bind.CallOptsWithNumber{}
 	opts.Context = ctx
