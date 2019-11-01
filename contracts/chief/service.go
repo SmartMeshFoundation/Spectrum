@@ -607,8 +607,10 @@ func (self *TribeService) minerList(num *big.Int, hash common.Hash) []common.Add
 	defer cancel()
 	opts.Context = ctx
 	opts.Hash = &hash
-
+	tstart := time.Now()
 	vll, err := self.poc.GetNormalList(opts)
+	log.Info("GetNormalList", "elapsed", common.PrettyDuration(time.Since(tstart)))
+
 	if err != nil {
 		log.Error("poc.GetNormalList__fail", "err", err)
 	}
