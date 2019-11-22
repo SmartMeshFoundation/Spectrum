@@ -714,10 +714,10 @@ func (pm *ProtocolManager) BroadcastBlock(block *types.Block, propagate bool) {
 		for _, peer := range transfer {
 			err := peer.SendNewBlock(block, td)
 			if err != nil {
-				log.Info("SendNewBlock----->", "number", block.Number(), "peer", peer.String(), "err", err)
+				log.Error("SendNewBlock----->", "number", block.Number(), "peer", peer.String(), "err", err)
 			}
 		}
-		log.Info("Propagated block", "hash", hash, "recipients", len(transfer), "duration", common.PrettyDuration(time.Since(block.ReceivedAt)))
+		log.Trace("Propagated block", "hash", hash, "recipients", len(transfer), "duration", common.PrettyDuration(time.Since(block.ReceivedAt)))
 		return
 	}
 	// Otherwise if the block is indeed in out own chain, announce it
@@ -725,10 +725,10 @@ func (pm *ProtocolManager) BroadcastBlock(block *types.Block, propagate bool) {
 		for _, peer := range peers {
 			err := peer.SendNewBlockHashes([]common.Hash{hash}, []uint64{block.NumberU64()})
 			if err != nil {
-				log.Info("SendNewBlockHashes----->", "number", block.Number(), "peer", peer.String(), "err", err)
+				log.Error("SendNewBlockHashes----->", "number", block.Number(), "peer", peer.String(), "err", err)
 			}
 		}
-		log.Info("Announced block", "hash", hash, "recipients", len(peers), "duration", common.PrettyDuration(time.Since(block.ReceivedAt)))
+		log.Trace("Announced block", "hash", hash, "recipients", len(peers), "duration", common.PrettyDuration(time.Since(block.ReceivedAt)))
 	}
 }
 
