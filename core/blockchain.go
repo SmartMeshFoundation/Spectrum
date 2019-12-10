@@ -632,7 +632,15 @@ func (bc *BlockChain) procFutureBlocks() {
 
 		// Insert one by one as chain insertion needs contiguous ancestry between blocks
 		for i := range blocks {
-			bc.InsertChain(blocks[i : i+1])
+			_, err := bc.InsertChain(blocks[i : i+1])
+			if err != nil {
+				number := blocks[i].NumberU64()
+				log.Error("InsertChain", "err", err, "block number", number)
+				//this block is too old and has error,so remove it
+				if bc.currentBlock != nil && bc.currentBlock.NumberU64() > number+34 {
+					bc.futureBlocks.Remove(blocks[i].Hash())
+				}
+			}
 		}
 	}
 }
