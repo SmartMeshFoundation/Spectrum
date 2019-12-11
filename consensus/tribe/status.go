@@ -9,8 +9,6 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/SmartMeshFoundation/Spectrum/core/state"
-
 	"github.com/SmartMeshFoundation/Spectrum/common"
 	"github.com/SmartMeshFoundation/Spectrum/core/types"
 	"github.com/SmartMeshFoundation/Spectrum/crypto"
@@ -26,7 +24,7 @@ func NewTribeStatus() *TribeStatus {
 	return ts
 }
 
-func (self *TribeStatus) setTribe(tribe *Tribe) {
+func (self *TribeStatus) SetTribe(tribe *Tribe) {
 	self.tribe = tribe
 }
 
@@ -34,6 +32,14 @@ func (self *TribeStatus) getNodekey() *ecdsa.PrivateKey {
 	if self.nodeKey == nil {
 		panic(errors.New("GetNodekey but nodekey not ready"))
 	}
+	return self.nodeKey
+}
+
+func (self *TribeStatus) SetNodeKey(nodeKey *ecdsa.PrivateKey) {
+	self.nodeKey = nodeKey
+}
+
+func (self *TribeStatus) GetNodeKey() *ecdsa.PrivateKey {
 	return self.nodeKey
 }
 
@@ -423,7 +429,7 @@ VerifySignerBalance: 在chief1.0之前直接通过账号余额来判断是否具
 // every block
 // sync download or mine
 // check chief tx
-func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *types.Block, validateSigner bool) error {
+func (self *TribeStatus) ValidateBlock(parent, block *types.Block, validateSigner bool) error {
 	if block.Number().Int64() <= CHIEF_NUMBER {
 		return nil
 	}
@@ -492,12 +498,11 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 				if err != nil {
 					return err
 				}
+
 				if from == nil || *from != signer {
 					return ErrTribeChiefTxSignerAndBlockSignerNotMatch
 				}
-			}
-			//verify volunteer
-			if state != nil {
+
 				if params.IsSIP100Block(header.Number) {
 					// TODO SIP100 check volunteer by vrfnp
 					volunteerHex := common.Bytes2Hex(tx.Data()[4:])
@@ -507,16 +512,6 @@ func (self *TribeStatus) ValidateBlock(state *state.StateDB, parent, block *type
 						return errors.New("verify_volunteer_fail")
 					}
 				}
-				//else {
-				//	volunteerHex := common.Bytes2Hex(tx.Data()[4:])
-				//	volunteer := common.HexToAddress(volunteerHex)
-				//	if volunteer != common.HexToAddress("0x") {
-				//		log.Debug("<<TribeStatus.ValidateBlock>> verify_volunteer =>", "num", number, "v", volunteer.Hex())
-				//		if err := self.VerifySignerBalance(state, volunteer, parent.Header()); err != nil {
-				//			return err
-				//		}
-				//	}
-				//}
 			}
 			total++
 		}

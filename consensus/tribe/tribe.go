@@ -80,10 +80,13 @@ func ecrecover(header *types.Header, t *Tribe) (common.Address, error) {
 		return signer, nil
 	}
 	sigcache := t.sigcache
+
 	// If the signature's already cached, return that
 	hash := header.Hash()
-	if address, known := sigcache.Get(hash); known {
-		return address.(common.Address), nil
+	if sigcache != nil {
+		if address, known := sigcache.Get(hash); known {
+			return address.(common.Address), nil
+		}
 	}
 	// Retrieve the signature from the header extra-data
 	if len(header.Extra) < extraSeal {
@@ -98,8 +101,9 @@ func ecrecover(header *types.Header, t *Tribe) (common.Address, error) {
 	}
 	var signer common.Address
 	copy(signer[:], crypto.Keccak256(pubkey[1:])[12:])
-
-	sigcache.Add(hash, signer)
+	if sigcache != nil {
+		sigcache.Add(hash, signer)
+	}
 
 	return signer, nil
 }
@@ -121,7 +125,7 @@ func New(accman *accounts.Manager, config *params.TribeConfig, _ ethdb.Database)
 		Status:   status,
 		sigcache: sigcache,
 	}
-	status.setTribe(tribe)
+	status.SetTribe(tribe)
 	return tribe
 }
 
@@ -142,6 +146,10 @@ func (t *Tribe) Init() {
 		t.isInit = true
 		log.Info("init tribe.status success.")
 	}()
+}
+
+func (t *Tribe) SetConfig(config *params.TribeConfig) {
+	t.config = config
 }
 
 // Author implements consensus.Engine, returning the Ethereum address recovered
@@ -519,7 +527,7 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 	if block.Number().Cmp(big.NewInt(CHIEF_NUMBER)) <= 0 {
 		return nil, errors.New("never mining block before #3")
 	}
-	if err := t.Status.ValidateBlock(nil, chain.GetBlock(block.ParentHash(), block.NumberU64()-1), block, false); err != nil {
+	if err := t.Status.ValidateBlock(chain.GetBlock(block.ParentHash(), block.NumberU64()-1), block, false); err != nil {
 		log.Error("Tribe_Seal", "number", block.Number().Int64(), "err", err)
 		//log.Error("Tribe_Seal", "retry", atomic.LoadUint32(&t.SealErrorCounter), "number", block.Number().Int64(), "err", err)
 		return nil, err

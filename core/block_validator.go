@@ -17,6 +17,8 @@
 package core
 
 import (
+	"crypto/ecdsa"
+
 	"fmt"
 	"math/big"
 
@@ -34,9 +36,10 @@ import (
 //
 // BlockValidator implements Validator.
 type BlockValidator struct {
-	config *params.ChainConfig // Chain configuration options
-	bc     *BlockChain         // Canonical block chain
-	engine consensus.Engine    // Consensus engine used for validating
+	config  *params.ChainConfig // Chain configuration options
+	bc      *BlockChain         // Canonical block chain
+	engine  consensus.Engine    // Consensus engine used for validating
+	nodeKey *ecdsa.PrivateKey   // private key for miner
 }
 
 // NewBlockValidator returns a new block validator which is safe for re-use
@@ -53,9 +56,25 @@ func NewBlockValidator(config *params.ChainConfig, blockchain *BlockChain, engin
 // header's transaction and uncle roots. The headers are assumed to be already
 // validated at this point.
 func (v *BlockValidator) ValidateBody(parent, block *types.Block) error {
-	if tribe, ok := v.engine.(*tribe.Tribe); ok && block.Number().Int64() > 3 {
-		statedb, _ := state.New(parent.Root(), v.bc.stateCache)
-		if err := tribe.Status.ValidateBlock(statedb, parent, block, true); err != nil {
+
+	status := &tribe.TribeStatus{}
+	config := &params.TribeConfig{
+		Period: uint64(15),
+	}
+	tribenew := &tribe.Tribe{
+		Status: status,
+	}
+	tribenew.SetConfig(config)
+	status.SetTribe(tribenew)
+	if v.nodeKey == nil {
+		rtn := params.SendToMsgBox("GetNodeKey")
+		success := <-rtn
+		v.nodeKey = success.Entity.(*ecdsa.PrivateKey)
+	}
+	status.SetNodeKey(v.nodeKey)
+
+	if block.Number().Int64() > 3 {
+		if err := status.ValidateBlock(parent, block, true); err != nil {
 			log.Error("BlockValidator.ValidateBody", "number", block.Number().Int64(), "err", err)
 			return err
 		}
