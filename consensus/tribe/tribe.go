@@ -147,7 +147,9 @@ func (t *Tribe) Init() {
 		log.Info("init tribe.status success.")
 	}()
 }
-
+func (t *Tribe) GetConfig() *params.TribeConfig {
+	return t.config
+}
 func (t *Tribe) SetConfig(config *params.TribeConfig) {
 	t.config = config
 }
