@@ -219,7 +219,7 @@ func CreateDB(ctx *node.ServiceContext, config *Config, name string) (ethdb.Data
 
 // CreateConsensusEngine creates the required type of consensus engine instance for an Ethereum service
 func CreateConsensusEngine(ctx *node.ServiceContext, config *ethash.Config, chainConfig *params.ChainConfig, db ethdb.Database) consensus.Engine {
-	// add by liangc : start tribe engine : DPOA ??
+	// add by liangc : start tribe engine : POS
 	if chainConfig.Tribe != nil {
 		return tribe.New(ctx.AccountManager, chainConfig.Tribe, db)
 	}
