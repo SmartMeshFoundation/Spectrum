@@ -140,6 +140,9 @@ func (s *PublicTxPoolAPI) Status() map[string]hexutil.Uint {
 		"queued":  hexutil.Uint(queue),
 	}
 }
+func (b *PublicTxPoolAPI) GetPoolNonce(ctx context.Context, addr common.Address) (uint64, error) {
+	return b.b.GetPoolNonce(ctx, addr)
+}
 
 // Inspect retrieves the content of the transaction pool and flattens it into an
 // easily inspectable list.
