@@ -716,12 +716,6 @@ web3._extend({
 				return status;
 			}
 		}),
-        new web3._extend.Method({
-			name: 'getPoolNonce',
-			call: 'txpool_getPoolNonce',
-			params: 1,
-			inputFormatter: [null]
-		}),
 	]
 });
 `
