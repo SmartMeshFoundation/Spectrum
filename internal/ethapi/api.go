@@ -630,8 +630,15 @@ func (s *PublicBlockChainAPI) _doCall(ctx context.Context, args CallArgs, vmCfg 
 	// or, in case of unmetered gas, setup a context with a timeout.
 	var cancel context.CancelFunc
 	if vmCfg.DisableGasMetering {
-		//如果是普通出块节点默认 5秒 记得修改
-		ctx, cancel = context.WithTimeout(ctx, time.Second*60)
+		var timeout time.Duration
+		deadline, ok := ctx.Deadline()
+		if ok {
+			timeout = deadline.Sub(time.Now())
+		} else {
+			timeout = time.Second * 5
+		}
+		ctx, cancel = context.WithTimeout(ctx, timeout)
+
 	} else {
 		ctx, cancel = context.WithCancel(ctx)
 	}
