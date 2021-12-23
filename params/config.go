@@ -36,7 +36,7 @@ var (
 		HomesteadBlock: big.NewInt(0),
 		DAOForkBlock:   nil,
 		DAOForkSupport: false,
-		EIP150Block:    nil,
+		EIP150Block:    big.NewInt(0),
 		EIP150Hash:     common.Hash{},
 		EIP155Block:    big.NewInt(0),
 		EIP158Block:    big.NewInt(0),
@@ -66,8 +66,9 @@ var (
 
 		Chief100Block:   big.NewInt(2823366),
 		Chief100Address: common.HexToAddress("0x890eb8566550e7337c7788ff971a3996860c51b5"),
+		Tribe:           &TribeConfig{},
 
-		Tribe: &TribeConfig{},
+		Sip004Block: big.NewInt(8360000),
 	}
 
 	// TestnetChainConfig contains the chain parameters to run a node on the Ropsten test network.
@@ -76,7 +77,7 @@ var (
 		HomesteadBlock: big.NewInt(0),
 		DAOForkBlock:   nil,
 		DAOForkSupport: true,
-		EIP150Block:    nil,
+		EIP150Block:    big.NewInt(0),
 		EIP150Hash:     common.Hash{},
 		EIP155Block:    big.NewInt(0),
 		EIP158Block:    big.NewInt(0),
@@ -123,6 +124,8 @@ var (
 		Chief100Address: common.HexToAddress("0x695249d987d10bcccda9bcaa3090db8565c317d1"),
 
 		Tribe: &TribeConfig{},
+
+		Sip004Block: big.NewInt(5555555),
 	}
 
 	// DevnetChainConfig contains the chain parameters to run a node on the Ropsten test network.
@@ -131,7 +134,7 @@ var (
 		HomesteadBlock: big.NewInt(0),
 		DAOForkBlock:   nil,
 		DAOForkSupport: false,
-		EIP150Block:    nil,
+		EIP150Block:    big.NewInt(0),
 		EIP150Hash:     common.Hash{},
 		EIP155Block:    big.NewInt(0),
 		EIP158Block:    big.NewInt(0),
@@ -196,7 +199,8 @@ var (
 		SIP002Block: big.NewInt(1),
 		SIP003Block: big.NewInt(3),
 
-		Tribe: &TribeConfig{Period: 3},
+		Tribe:       &TribeConfig{Period: 3},
+		Sip004Block: big.NewInt(4),
 	}
 
 	// AllEthashProtocolChanges contains every protocol change (EIPs) introduced
@@ -327,6 +331,8 @@ type ChainConfig struct {
 
 	Anmap001Block   *big.Int       `json:"anmap001Block,omitempty"`
 	Anmap001Address common.Address `json:"anmap001Address,omitempty"`
+
+	Sip004Block *big.Int `json:"sip2021,omitempty"`
 }
 
 // EthashConfig is the consensus engine configs for proof-of-work based sealing.
@@ -409,6 +415,10 @@ func (c *ChainConfig) IsEIP158(num *big.Int) bool {
 func (c *ChainConfig) IsByzantium(num *big.Int) bool {
 	// add by liangc : set default byzantium
 	return isForked(c.ByzantiumBlock, num)
+}
+func (c *ChainConfig) IsSip004(num *big.Int) bool {
+	// add by liangc : set default byzantium
+	return isForked(c.Sip004Block, num)
 }
 
 // GasTable returns the gas table corresponding to the current phase (homestead or homestead reprice).
@@ -538,6 +548,7 @@ type Rules struct {
 	ChainId                                   *big.Int
 	IsHomestead, IsEIP150, IsEIP155, IsEIP158 bool
 	IsByzantium                               bool
+	IsSip004                                  bool
 }
 
 func (c *ChainConfig) Rules(num *big.Int) Rules {
@@ -545,5 +556,5 @@ func (c *ChainConfig) Rules(num *big.Int) Rules {
 	if chainId == nil {
 		chainId = new(big.Int)
 	}
-	return Rules{ChainId: new(big.Int).Set(chainId), IsHomestead: c.IsHomestead(num), IsEIP150: c.IsEIP150(num), IsEIP155: c.IsEIP155(num), IsEIP158: c.IsEIP158(num), IsByzantium: c.IsByzantium(num)}
+	return Rules{ChainId: new(big.Int).Set(chainId), IsHomestead: c.IsHomestead(num), IsEIP150: c.IsEIP150(num), IsEIP155: c.IsEIP155(num), IsEIP158: c.IsEIP158(num), IsByzantium: c.IsByzantium(num), IsSip004: c.IsSip004(num)}
 }
