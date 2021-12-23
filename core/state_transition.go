@@ -19,7 +19,6 @@ package core
 import (
 	"errors"
 	"github.com/SmartMeshFoundation/Spectrum/common"
-	"github.com/SmartMeshFoundation/Spectrum/common/math"
 	"github.com/SmartMeshFoundation/Spectrum/core/vm"
 	"github.com/SmartMeshFoundation/Spectrum/log"
 	"github.com/SmartMeshFoundation/Spectrum/params"
@@ -199,7 +198,6 @@ func (st *StateTransition) buyGas() error {
 	}
 	st.gas += mgas.Uint64()
 	st.initialGas.Set(mgas)
-
 	// if chief tx skip balance verify.
 	if !st.IsChiefSIP100() {
 		isok := state.GetBalance(sender.Address()).Cmp(mgval) < 0
@@ -274,7 +272,9 @@ func (st *StateTransition) TransitionDb() (ret []byte, requiredGas, usedGas *big
 	} else {
 		// Increment the nonce for the next transaction
 		st.state.SetNonce(sender.Address(), st.state.GetNonce(sender.Address())+1)
+		//fmt.Println("-TransitionDb1>>>>>>",st.gas)
 		ret, st.gas, vmerr = evm.Call(sender, st.to().Address(), st.data, st.gas, st.value)
+		//fmt.Println("-TransitionDb2>>>>>>",st.gas)
 	}
 	if vmerr != nil {
 		log.Debug("VM returned with error", "err", vmerr)
@@ -303,17 +303,39 @@ func (st *StateTransition) TransitionDb() (ret []byte, requiredGas, usedGas *big
 func (st *StateTransition) refundGas() {
 	// Return eth for remaining gas to the sender account,
 	// exchanged at the original rate.
-	sender := st.from() // err already checked
+	//sender := st.from() // err already checked
+	//remaining := new(big.Int).Mul(new(big.Int).SetUint64(st.gas), st.gasPrice)
+	//log.Info("<<StateTransition.refundGas>> 2", "num", st.evm.BlockNumber, "from", sender.Address().Hex(), "gas*price", remaining)
+	//st.state.AddBalance(sender.Address(), remaining)
+	//
+	//// Apply refund counter, capped to half of the used gas.
+	////uhalf := remaining.Div(st.gasUsed(), common.Big2)
+	////refund := math.BigMin(uhalf, st.state.GetRefund())
+	////st.gas += refund.Uint64()
+	////
+	////st.state.AddBalance(sender.Address(), refund.Mul(refund, st.gasPrice))
+	//
+	//uhalf := remaining.Div(st.gasUsed(), common.Big2)
+	//refund := uhalf.Uint64()
+	//if uhalf.Uint64()> st.state.GetRefund(){
+	//	refund = st.state.GetRefund()
+	//}
+	//st.gas += refund
+	//
+	//st.state.AddBalance(sender.Address(), new(big.Int).Mul(new(big.Int).SetUint64(refund), st.gasPrice))
+	//
+	//// Also return remaining gas to the block gas counter so it is
+	//// available for the next transaction.
+	//st.gp.AddGas(new(big.Int).SetUint64(st.gas))
+
+	refund := st.gasUsed().Uint64() / 2
+	if refund > st.state.GetRefund() {
+		refund = st.state.GetRefund()
+	}
+	st.gas += refund
+	// Return ETH for remaining gas, exchanged at the original rate.
 	remaining := new(big.Int).Mul(new(big.Int).SetUint64(st.gas), st.gasPrice)
-	log.Debug("<<StateTransition.refundGas>> 2", "num", st.evm.BlockNumber, "from", sender.Address().Hex(), "gas*price", remaining)
-	st.state.AddBalance(sender.Address(), remaining)
-
-	// Apply refund counter, capped to half of the used gas.
-	uhalf := remaining.Div(st.gasUsed(), common.Big2)
-	refund := math.BigMin(uhalf, st.state.GetRefund())
-	st.gas += refund.Uint64()
-
-	st.state.AddBalance(sender.Address(), refund.Mul(refund, st.gasPrice))
+	st.state.AddBalance(st.msg.From(), remaining)
 
 	// Also return remaining gas to the block gas counter so it is
 	// available for the next transaction.

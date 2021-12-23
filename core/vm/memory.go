@@ -16,7 +16,10 @@
 
 package vm
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/holiman/uint256"
+)
 
 // Memory implements a simple memory model for the ethereum virtual machine.
 type Memory struct {
@@ -43,6 +46,20 @@ func (m *Memory) Set(offset, size uint64, value []byte) {
 	}
 }
 
+// Set32 sets the 32 bytes starting at offset to the value of val, left-padded with zeroes to
+// 32 bytes.
+func (m *Memory) Set32(offset uint64, val *uint256.Int) {
+	// length of store may never be less than offset + size.
+	// The store should be resized PRIOR to setting the memory
+	if offset+32 > uint64(len(m.store)) {
+		panic("invalid memory: store empty")
+	}
+	// Zero the memory area
+	copy(m.store[offset:offset+32], []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0})
+	// Fill in relevant bits
+	val.WriteToSlice(m.store[offset:])
+}
+
 // Resize resizes the memory to size
 func (m *Memory) Resize(size uint64) {
 	if uint64(m.Len()) < size {
@@ -59,6 +76,22 @@ func (self *Memory) Get(offset, size int64) (cpy []byte) {
 	if len(self.store) > int(offset) {
 		cpy = make([]byte, size)
 		copy(cpy, self.store[offset:offset+size])
+
+		return
+	}
+
+	return
+}
+
+// Get returns offset + size as a new slice
+func (m *Memory) GetCopy(offset, size int64) (cpy []byte) {
+	if size == 0 {
+		return nil
+	}
+
+	if len(m.store) > int(offset) {
+		cpy = make([]byte, size)
+		copy(cpy, m.store[offset:offset+size])
 
 		return
 	}

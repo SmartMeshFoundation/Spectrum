@@ -63,6 +63,9 @@ const (
 	XOR
 	NOT
 	BYTE
+	SHL
+	SHR
+	SAR
 
 	SHA3 = 0x20
 )
@@ -84,6 +87,7 @@ const (
 	EXTCODECOPY
 	RETURNDATASIZE
 	RETURNDATACOPY
+	EXTCODEHASH
 )
 
 const (
@@ -94,6 +98,8 @@ const (
 	NUMBER
 	DIFFICULTY
 	GASLIMIT
+	CHAINID     OpCode = 0x46
+	SELFBALANCE OpCode = 0x47
 )
 
 const (
@@ -202,8 +208,8 @@ const (
 	CALLCODE
 	RETURN
 	DELEGATECALL
-	STATICCALL = 0xfa
-
+	CREATE2
+	STATICCALL   = 0xfa
 	REVERT       = 0xfd
 	SELFDESTRUCT = 0xff
 )

@@ -21,6 +21,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/SmartMeshFoundation/Spectrum/eth/tracers"
+	"github.com/SmartMeshFoundation/Spectrum/internal/ethapi"
 	"io/ioutil"
 	"runtime"
 	"sync"
@@ -33,9 +35,7 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/core/state"
 	"github.com/SmartMeshFoundation/Spectrum/core/types"
 	"github.com/SmartMeshFoundation/Spectrum/core/vm"
-	"github.com/SmartMeshFoundation/Spectrum/eth/tracers"
 	"github.com/SmartMeshFoundation/Spectrum/ethdb"
-	"github.com/SmartMeshFoundation/Spectrum/internal/ethapi"
 	"github.com/SmartMeshFoundation/Spectrum/log"
 	"github.com/SmartMeshFoundation/Spectrum/rlp"
 	"github.com/SmartMeshFoundation/Spectrum/rpc"
@@ -252,8 +252,12 @@ func (api *PrivateDebugAPI) traceChain(ctx context.Context, start, end *types.Bl
 				for i, tx := range task.block.Transactions() {
 					msg, _ := tx.AsMessage(signer)
 					vmctx := core.NewEVMContext(msg, task.block.Header(), api.eth.blockchain, nil)
-
-					res, err := api.traceTx(ctx, msg, vmctx, task.statedb, config)
+					txctx := &tracers.Context{
+						BlockHash: task.block.Hash(),
+						TxIndex:   i,
+						TxHash:    tx.Hash(),
+					}
+					res, err := api.traceTx(ctx, msg, txctx, vmctx, task.statedb, config)
 					if err != nil {
 						task.results[i] = &txTraceResult{Error: err.Error()}
 						log.Warn("Tracing failed", "err", err)
@@ -486,6 +490,7 @@ func (api *PrivateDebugAPI) traceBlock(ctx context.Context, block *types.Block, 
 	if threads > len(txs) {
 		threads = len(txs)
 	}
+	blockHash := block.Hash()
 	for th := 0; th < threads; th++ {
 		pend.Add(1)
 		go func() {
@@ -496,7 +501,13 @@ func (api *PrivateDebugAPI) traceBlock(ctx context.Context, block *types.Block, 
 				msg, _ := txs[task.index].AsMessage(signer)
 				vmctx := core.NewEVMContext(msg, block.Header(), api.eth.blockchain, nil)
 
-				res, err := api.traceTx(ctx, msg, vmctx, task.statedb, config)
+				txctx := &tracers.Context{
+					BlockHash: blockHash,
+					TxIndex:   task.index,
+					TxHash:    txs[task.index].Hash(),
+				}
+
+				res, err := api.traceTx(ctx, msg, txctx, vmctx, task.statedb, config)
 				if err != nil {
 					results[task.index] = &txTraceResult{Error: err.Error()}
 					continue
@@ -626,17 +637,22 @@ func (api *PrivateDebugAPI) TraceTransaction(ctx context.Context, hash common.Ha
 	if err != nil {
 		return nil, err
 	}
+	txctx := &tracers.Context{
+		BlockHash: blockHash,
+		TxIndex:   int(index),
+		TxHash:    hash,
+	}
 	// Trace the transaction and return
-	return api.traceTx(ctx, msg, vmctx, statedb, config)
+	return api.traceTx(ctx, msg, txctx, vmctx, statedb, config)
 }
 
 // traceTx configures a new tracer according to the provided configuration, and
 // executes the given message in the provided environment. The return value will
 // be tracer dependent.
-func (api *PrivateDebugAPI) traceTx(ctx context.Context, message core.Message, vmctx vm.Context, statedb *state.StateDB, config *TraceConfig) (interface{}, error) {
+func (api *PrivateDebugAPI) traceTx(ctx context.Context, message core.Message, txctx *tracers.Context, vmctx vm.Context, statedb *state.StateDB, config *TraceConfig) (interface{}, error) {
 	// Assemble the structured logger or the JavaScript tracer
 	var (
-		tracer vm.Tracer
+		tracer vm.EVMLogger
 		err    error
 	)
 	switch {
@@ -648,17 +664,19 @@ func (api *PrivateDebugAPI) traceTx(ctx context.Context, message core.Message, v
 				return nil, err
 			}
 		}
-		// Constuct the JavaScript tracer to execute with
-		if tracer, err = tracers.New(*config.Tracer); err != nil {
+		if t, err := tracers.New(*config.Tracer, txctx); err != nil {
 			return nil, err
+		} else {
+			deadlineCtx, cancel := context.WithTimeout(ctx, timeout)
+			go func() {
+				<-deadlineCtx.Done()
+				if errors.Is(deadlineCtx.Err(), context.DeadlineExceeded) {
+					t.Stop(errors.New("execution timeout"))
+				}
+			}()
+			defer cancel()
+			tracer = t
 		}
-		// Handle timeouts and RPC cancellations
-		deadlineCtx, cancel := context.WithTimeout(ctx, timeout)
-		go func() {
-			<-deadlineCtx.Done()
-			tracer.(*tracers.Tracer).Stop(errors.New("execution timeout"))
-		}()
-		defer cancel()
 
 	case config == nil:
 		tracer = vm.NewStructLogger(nil)
@@ -683,12 +701,13 @@ func (api *PrivateDebugAPI) traceTx(ctx context.Context, message core.Message, v
 			StructLogs:  ethapi.FormatLogs(tracer.StructLogs()),
 		}, nil
 
-	case *tracers.Tracer:
+	case tracers.Tracer:
 		return tracer.GetResult()
 
 	default:
 		panic(fmt.Sprintf("bad tracer type %T", tracer))
 	}
+	return nil, nil
 }
 
 // computeTxEnv returns the execution environment of a certain transaction.

@@ -62,7 +62,7 @@ type (
 
 	// Changes to other state values.
 	refundChange struct {
-		prev *big.Int
+		prev uint64
 	}
 	addLogChange struct {
 		txhash common.Hash
@@ -123,6 +123,7 @@ func (ch storageChange) undo(s *StateDB) {
 
 func (ch refundChange) undo(s *StateDB) {
 	s.refund = ch.prev
+
 }
 
 func (ch addLogChange) undo(s *StateDB) {

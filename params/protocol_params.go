@@ -53,6 +53,40 @@ const (
 	MemoryGas        uint64 = 3     // Times the address of the (highest referenced byte in memory + 1). NOTE: referencing happens on read, write and in instructions such as RETURN and CALL.
 	TxDataNonZeroGas uint64 = 68    // Per byte of data attached to a transaction that is not equal to zero. NOTE: Not payable on data of calls between transactions.
 
+	BalanceGasFrontier      uint64 = 20 // The cost of a BALANCE operation
+	ExtcodeSizeGasFrontier  uint64 = 20 // Cost of EXTCODESIZE before EIP 150 (Tangerine)
+	ExtcodeCopyBaseFrontier uint64 = 20
+	SloadGasFrontier        uint64 = 50
+	CallGasFrontier         uint64 = 40  // Once per CALL operation & message call transaction.
+	CallGasEIP150           uint64 = 700 // Static portion of gas for CALL-derivates after EIP 150 (Tangerine)
+
+	BalanceGasEIP150      uint64 = 400 // The cost of a BALANCE operation after Tangerine
+	ExtcodeSizeGasEIP150  uint64 = 700 // Cost of EXTCODESIZE after EIP 150 (Tangerine)
+	SloadGasEIP150        uint64 = 200
+	ExtcodeCopyBaseEIP150 uint64 = 700
+
+	SstoreSentryGasEIP2200            uint64 = 2300  // Minimum gas required to be present for an SSTORE call, not consumed
+	SstoreSetGasEIP2200               uint64 = 20000 // Once per SSTORE operation from clean zero to non-zero
+	SstoreResetGasEIP2200             uint64 = 5000  // Once per SSTORE operation from clean non-zero to something else
+	SstoreClearsScheduleRefundEIP2200 uint64 = 15000 // Once per SSTORE operation for clearing an originally existing storage slot
+
+	NetSstoreClearRefund      uint64 = 15000 // Once per SSTORE operation for clearing an originally existing storage slot
+	NetSstoreResetRefund      uint64 = 4800  // Once per SSTORE operation for resetting to the original non-zero value
+	NetSstoreResetClearRefund uint64 = 19800 // Once per SSTORE operation for resetting to the original zero value
+
+	NetSstoreNoopGas        uint64 = 200   // Once per SSTORE operation if the value doesn't change.
+	NetSstoreInitGas        uint64 = 20000 // Once per SSTORE operation from clean zero.
+	NetSstoreCleanGas       uint64 = 5000  // Once per SSTORE operation from clean non-zero.
+	NetSstoreDirtyGas       uint64 = 200   // Once per SSTORE operation from dirty.
+	SelfdestructRefundGas   uint64 = 24000 // Refunded following a selfdestruct operation.
+	CreateBySelfdestructGas uint64 = 25000
+	SelfdestructGasEIP150   uint64 = 5000 // Cost of SELFDESTRUCT post EIP 150 (Tangerine)
+	// EXP has a dynamic portion depending on the size of the exponent
+	ExpByteFrontier uint64 = 10 // was set to 10 in Frontier
+	ExpByteEIP158   uint64 = 50 // was raised to 50 during Eip158 (Spurious Dragon)
+
+	SloadGasEIP2200 uint64 = 800 // Cost of SLOAD after EIP 2200 (part of Istanbul)
+
 	MaxCodeSize = 24576 // Maximum bytecode to permit for a contract
 
 	// Precompiled contract gas prices
@@ -69,6 +103,9 @@ const (
 	Bn256ScalarMulGas       uint64 = 40000  // Gas needed for an elliptic curve scalar multiplication
 	Bn256PairingBaseGas     uint64 = 100000 // Base price for an elliptic curve pairing check
 	Bn256PairingPerPointGas uint64 = 80000  // Per-point price for an elliptic curve pairing check
+
+	ExtcodeHashGasConstantinople uint64 = 400   // Cost of EXTCODEHASH (introduced in Constantinople)
+	Create2Gas                   uint64 = 32000 // Once per CREATE2 operation
 )
 
 var (
@@ -80,4 +117,5 @@ var (
 	GenesisDifficulty      = big.NewInt(131072)                // Difficulty of the Genesis block.
 	MinimumDifficulty      = big.NewInt(131072)                // The minimum that the difficulty may ever be.
 	DurationLimit          = big.NewInt(13)                    // The decision boundary on the blocktime duration used to determine whether difficulty should go up or not.
+	Sip004GasLimit         = big.NewInt(40000000)              // Minimum gas limit after hardfork
 )

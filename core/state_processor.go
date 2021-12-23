@@ -71,10 +71,12 @@ func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cfg
 	// Iterate over and process the individual transactions
 	for i, tx := range block.Transactions() {
 		statedb.Prepare(tx.Hash(), block.Hash(), i)
+		//fmt.Println("--Process>>>>>>",i,tx.Hash().String())
 		receipt, _, err := ApplyTransaction(p.config, p.bc, nil, gp, statedb, header, tx, totalUsedGas, cfg)
 		if err != nil {
 			return nil, nil, nil, err
 		}
+		//fmt.Println("--Process>>>>>>",totalUsedGas)
 		receipts = append(receipts, receipt)
 		allLogs = append(allLogs, receipt.Logs...)
 	}

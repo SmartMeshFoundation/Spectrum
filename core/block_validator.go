@@ -164,5 +164,16 @@ func CalcGasLimit(parent *types.Block) *big.Int {
 		gl.Add(parent.GasLimit(), decay)
 		gl.Set(math.BigMin(gl, params.TargetGasLimit))
 	}
+	//sip004区块硬分叉开始，提升区块最小的gaslimit
+	sip004Block := params.MainnetChainConfig.Sip004Block
+	if params.IsTestnet() {
+		sip004Block = params.TestnetChainConfig.Sip004Block
+	} else if params.IsDevnet() {
+		sip004Block = params.DevnetChainConfig.Sip004Block
+	}
+	number := parent.Number().Add(parent.Number(), big.NewInt(1))
+	if number.Cmp(sip004Block) >= 0 && gl.Cmp(params.Sip004GasLimit) < 0 {
+		gl = sip004Block
+	}
 	return gl
 }
