@@ -125,7 +125,7 @@ var (
 
 		Tribe: &TribeConfig{},
 
-		Sip004Block: big.NewInt(5555555),
+		Sip004Block: big.NewInt(5537000),
 	}
 
 	// DevnetChainConfig contains the chain parameters to run a node on the Ropsten test network.
