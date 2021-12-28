@@ -173,7 +173,7 @@ func CalcGasLimit(parent *types.Block) *big.Int {
 	}
 	number := parent.Number().Add(parent.Number(), big.NewInt(1))
 	if number.Cmp(sip004Block) >= 0 && gl.Cmp(params.Sip004GasLimit) < 0 {
-		gl = sip004Block
+		gl = params.Sip004GasLimit
 	}
 	return gl
 }
