@@ -342,6 +342,7 @@ func (t *Tribe) verifyCascadingFields(chain consensus.ChainReader, header *types
 	limit := new(big.Int).Set(parent.GasLimit)
 	limit = limit.Div(limit, params.GasLimitBoundDivisor)
 
+	minGasLimit := params.MinGasLimit
 	//sip004区块硬分叉开始，提升区块最小的gaslimit
 	sip004Block := params.MainnetChainConfig.Sip004Block
 	if params.IsTestnet() {
@@ -350,7 +351,11 @@ func (t *Tribe) verifyCascadingFields(chain consensus.ChainReader, header *types
 		sip004Block = params.DevnetChainConfig.Sip004Block
 	}
 
-	if header.Number.Cmp(sip004Block) != 0 && (diff.Cmp(limit) >= 0 || header.GasLimit.Cmp(params.MinGasLimit) < 0) {
+	if header.Number.Cmp(sip004Block) >= 0 {
+		minGasLimit = params.Sip004GasLimit
+	}
+
+	if header.Number.Cmp(sip004Block) != 0 && (diff.Cmp(limit) >= 0 || header.GasLimit.Cmp(minGasLimit) < 0) {
 		return fmt.Errorf("invalid gas limit: have %v, want %v += %v", header.GasLimit, parent.GasLimit, limit)
 	}
 

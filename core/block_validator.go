@@ -156,14 +156,8 @@ func CalcGasLimit(parent *types.Block) *big.Int {
 	*/
 	gl := new(big.Int).Sub(parent.GasLimit(), decay)
 	gl = gl.Add(gl, contrib)
-	gl.Set(math.BigMax(gl, params.MinGasLimit))
 
-	// however, if we're now below the target (TargetGasLimit) we increase the
-	// limit as much as we can (parentGasLimit / 1024 -1)
-	if gl.Cmp(params.TargetGasLimit) < 0 {
-		gl.Add(parent.GasLimit(), decay)
-		gl.Set(math.BigMin(gl, params.TargetGasLimit))
-	}
+	minGasLimit := params.MinGasLimit
 	//sip004区块硬分叉开始，提升区块最小的gaslimit
 	sip004Block := params.MainnetChainConfig.Sip004Block
 	if params.IsTestnet() {
@@ -172,8 +166,17 @@ func CalcGasLimit(parent *types.Block) *big.Int {
 		sip004Block = params.DevnetChainConfig.Sip004Block
 	}
 	number := parent.Number().Add(parent.Number(), big.NewInt(1))
-	if number.Cmp(sip004Block) >= 0 && gl.Cmp(params.Sip004GasLimit) < 0 {
-		gl = params.Sip004GasLimit
+	if number.Cmp(sip004Block) >= 0 {
+		minGasLimit = params.Sip004GasLimit
+	}
+
+	gl.Set(math.BigMax(gl, minGasLimit))
+
+	// however, if we're now below the target (TargetGasLimit) we increase the
+	// limit as much as we can (parentGasLimit / 1024 -1)
+	if gl.Cmp(params.TargetGasLimit) < 0 {
+		gl.Add(parent.GasLimit(), decay)
+		gl.Set(math.BigMin(gl, params.TargetGasLimit))
 	}
 	return gl
 }
