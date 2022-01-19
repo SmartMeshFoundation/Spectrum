@@ -670,7 +670,9 @@ func (api *PrivateDebugAPI) traceTx(ctx context.Context, message core.Message, t
 			deadlineCtx, cancel := context.WithTimeout(ctx, timeout)
 			go func() {
 				<-deadlineCtx.Done()
-				t.Stop(errors.New("execution timeout"))
+				if deadlineCtx.Err() == context.DeadlineExceeded {
+					t.Stop(errors.New("execution timeout"))
+				}
 			}()
 			defer cancel()
 			tracer = t
