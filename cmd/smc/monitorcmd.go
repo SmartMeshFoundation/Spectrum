@@ -16,6 +16,7 @@
 
 package main
 
+/* add by liangc : 220128
 import (
 	"fmt"
 	"math"
@@ -349,3 +350,4 @@ func updateFooter(ctx *cli.Context, err error, footer *termui.Par) {
 		footer.TextFgColor = termui.ColorRed | termui.AttrBold
 	}
 }
+*/

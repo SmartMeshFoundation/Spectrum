@@ -19,14 +19,13 @@ package rpc
 import (
 	"context"
 	"fmt"
+	"github.com/SmartMeshFoundation/Spectrum/log"
+	mapset "github.com/deckarep/golang-set"
 	"reflect"
 	"runtime"
 	"strings"
 	"sync"
 	"sync/atomic"
-
-	"github.com/SmartMeshFoundation/Spectrum/log"
-	"gopkg.in/fatih/set.v0"
 )
 
 const MetadataApi = "rpc"
@@ -46,7 +45,7 @@ const (
 func NewServer() *Server {
 	server := &Server{
 		services: make(serviceRegistry),
-		codecs:   set.New(),
+		codecs:   mapset.NewSet(),
 		run:      1,
 	}
 

@@ -31,7 +31,7 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/core/state"
 	"github.com/SmartMeshFoundation/Spectrum/core/types"
 	"github.com/SmartMeshFoundation/Spectrum/params"
-	set "gopkg.in/fatih/set.v0"
+	mapset "github.com/deckarep/golang-set"
 )
 
 // Ethash proof-of-work protocol constants.
@@ -178,7 +178,8 @@ func (ethash *Ethash) VerifyUncles(chain consensus.ChainReader, block *types.Blo
 		return errTooManyUncles
 	}
 	// Gather the set of past uncles and ancestors
-	uncles, ancestors := set.New(), make(map[common.Hash]*types.Header)
+	uncles := mapset.NewSet()
+	ancestors := make(map[common.Hash]*types.Header)
 
 	number, parent := block.NumberU64()-1, block.ParentHash()
 	for i := 0; i < 7; i++ {
@@ -199,7 +200,7 @@ func (ethash *Ethash) VerifyUncles(chain consensus.ChainReader, block *types.Blo
 	for _, uncle := range block.Uncles() {
 		// Make sure every uncle is rewarded only once
 		hash := uncle.Hash()
-		if uncles.Has(hash) {
+		if uncles.Contains(hash) {
 			return errDuplicateUncle
 		}
 		uncles.Add(hash)

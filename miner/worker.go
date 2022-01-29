@@ -18,11 +18,6 @@ package miner
 
 import (
 	"fmt"
-	"math/big"
-	"sync"
-	"sync/atomic"
-	"time"
-
 	"github.com/SmartMeshFoundation/Spectrum/common"
 	"github.com/SmartMeshFoundation/Spectrum/consensus"
 	"github.com/SmartMeshFoundation/Spectrum/consensus/tribe"
@@ -34,7 +29,11 @@ import (
 	"github.com/SmartMeshFoundation/Spectrum/event"
 	"github.com/SmartMeshFoundation/Spectrum/log"
 	"github.com/SmartMeshFoundation/Spectrum/params"
-	"gopkg.in/fatih/set.v0"
+	mapset "github.com/deckarep/golang-set"
+	"math/big"
+	"sync"
+	"sync/atomic"
+	"time"
 )
 
 const (
@@ -70,9 +69,9 @@ type Work struct {
 	signer types.Signer
 
 	state     *state.StateDB // apply state changes here
-	ancestors *set.Set       // ancestor set (used for checking uncle parent validity)
-	family    *set.Set       // family set (used for checking uncle invalidity)
-	uncles    *set.Set       // uncle set
+	ancestors mapset.Set     // ancestor set (used for checking uncle parent validity)
+	family    mapset.Set     // family set (used for checking uncle invalidity)
+	uncles    mapset.Set     // uncle set
 	tcount    int            // tx count in cycle
 
 	Block *types.Block // the new block
@@ -373,9 +372,9 @@ func (self *worker) makeCurrent(parent *types.Block, header *types.Header) error
 		config:    self.config,
 		signer:    types.NewEIP155Signer(self.config.ChainId),
 		state:     state,
-		ancestors: set.New(),
-		family:    set.New(),
-		uncles:    set.New(),
+		ancestors: mapset.NewSet(),
+		family:    mapset.NewSet(),
+		uncles:    mapset.NewSet(),
 		header:    header,
 		createdAt: time.Now(),
 	}
@@ -505,13 +504,13 @@ func (self *worker) commitNewWork() {
 
 func (self *worker) commitUncle(work *Work, uncle *types.Header) error {
 	hash := uncle.Hash()
-	if work.uncles.Has(hash) {
+	if work.uncles.Contains(hash) {
 		return fmt.Errorf("uncle not unique")
 	}
-	if !work.ancestors.Has(uncle.ParentHash) {
+	if !work.ancestors.Contains(uncle.ParentHash) {
 		return fmt.Errorf("uncle's parent unknown (%x)", uncle.ParentHash[0:4])
 	}
-	if work.family.Has(hash) {
+	if work.family.Contains(hash) {
 		return fmt.Errorf("uncle already in family (%x)", hash)
 	}
 	work.uncles.Add(uncle.Hash())

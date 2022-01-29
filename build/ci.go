@@ -46,6 +46,7 @@ import (
 	"encoding/base64"
 	"flag"
 	"fmt"
+	"github.com/SmartMeshFoundation/Spectrum/internal/build"
 	"go/parser"
 	"go/token"
 	"io/ioutil"
@@ -55,11 +56,9 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
-
-	"github.com/SmartMeshFoundation/Spectrum/internal/build"
-	"strconv"
 )
 
 var (
@@ -150,8 +149,8 @@ func main() {
 		doTest(os.Args[2:])
 	case "lint":
 		doLint(os.Args[2:])
-	case "archive":
-		doArchive(os.Args[2:])
+	//case "archive":
+	//	doArchive(os.Args[2:])
 	case "debsrc":
 		doDebianSource(os.Args[2:])
 	case "nsis":
@@ -162,8 +161,8 @@ func main() {
 		doXCodeFramework(os.Args[2:])
 	case "xgo":
 		doXgo(os.Args[2:])
-	case "purge":
-		doPurge(os.Args[2:])
+	//case "purge":
+	//	doPurge(os.Args[2:])
 	default:
 		log.Fatal("unknown command ", os.Args[1])
 	}
@@ -182,8 +181,8 @@ func doInstall(cmdline []string) {
 	// failure with outdated Go. This should save them the trouble.
 	govsn := runtime.Version()[2:]
 	vsnarr := strings.Split(govsn, ".")
-	v0,_ := strconv.ParseInt(vsnarr[0], 10, 32)
-	v1,_ := strconv.ParseInt(vsnarr[1], 10, 32)
+	v0, _ := strconv.ParseInt(vsnarr[0], 10, 32)
+	v1, _ := strconv.ParseInt(vsnarr[1], 10, 32)
 	//if runtime.Version() < "go1.7" && !strings.Contains(runtime.Version(), "devel") {
 	if v0 <= 1 && v1 < 9 && !strings.Contains(runtime.Version(), "devel") {
 		log.Println("You have Go version", runtime.Version())
@@ -348,7 +347,7 @@ func doLint(cmdline []string) {
 }
 
 // Release Packaging
-
+/*
 func doArchive(cmdline []string) {
 	var (
 		arch   = flag.String("arch", runtime.GOARCH, "Architecture cross packaging")
@@ -439,6 +438,34 @@ func archiveUpload(archive string, blobstore string, signer string) error {
 			}
 		}
 	}
+	return nil
+}
+*/
+func archiveBasename(arch string, env build.Environment) string {
+	platform := runtime.GOOS + "-" + arch
+	if arch == "arm" {
+		platform += os.Getenv("GOARM")
+	}
+	if arch == "android" {
+		platform = "android-all"
+	}
+	if arch == "ios" {
+		platform = "ios-all"
+	}
+	return platform + "-" + archiveVersion(env)
+}
+
+func archiveVersion(env build.Environment) string {
+	version := build.VERSION()
+	if isUnstableBuild(env) {
+		version += "-unstable"
+	}
+	if env.Commit != "" {
+		version += "-" + env.Commit[:8]
+	}
+	return version
+}
+func archiveUpload(archive string, blobstore string, signer string) error {
 	return nil
 }
 
@@ -692,13 +719,14 @@ func doWindowsInstaller(cmdline []string) {
 	if env.Commit != "" {
 		version[2] += "-" + env.Commit[:8]
 	}
-	installer, _ := filepath.Abs("geth-" + archiveBasename(*arch, env) + ".exe")
+	installer, _ := filepath.Abs("geth.exe")
+	//installer, _ := filepath.Abs("geth-" + archiveBasename(*arch, env) + ".exe")
 	build.MustRunCommand("makensis.exe",
 		"/DOUTPUTFILE="+installer,
 		"/DMAJORVERSION="+version[0],
 		"/DMINORVERSION="+version[1],
 		"/DBUILDVERSION="+version[2],
-		"/DARCH=" + *arch,
+		"/DARCH="+*arch,
 		filepath.Join(*workdir, "geth.nsi"),
 	)
 
@@ -979,7 +1007,7 @@ func xgoTool(args []string) *exec.Cmd {
 }
 
 // Binary distribution cleanups
-
+/*
 func doPurge(cmdline []string) {
 	var (
 		store = flag.String("store", "", `Destination from where to purge archives (usually "gethstore/builds")`)
@@ -1036,3 +1064,4 @@ func doPurge(cmdline []string) {
 		log.Fatal(err)
 	}
 }
+*/

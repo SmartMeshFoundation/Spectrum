@@ -168,7 +168,7 @@ func init() {
 		removedbCommand,
 		dumpCommand,
 		// See monitorcmd.go:
-		monitorCommand,
+		//monitorCommand,
 		// See accountcmd.go:
 		accountCommand,
 		walletCommand,

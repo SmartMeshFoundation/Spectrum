@@ -610,7 +610,7 @@ func (wh *Whisper) add(envelope *Envelope) (bool, error) {
 	if !alreadyCached {
 		wh.envelopes[hash] = envelope
 		if wh.expirations[envelope.Expiry] == nil {
-			wh.expirations[envelope.Expiry] = set.NewNonTS()
+			//wh.expirations[envelope.Expiry] = set.NewNonTS()
 		}
 		if !wh.expirations[envelope.Expiry].Has(hash) {
 			wh.expirations[envelope.Expiry].Add(hash)

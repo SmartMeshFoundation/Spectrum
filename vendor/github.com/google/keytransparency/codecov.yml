@@ -1,3 +1,0 @@
-ignore: 
-  - "**/*.pb.go"     # ignore generated protos
-  - "**/*.pb.gw.go"  # ignore generated protos

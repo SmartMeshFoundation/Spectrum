@@ -1,5 +1,0 @@
-{
-    "tokenLabel": "log",
-    "pin": "1234",
-    "publicKeyPath": "testdata/log-rpc-server-pkcs11.pubkey.pem"
-}
