@@ -17,9 +17,8 @@
 package vm
 
 import (
-	"golang.org/x/crypto/sha3"
-
 	"github.com/SmartMeshFoundation/Spectrum/common"
+	"golang.org/x/crypto/sha3"
 
 	"github.com/SmartMeshFoundation/Spectrum/core/types"
 	"github.com/SmartMeshFoundation/Spectrum/params"

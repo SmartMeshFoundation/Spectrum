@@ -23,6 +23,7 @@ import (
 // OpCode is an EVM opcode
 type OpCode byte
 
+// IsPush specifies if an opcode is a PUSH opcode.
 func (op OpCode) IsPush() bool {
 	switch op {
 	case PUSH1, PUSH2, PUSH3, PUSH4, PUSH5, PUSH6, PUSH7, PUSH8, PUSH9, PUSH10, PUSH11, PUSH12, PUSH13, PUSH14, PUSH15, PUSH16, PUSH17, PUSH18, PUSH19, PUSH20, PUSH21, PUSH22, PUSH23, PUSH24, PUSH25, PUSH26, PUSH27, PUSH28, PUSH29, PUSH30, PUSH31, PUSH32:
@@ -31,91 +32,90 @@ func (op OpCode) IsPush() bool {
 	return false
 }
 
-func (op OpCode) IsStaticJump() bool {
-	return op == JUMP
-}
-
+// 0x0 range - arithmetic ops.
 const (
-	// 0x0 range - arithmetic ops
-	STOP OpCode = iota
-	ADD
-	MUL
-	SUB
-	DIV
-	SDIV
-	MOD
-	SMOD
-	ADDMOD
-	MULMOD
-	EXP
-	SIGNEXTEND
+	STOP       OpCode = 0x0
+	ADD        OpCode = 0x1
+	MUL        OpCode = 0x2
+	SUB        OpCode = 0x3
+	DIV        OpCode = 0x4
+	SDIV       OpCode = 0x5
+	MOD        OpCode = 0x6
+	SMOD       OpCode = 0x7
+	ADDMOD     OpCode = 0x8
+	MULMOD     OpCode = 0x9
+	EXP        OpCode = 0xa
+	SIGNEXTEND OpCode = 0xb
 )
 
+// 0x10 range - comparison ops.
 const (
-	LT OpCode = iota + 0x10
-	GT
-	SLT
-	SGT
-	EQ
-	ISZERO
-	AND
-	OR
-	XOR
-	NOT
-	BYTE
-	SHL
-	SHR
-	SAR
+	LT     OpCode = 0x10
+	GT     OpCode = 0x11
+	SLT    OpCode = 0x12
+	SGT    OpCode = 0x13
+	EQ     OpCode = 0x14
+	ISZERO OpCode = 0x15
+	AND    OpCode = 0x16
+	OR     OpCode = 0x17
+	XOR    OpCode = 0x18
+	NOT    OpCode = 0x19
+	BYTE   OpCode = 0x1a
+	SHL    OpCode = 0x1b
+	SHR    OpCode = 0x1c
+	SAR    OpCode = 0x1d
 
-	SHA3 = 0x20
+	KECCAK256 OpCode = 0x20
 )
 
+// 0x30 range - closure state
 const (
-	// 0x30 range - closure state
-	ADDRESS OpCode = 0x30 + iota
-	BALANCE
-	ORIGIN
-	CALLER
-	CALLVALUE
-	CALLDATALOAD
-	CALLDATASIZE
-	CALLDATACOPY
-	CODESIZE
-	CODECOPY
-	GASPRICE
-	EXTCODESIZE
-	EXTCODECOPY
-	RETURNDATASIZE
-	RETURNDATACOPY
-	EXTCODEHASH
+	ADDRESS        OpCode = 0x30
+	BALANCE        OpCode = 0x31
+	ORIGIN         OpCode = 0x32
+	CALLER         OpCode = 0x33
+	CALLVALUE      OpCode = 0x34
+	CALLDATALOAD   OpCode = 0x35
+	CALLDATASIZE   OpCode = 0x36
+	CALLDATACOPY   OpCode = 0x37
+	CODESIZE       OpCode = 0x38
+	CODECOPY       OpCode = 0x39
+	GASPRICE       OpCode = 0x3a
+	EXTCODESIZE    OpCode = 0x3b
+	EXTCODECOPY    OpCode = 0x3c
+	RETURNDATASIZE OpCode = 0x3d
+	RETURNDATACOPY OpCode = 0x3e
+	EXTCODEHASH    OpCode = 0x3f
 )
 
+// 0x40 range - block operations.
 const (
-	// 0x40 range - block operations
-	BLOCKHASH OpCode = 0x40 + iota
-	COINBASE
-	TIMESTAMP
-	NUMBER
-	DIFFICULTY
-	GASLIMIT
+	BLOCKHASH   OpCode = 0x40
+	COINBASE    OpCode = 0x41
+	TIMESTAMP   OpCode = 0x42
+	NUMBER      OpCode = 0x43
+	DIFFICULTY  OpCode = 0x44
+	RANDOM      OpCode = 0x44 // Same as DIFFICULTY
+	GASLIMIT    OpCode = 0x45
 	CHAINID     OpCode = 0x46
 	SELFBALANCE OpCode = 0x47
+	//BASEFEE     OpCode = 0x48 // todo
 )
 
+// 0x50 range - 'storage' and execution.
 const (
-	// 0x50 range - 'storage' and execution
-	POP OpCode = 0x50 + iota
-	MLOAD
-	MSTORE
-	MSTORE8
-	SLOAD
-	SSTORE
-	JUMP
-	JUMPI
-	PC
-	MSIZE
-	GAS
-	JUMPDEST
+	POP      OpCode = 0x50
+	MLOAD    OpCode = 0x51
+	MSTORE   OpCode = 0x52
+	MSTORE8  OpCode = 0x53
+	SLOAD    OpCode = 0x54
+	SSTORE   OpCode = 0x55
+	JUMP     OpCode = 0x56
+	JUMPI    OpCode = 0x57
+	PC       OpCode = 0x58
+	MSIZE    OpCode = 0x59
+	GAS      OpCode = 0x5a
+	JUMPDEST OpCode = 0x5b
 )
 
 const (
@@ -201,17 +201,19 @@ const (
 	SWAP
 )
 
+// 0xf0 range - closures
 const (
-	// 0xf0 range - closures
-	CREATE OpCode = 0xf0 + iota
-	CALL
-	CALLCODE
-	RETURN
-	DELEGATECALL
-	CREATE2
-	STATICCALL   = 0xfa
-	REVERT       = 0xfd
-	SELFDESTRUCT = 0xff
+	CREATE       OpCode = 0xf0
+	CALL         OpCode = 0xf1
+	CALLCODE     OpCode = 0xf2
+	RETURN       OpCode = 0xf3
+	DELEGATECALL OpCode = 0xf4
+	CREATE2      OpCode = 0xf5
+
+	STATICCALL   OpCode = 0xfa
+	REVERT       OpCode = 0xfd
+	INVALID      OpCode = 0xfe
+	SELFDESTRUCT OpCode = 0xff
 )
 
 // Since the opcodes aren't all in order we can't use a regular slice
@@ -244,7 +246,7 @@ var opCodeToString = map[OpCode]string{
 	MULMOD: "MULMOD",
 
 	// 0x20 range - crypto
-	SHA3: "SHA3",
+	KECCAK256: "KECCAK256",
 
 	// 0x30 range - closure state
 	ADDRESS:        "ADDRESS",
@@ -373,6 +375,8 @@ var opCodeToString = map[OpCode]string{
 	PUSH: "PUSH",
 	DUP:  "DUP",
 	SWAP: "SWAP",
+
+	INVALID: "INVALID",
 }
 
 func (o OpCode) String() string {
@@ -408,7 +412,7 @@ var stringToOp = map[string]OpCode{
 	"BYTE":           BYTE,
 	"ADDMOD":         ADDMOD,
 	"MULMOD":         MULMOD,
-	"SHA3":           SHA3,
+	"KECCAK256":      KECCAK256,
 	"ADDRESS":        ADDRESS,
 	"BALANCE":        BALANCE,
 	"ORIGIN":         ORIGIN,
@@ -519,6 +523,7 @@ var stringToOp = map[string]OpCode{
 	"CALLCODE":       CALLCODE,
 	"REVERT":         REVERT,
 	"SELFDESTRUCT":   SELFDESTRUCT,
+	"INVALID":        INVALID,
 }
 
 func StringToOp(str string) OpCode {

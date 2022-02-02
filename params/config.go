@@ -332,7 +332,7 @@ type ChainConfig struct {
 	Anmap001Block   *big.Int       `json:"anmap001Block,omitempty"`
 	Anmap001Address common.Address `json:"anmap001Address,omitempty"`
 
-	Sip004Block *big.Int `json:"sip2021,omitempty"`
+	Sip004Block *big.Int `json:"sip004Block,omitempty"`
 }
 
 // EthashConfig is the consensus engine configs for proof-of-work based sealing.

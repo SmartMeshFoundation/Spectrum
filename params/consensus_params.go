@@ -250,6 +250,42 @@ func IsSIP003Block(num *big.Int) bool {
 	return false
 }
 
+// add by liangc : 22-01-29
+func IsSIP004Block(num *big.Int) bool {
+	if IsTestnet() {
+		if TestnetChainConfig.Sip004Block.Cmp(big.NewInt(0)) > 0 && TestnetChainConfig.Sip004Block.Cmp(num) <= 0 {
+			return true
+		}
+	} else if IsDevnet() {
+		if DevnetChainConfig.Sip004Block.Cmp(num) <= 0 {
+			return true
+		}
+	} else {
+		if MainnetChainConfig.Sip004Block.Cmp(big.NewInt(0)) > 0 && MainnetChainConfig.Sip004Block.Cmp(num) <= 0 {
+			return true
+		}
+	}
+	return false
+}
+
+// add by liangc : 22-01-29
+func EqualSIP004Block(num *big.Int) bool {
+	if IsTestnet() {
+		if TestnetChainConfig.Sip004Block.Cmp(num) == 0 {
+			return true
+		}
+	} else if IsDevnet() {
+		if DevnetChainConfig.Sip004Block.Cmp(num) == 0 {
+			return true
+		}
+	} else {
+		if MainnetChainConfig.Sip004Block.Cmp(num) == 0 {
+			return true
+		}
+	}
+	return false
+}
+
 // add by liangc : 19-05-31 : for smc-1.0.0
 // may be discard
 func IsSIP100Block(num *big.Int) bool {
