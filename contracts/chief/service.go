@@ -32,6 +32,8 @@ type Service interface {
 }
 */
 
+const DEF_TIMEOUT = time.Second * 3
+
 // volunteer : peer.td - current.td < 200
 var (
 	min_td = big.NewInt(200)
@@ -190,7 +192,7 @@ func (self *TribeService) _getVolunteers(blockNumber *big.Int, blockHash common.
 		log.Debug("=>TribeService.getVolunteers", "empty_chief", chiefInfo.Version, "blockNumber", blockNumber, "blockHash", blockHash.Hex())
 		return empty, errors.New("can_not_empty_chiefInfo")
 	} else {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+		ctx, cancel := context.WithTimeout(context.Background(), DEF_TIMEOUT)
 		defer cancel()
 		opts := new(bind.CallOptsWithNumber)
 		opts.Context = ctx
@@ -289,7 +291,7 @@ func (self *TribeService) filterVolunteer(mbox params.Mbox) {
 		success.Success = false
 		success.Entity = errors.New("cchiefInfo_can_not_empty")
 	} else {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+		ctx, cancel := context.WithTimeout(context.Background(), DEF_TIMEOUT)
 		defer cancel()
 		opts := new(bind.CallOptsWithNumber)
 		opts.Context = ctx
@@ -383,7 +385,7 @@ func (self *TribeService) chief100FetchNextRoundSigner(mbox params.Mbox) {
 // --------------------------------------------------------------------------------------------------
 func (self *TribeService) getChiefStatus(blockNumber *big.Int, blockHash *common.Hash) (params.ChiefStatus, error) {
 	log.Debug(fmt.Sprintf("[getChiefStatus],blockNumber=%s,blockHash=%s", blockNumber, blockHash.String()))
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+	ctx, cancel := context.WithTimeout(context.Background(), DEF_TIMEOUT)
 	defer cancel()
 	//opts := &bind.CallOpts{Context: ctx}
 	opts := new(bind.CallOptsWithNumber)
@@ -603,7 +605,7 @@ func (self *TribeService) minerList(num *big.Int, hash common.Hash) []common.Add
 		nl   = make([]common.Address, 0)
 		opts = new(bind.CallOptsWithNumber)
 	)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	ctx, cancel := context.WithTimeout(context.Background(), DEF_TIMEOUT)
 	defer cancel()
 	opts.Context = ctx
 	opts.Hash = &hash
@@ -718,7 +720,7 @@ func (self *TribeService) GetLeaders(num *big.Int, hash *common.Hash) ([]common.
 				leaders = make([]common.Address, 0)
 				opts    = new(bind.CallOptsWithNumber)
 			)
-			ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+			ctx, cancel := context.WithTimeout(context.Background(), DEF_TIMEOUT)
 			defer cancel()
 			opts.Context = ctx
 			opts.Hash = hash
