@@ -32,7 +32,7 @@ var MainnetBootnodes = []string{
 }
 
 var TestnetBootnodes = []string{
-	//"enode://c65553f06d82bc26fb6e6126e619f682ae59529f5506ae98269cc60de3c803bf3d8abd99ef7a64ce777f554a4f5d3be70078d319afff59015b7a9d23a5e3c3a1@123.207.146.205:44944",
+	"enode://c65553f06d82bc26fb6e6126e619f682ae59529f5506ae98269cc60de3c803bf3d8abd99ef7a64ce777f554a4f5d3be70078d319afff59015b7a9d23a5e3c3a1@123.207.146.205:44944",
 }
 
 var DevnetBootnodes = []string{}
