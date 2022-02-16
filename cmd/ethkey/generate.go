@@ -55,19 +55,24 @@ private key.`,
 		// First check if a private key file is provided.
 		privateKeyFile := ctx.String("privatekey")
 		if privateKeyFile != "" {
-			privateKeyBytes, err := ioutil.ReadFile(privateKeyFile)
-			if err != nil {
-				utils.Fatalf("Failed to read the private key file '%s': %v",
-					privateKeyFile, err)
+			fmt.Println("keypath=", privateKeyFile)
+			var err error
+			if privateKey, err = crypto.LoadECDSA(privateKeyFile); err != nil {
+				utils.Fatalf("err = %v", err)
 			}
-
-			pk, err := crypto.HexToECDSA(string(privateKeyBytes))
-			if err != nil {
-				utils.Fatalf(
-					"Could not construct ECDSA private key from file content: %v",
-					err)
-			}
-			privateKey = pk
+			//privateKeyBytes, err := ioutil.ReadFile(privateKeyFile)
+			//if err != nil {
+			//	utils.Fatalf("Failed to read the private key file '%s': %v",
+			//		privateKeyFile, err)
+			//}
+			//
+			//pk, err := crypto.HexToECDSA(string(privateKeyBytes))
+			//if err != nil {
+			//	utils.Fatalf(
+			//		"Could not construct ECDSA private key from file content: %v",
+			//		err)
+			//}
+			//privateKey = pk
 		}
 
 		// If not loaded, generate random.

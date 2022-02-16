@@ -25,7 +25,7 @@ import (
 
 var (
 	MainnetGenesisHash = common.HexToHash("0xa8ab5ecb308dd061e6baa8c8a04a62b3e35fae7aae1393921f8d52deac2c5712") // enforce below configs on
-	TestnetGenesisHash = common.HexToHash("0x28242478c4f01d9208a79d962b7f6383af488565f36aea7038a34020c07db697") // Testnet genesis hash to enforce below configs on
+	TestnetGenesisHash = common.HexToHash("0x464dfae7a2e140e76376f732c6be542880064d0a9b8350ceb2259b811827e7c6") // Testnet genesis hash to enforce below configs on
 	DevnetGenesisHash  = common.HexToHash("0xe11f21ee330cfb50c3f31d9b792df2fb5e196739d562e642416974f339aa4304")
 )
 
@@ -73,7 +73,7 @@ var (
 
 	// TestnetChainConfig contains the chain parameters to run a node on the Ropsten test network.
 	TestnetChainConfig = &ChainConfig{
-		ChainId:        big.NewInt(3),
+		ChainId:        big.NewInt(2022),
 		HomesteadBlock: big.NewInt(0),
 		DAOForkBlock:   nil,
 		DAOForkSupport: true,
@@ -81,51 +81,52 @@ var (
 		EIP150Hash:     common.Hash{},
 		EIP155Block:    big.NewInt(0),
 		EIP158Block:    big.NewInt(0),
-		ByzantiumBlock: big.NewInt(62678),
+		ByzantiumBlock: big.NewInt(0),
 		//ByzantiumBlock: big.NewInt(1700000),
 		//Clique: &CliqueConfig{ Period: 15, Epoch:  30000}, //Ethash: new(EthashConfig),
 		// if skip this vsn please set 0 or nil to block and set common.Address{} to address
 		// 0.0.2
 		Chief002Block:   big.NewInt(2),
-		Chief002Address: common.HexToAddress("0x9ec55c1dafd4a487e41da33e344aef86da41ab82"),
+		Chief002Address: common.HexToAddress("0x75f7D812142c6f4BB39ad2c70424CF27869EAB33"),
 		// 0.0.3
-		Chief003Block:   big.NewInt(113772), //hard fork testnet
-		Chief003Address: common.HexToAddress("0xac28e532b3fac82554fc7b0b8b62549deeeb33a9"),
+		//Chief003Block:   big.NewInt(113772), //hard fork testnet
+		//Chief003Address: common.HexToAddress("0xac28e532b3fac82554fc7b0b8b62549deeeb33a9"),
 		// 0.0.4 : fix bug redeploy
-		Chief004Block:   big.NewInt(120305), //hard fork testnet : fix bugs and debug chief
-		Chief004Address: common.HexToAddress("0xe242e2bcf5b0da6518320210fab0a27458bc0674"),
+		//Chief004Block:   big.NewInt(120305), //hard fork testnet : fix bugs and debug chief
+		//Chief004Address: common.HexToAddress("0xe242e2bcf5b0da6518320210fab0a27458bc0674"),
 		// 0.0.5 : ready for release
-		Chief005Block:   big.NewInt(176244),
-		Chief005Address: common.HexToAddress("0xe90da8175922925dfb40e6505b508f1042e807aa"),
+		//Chief005Block:   big.NewInt(176244),
+		//Chief005Address: common.HexToAddress("0xe90da8175922925dfb40e6505b508f1042e807aa"),
 		// 0.0.6 : ready for release
-		Chief006Block:   big.NewInt(595710),
-		Chief006Address: common.HexToAddress("0x53cb83888e6d28cf7ec168308c65172001f441aa"),
+		//Chief006Block:   big.NewInt(595710),
+		//Chief006Address: common.HexToAddress("0x53cb83888e6d28cf7ec168308c65172001f441aa"),
 
-		Meshbox001Block:   big.NewInt(1976666),
-		Meshbox001Address: common.HexToAddress("0x0f15e1e44322b2946215705d2ed60cba899f0b38"),
+		//Meshbox001Block: big.NewInt(1976666),
+		//Meshbox001Address: common.HexToAddress("0x0f15e1e44322b2946215705d2ed60cba899f0b38"),
 		// Note that : meshbox002 must is superset of meshbox001
 
-		Anmap001Block:   big.NewInt(1310056),
-		Anmap001Address: common.HexToAddress("0x7449931e38dd938d2e8558eda9fe225acf4d14e6"),
+		//Anmap001Block:   big.NewInt(1310056),
+		//Anmap001Address: common.HexToAddress("0x7449931e38dd938d2e8558eda9fe225acf4d14e6"),
 
 		// new rules for chief.tx of gaspool
-		SIP001Block: big.NewInt(176222),
-		SIP002Block: big.NewInt(525233),
-		SIP003Block: big.NewInt(917013),
-		//SIP004Block: big.NewInt(2212557), //回滚位置,记得
+		SIP001Block: big.NewInt(109),
+		SIP002Block: big.NewInt(109),
+		SIP003Block: big.NewInt(109),
+		Sip004Block: big.NewInt(110),
 
 		// base block link to Chief100Block
-		ChiefBaseAddress: common.HexToAddress("0xeb97d5201a79717675c03e80ef3ed0c00ec777fc"),
+		ChiefBaseAddress: common.HexToAddress("0x32bcF7d3b48A7Ceaa1b45199CB94098d0b3b3112"),
+		//ChiefBaseAddress: common.HexToAddress("0xeb97d5201a79717675c03e80ef3ed0c00ec777fc"),
 
 		// PocBlock must less than Chief100Block
-		PocAddress: common.HexToAddress("0xe3d5627f6f854481b23da37cea623411bf090881"),
+		PocAddress: common.HexToAddress("0x91aB700F2B473e4132f1299F175b37b1B445892a"),
+		//PocAddress: common.HexToAddress("0xe3d5627f6f854481b23da37cea623411bf090881"),
 
-		Chief100Block:   big.NewInt(1310056),
-		Chief100Address: common.HexToAddress("0x695249d987d10bcccda9bcaa3090db8565c317d1"),
+		Chief100Block:   big.NewInt(90),
+		Chief100Address: common.HexToAddress("0xAF45A0453C9C9ae926D90D59A785D7A119bc8421"),
+		//Chief100Address: common.HexToAddress("0x695249d987d10bcccda9bcaa3090db8565c317d1"),
 
 		Tribe: &TribeConfig{},
-
-		Sip004Block: big.NewInt(5530000),
 	}
 
 	// DevnetChainConfig contains the chain parameters to run a node on the Ropsten test network.

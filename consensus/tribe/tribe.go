@@ -429,10 +429,13 @@ func (t *Tribe) verifySeal(chain consensus.ChainReader, header *types.Header, pa
 // Prepare implements consensus.Engine, preparing all the consensus fields of the
 // header for running the transactions on top.
 func (t *Tribe) Prepare(chain consensus.ChainReader, header *types.Header) error {
+	t.Status.LoadStatusFromChief(header.ParentHash, header.Number)
+	/* ??????
 	err := t.Status.LoadStatusFromChief(header.ParentHash, header.Number)
 	if err != nil {
 		return err
 	}
+	*/
 	number := header.Number.Uint64()
 	if f, _, err := params.AnmapBindInfo(t.Status.GetMinerAddress(), chain.CurrentHeader().Hash()); err == nil && f != common.HexToAddress("0x") {
 		header.Coinbase = f
@@ -550,9 +553,11 @@ func (t *Tribe) Finalize(chain consensus.ChainReader, header *types.Header, stat
 // Seal implements consensus.Engine, attempting to create a sealed block using
 // the local signing credentials.
 func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-chan struct{}) (*types.Block, error) {
+	/* ????
 	if block.Number().Cmp(big.NewInt(CHIEF_NUMBER)) <= 0 {
 		return nil, errors.New("never mining block before #3")
 	}
+	*/
 	if err := t.Status.ValidateBlock(chain.GetBlock(block.ParentHash(), block.NumberU64()-1), block, false); err != nil {
 		log.Error("Tribe_Seal", "number", block.Number().Int64(), "err", err)
 		//log.Error("Tribe_Seal", "retry", atomic.LoadUint32(&t.SealErrorCounter), "number", block.Number().Int64(), "err", err)
@@ -563,9 +568,12 @@ func (t *Tribe) Seal(chain consensus.ChainReader, block *types.Block, stop <-cha
 	// Sealing the genesis block is not supported
 	number := header.Number.Int64()
 	// For 0-period chains, refuse to seal empty blocks (no reward but would spin sealing)
+	/* ?????
 	if len(block.Transactions()) == 0 {
 		panic("at least one chief update tx")
 	}
+	*/
+
 	if !t.Status.validateSigner(chain.GetHeaderByHash(block.ParentHash()), block.Header(), t.Status.GetMinerAddress()) {
 		return nil, errUnauthorized
 	}

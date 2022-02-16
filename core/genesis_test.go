@@ -21,12 +21,12 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/SmartMeshFoundation/Spectrum/common"
 	"github.com/SmartMeshFoundation/Spectrum/consensus/ethash"
 	"github.com/SmartMeshFoundation/Spectrum/core/vm"
 	"github.com/SmartMeshFoundation/Spectrum/ethdb"
 	"github.com/SmartMeshFoundation/Spectrum/params"
+	"github.com/davecgh/go-spew/spew"
 )
 
 func TestDefaultGenesisBlock(t *testing.T) {
@@ -160,7 +160,7 @@ func TestSetupGenesis(t *testing.T) {
 	}
 }
 
-func TestDecodePrealloc(t *testing.T){
+func TestDecodePrealloc(t *testing.T) {
 	fn := func(alloc string) {
 		mal := decodePrealloc(alloc)
 		c := big.NewInt(0)
@@ -171,6 +171,6 @@ func TestDecodePrealloc(t *testing.T){
 		}
 		t.Log("---->", len(mal), c)
 	}
-	fn(mainnetAllocData)
+	//fn(mainnetAllocData)
 	fn(testnetAllocData)
 }

@@ -32,6 +32,9 @@ type ChiefInfoList []*ChiefInfo
 
 func (p ChiefInfoList) Len() int { return len(p) }
 func (p ChiefInfoList) Less(i, j int) bool {
+	if p[i].StartNumber == nil || p[j].StartNumber == nil {
+		return true
+	}
 	return p[i].StartNumber.Int64() > p[j].StartNumber.Int64()
 }
 func (p ChiefInfoList) Swap(i, j int) {
@@ -405,7 +408,7 @@ func chiefAddressList() (list ChiefInfoList) {
 
 func GetChiefInfoByVsn(vsn string) *ChiefInfo {
 	for _, ci := range chiefAddressList() {
-		if ci.StartNumber.Int64() > 0 && ci.Version == vsn {
+		if ci.StartNumber != nil && ci.StartNumber.Int64() > 0 && ci.Version == vsn {
 			return ci
 		}
 	}
@@ -421,7 +424,7 @@ func getChiefInfo(list ChiefInfoList, blockNumber *big.Int) *ChiefInfo {
 	// TODO sort once only
 	sort.Sort(list)
 	for _, c := range list {
-		if blockNumber.Int64() >= c.StartNumber.Int64() {
+		if c.StartNumber != nil && blockNumber.Int64() >= c.StartNumber.Int64() {
 			return c
 		}
 	}
