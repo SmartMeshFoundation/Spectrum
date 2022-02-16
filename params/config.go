@@ -109,21 +109,21 @@ var (
 		//Anmap001Address: common.HexToAddress("0x7449931e38dd938d2e8558eda9fe225acf4d14e6"),
 
 		// new rules for chief.tx of gaspool
-		SIP001Block: big.NewInt(109),
-		SIP002Block: big.NewInt(109),
-		SIP003Block: big.NewInt(109),
-		Sip004Block: big.NewInt(110),
+		SIP001Block: big.NewInt(24),
+		SIP002Block: big.NewInt(24),
+		SIP003Block: big.NewInt(24),
+		Sip004Block: big.NewInt(27),
 
 		// base block link to Chief100Block
-		ChiefBaseAddress: common.HexToAddress("0x32bcF7d3b48A7Ceaa1b45199CB94098d0b3b3112"),
+		ChiefBaseAddress: common.HexToAddress("0xa44B4ff09825f8c21fc4ad7FAA125a0d6238d0fd"),
 		//ChiefBaseAddress: common.HexToAddress("0xeb97d5201a79717675c03e80ef3ed0c00ec777fc"),
 
 		// PocBlock must less than Chief100Block
-		PocAddress: common.HexToAddress("0x91aB700F2B473e4132f1299F175b37b1B445892a"),
+		PocAddress: common.HexToAddress("0x32bcF7d3b48A7Ceaa1b45199CB94098d0b3b3112"),
 		//PocAddress: common.HexToAddress("0xe3d5627f6f854481b23da37cea623411bf090881"),
 
-		Chief100Block:   big.NewInt(92),
-		Chief100Address: common.HexToAddress("0xAF45A0453C9C9ae926D90D59A785D7A119bc8421"),
+		Chief100Block:   big.NewInt(26),
+		Chief100Address: common.HexToAddress("0x754FF9bDC93C66ff235b7AaaDcaeECdD63442657"),
 		//Chief100Address: common.HexToAddress("0x695249d987d10bcccda9bcaa3090db8565c317d1"),
 
 		Tribe: &TribeConfig{},
