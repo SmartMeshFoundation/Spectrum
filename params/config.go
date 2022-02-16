@@ -122,7 +122,7 @@ var (
 		PocAddress: common.HexToAddress("0x91aB700F2B473e4132f1299F175b37b1B445892a"),
 		//PocAddress: common.HexToAddress("0xe3d5627f6f854481b23da37cea623411bf090881"),
 
-		Chief100Block:   big.NewInt(90),
+		Chief100Block:   big.NewInt(92),
 		Chief100Address: common.HexToAddress("0xAF45A0453C9C9ae926D90D59A785D7A119bc8421"),
 		//Chief100Address: common.HexToAddress("0x695249d987d10bcccda9bcaa3090db8565c317d1"),
 

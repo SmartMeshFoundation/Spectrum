@@ -354,10 +354,12 @@ func beforechief100AddressList() (list ChiefInfoList) {
 		list = ChiefInfoList{
 			// at same account and block number to deploy this contract can be get the same address
 			newChiefInfo(TestnetChainConfig.Chief002Block, "0.0.2", TestnetChainConfig.Chief002Address),
-			newChiefInfo(TestnetChainConfig.Chief003Block, "0.0.3", TestnetChainConfig.Chief003Address),
-			newChiefInfo(TestnetChainConfig.Chief004Block, "0.0.4", TestnetChainConfig.Chief004Address),
-			newChiefInfo(TestnetChainConfig.Chief005Block, "0.0.5", TestnetChainConfig.Chief005Address),
-			newChiefInfo(TestnetChainConfig.Chief006Block, "0.0.6", TestnetChainConfig.Chief006Address),
+			/*
+				newChiefInfo(TestnetChainConfig.Chief003Block, "0.0.3", TestnetChainConfig.Chief003Address),
+				newChiefInfo(TestnetChainConfig.Chief004Block, "0.0.4", TestnetChainConfig.Chief004Address),
+				newChiefInfo(TestnetChainConfig.Chief005Block, "0.0.5", TestnetChainConfig.Chief005Address),
+				newChiefInfo(TestnetChainConfig.Chief006Block, "0.0.6", TestnetChainConfig.Chief006Address),
+			*/
 		}
 	} else if IsDevnet() {
 		list = ChiefInfoList{
@@ -383,10 +385,12 @@ func chiefAddressList() (list ChiefInfoList) {
 		list = ChiefInfoList{
 			// at same account and block number to deploy this contract can be get the same address
 			newChiefInfo(TestnetChainConfig.Chief002Block, "0.0.2", TestnetChainConfig.Chief002Address),
-			newChiefInfo(TestnetChainConfig.Chief003Block, "0.0.3", TestnetChainConfig.Chief003Address),
-			newChiefInfo(TestnetChainConfig.Chief004Block, "0.0.4", TestnetChainConfig.Chief004Address),
-			newChiefInfo(TestnetChainConfig.Chief005Block, "0.0.5", TestnetChainConfig.Chief005Address),
-			newChiefInfo(TestnetChainConfig.Chief006Block, "0.0.6", TestnetChainConfig.Chief006Address),
+			/*
+				newChiefInfo(TestnetChainConfig.Chief003Block, "0.0.3", TestnetChainConfig.Chief003Address),
+				newChiefInfo(TestnetChainConfig.Chief004Block, "0.0.4", TestnetChainConfig.Chief004Address),
+				newChiefInfo(TestnetChainConfig.Chief005Block, "0.0.5", TestnetChainConfig.Chief005Address),
+				newChiefInfo(TestnetChainConfig.Chief006Block, "0.0.6", TestnetChainConfig.Chief006Address),
+			*/
 			newChiefInfoWithPocBase(TestnetChainConfig.Chief100Block, "1.0.0", TestnetChainConfig.Chief100Address, TestnetChainConfig.PocAddress, TestnetChainConfig.ChiefBaseAddress),
 		}
 	} else if IsDevnet() {
@@ -436,7 +440,7 @@ func IsBeforeChief100block(blockNumber *big.Int) bool {
 	//return isChiefBlock(oldchiefAddressList(), blockNumber)
 	for _, ci := range beforechief100AddressList() {
 		//log.Info("isChief", "a", ci.StartNumber, "b", blockNumber)
-		if ci.StartNumber.Cmp(blockNumber) == 0 {
+		if ci.StartNumber != nil && ci.StartNumber.Cmp(blockNumber) == 0 {
 			return true
 		}
 	}
