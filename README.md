@@ -16,7 +16,7 @@ Since the list of signers is 17, it is recommended that the confirmation number 
 | Chain(s)    |  CHAIN_ID  | 
 | ----------  | :-----------:| 
 | mainnet     | 20180430     | 
-| testnet     | 3            | 
+| testnet     | 2022         | 
 | devnet      | 4            | 
 
 ## Warning
