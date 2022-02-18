@@ -260,7 +260,7 @@ func IsSIP004Block(num *big.Int) bool {
 			return true
 		}
 	} else if IsDevnet() {
-		if DevnetChainConfig.Sip004Block.Cmp(num) <= 0 {
+		if DevnetChainConfig.Sip004Block.Cmp(big.NewInt(0)) > 0 && DevnetChainConfig.Sip004Block.Cmp(num) <= 0 {
 			return true
 		}
 	} else {

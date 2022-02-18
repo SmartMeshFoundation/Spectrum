@@ -68,7 +68,7 @@ var (
 		Chief100Address: common.HexToAddress("0x890eb8566550e7337c7788ff971a3996860c51b5"),
 		Tribe:           &TribeConfig{},
 
-		Sip004Block: big.NewInt(8360000),
+		Sip004Block: big.NewInt(8654321),
 	}
 
 	// TestnetChainConfig contains the chain parameters to run a node on the Ropsten test network.
