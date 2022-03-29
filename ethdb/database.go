@@ -33,7 +33,7 @@ import (
 	gometrics "github.com/rcrowley/go-metrics"
 )
 
-var OpenFileLimit = 64
+var OpenFileLimit = 32
 
 type LDBDatabase struct {
 	fn string      // filename for reporting
@@ -61,20 +61,21 @@ func NewLDBDatabase(file string, cache int, handles int) (*LDBDatabase, error) {
 
 	// Ensure we have some minimal caching and file guarantees
 	// default cache = 128
-	if cache < 128 {
-		cache = 128 // 16
-	}
-	if handles < 64 {
-		handles = 64 // 16
-	}
+	//if cache < 16 {
+	//	cache = 16
+	//}
+	//if handles < 8 {
+	//	handles = 8
+	//}
+
 	logger.Info("Allocated cache and file handles", "cache", cache, "handles", handles)
 
 	// Open the db and recover any potential corruptions
 	db, err := leveldb.OpenFile(file, &opt.Options{
-		OpenFilesCacheCapacity: handles,
+		OpenFilesCacheCapacity: 8,
 		// default cache == 128
-		BlockCacheCapacity: cache / 2 * opt.MiB, // default : 128 / 2 = 64
-		WriteBuffer:        cache / 2 * opt.MiB, // Two of these are used internally , default : 128 / 4 = 32
+		BlockCacheCapacity: 8 * opt.MiB, // default : 128 / 2 = 64
+		WriteBuffer:        8 * opt.MiB, // Two of these are used internally , default : 128 / 4 = 32
 		Filter:             filter.NewBloomFilter(20),
 	})
 	if _, corrupted := err.(*errors.ErrCorrupted); corrupted {
