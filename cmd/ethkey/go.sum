@@ -94,8 +94,8 @@ github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAE
 github.com/OpenPeeDeeP/depguard v1.0.0/go.mod h1:7/4sitnI9YlQgTLLk734QlzXT8DuHVnAyztLplQjk+o=
 github.com/Shopify/sarama v1.29.1/go.mod h1:mdtqvCSg8JOxk8PmpTNGyo6wzd4BMm4QXSfDnTXmgkE=
 github.com/Shopify/toxiproxy v2.1.4+incompatible/go.mod h1:OXgGpZ6Cli1/URJOF1DMxUHB2q5Ap20/P/eIdh4G0pI=
-github.com/SmartMeshFoundation/Spectrum v0.0.0-20220119020539-a4f593211eb4 h1:RsS0O3un5rhgNoLubvooVf5TcO9tQ6l3ixwmOzf3wYQ=
-github.com/SmartMeshFoundation/Spectrum v0.0.0-20220119020539-a4f593211eb4/go.mod h1:uHHQ9ZK01Lm8QsF2UpdizTHk742/HGSj+d0AGMrliv4=
+github.com/MeshBoxTech/mesh-chain v0.0.0-20220119020539-a4f593211eb4 h1:RsS0O3un5rhgNoLubvooVf5TcO9tQ6l3ixwmOzf3wYQ=
+github.com/MeshBoxTech/mesh-chain v0.0.0-20220119020539-a4f593211eb4/go.mod h1:uHHQ9ZK01Lm8QsF2UpdizTHk742/HGSj+d0AGMrliv4=
 github.com/StackExchange/wmi v0.0.0-20180116203802-5d049714c4a6/go.mod h1:3eOhrUMpNV+6aFIbp5/iudMxNCF27Vw2OZgy4xEx0Fg=
 github.com/VictoriaMetrics/fastcache v1.6.0/go.mod h1:0qHz5QP0GMX4pfmMA/zt5RgfNuXJrTP0zS7DqpHGGTw=
 github.com/VividCortex/mysqlerr v0.0.0-20170204212430-6c6b55f8796f/go.mod h1:f3HiCrHjHBdcm6E83vGaXh1KomZMA2P6aeo3hKx/wg0=

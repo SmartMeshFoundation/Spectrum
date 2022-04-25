@@ -10,8 +10,8 @@
   <packaging>aar</packaging>
 
   <name>Android Ethereum Client</name>
-  <description>Android port of the Spectrum libraries and node</description>
-  <url>https://github.com/SmartMeshFoundation/Spectrum</url>
+  <description>Android port of the mesh-chain libraries and node</description>
+  <url>https://github.com/MeshBoxTech/mesh-chain</url>
   <inceptionYear>2015</inceptionYear>
 
   <licenses>
@@ -48,10 +48,10 @@
 
   <issueManagement>
     <system>GitHub Issues</system>
-    <url>https://github.com/SmartMeshFoundation/Spectrum/issues/</url>
+    <url>https://github.com/MeshBoxTech/mesh-chain/issues/</url>
   </issueManagement>
 
   <scm>
-    <url>https://github.com/SmartMeshFoundation/Spectrum</url>
+    <url>https://github.com/MeshBoxTech/mesh-chain</url>
   </scm>
 </project>

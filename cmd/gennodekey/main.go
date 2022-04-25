@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/hex"
-	"github.com/SmartMeshFoundation/Spectrum/crypto"
+	"github.com/MeshBoxTech/mesh-chain/crypto"
 	"fmt"
 )
 

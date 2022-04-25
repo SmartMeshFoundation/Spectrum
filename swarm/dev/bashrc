@@ -1,4 +1,4 @@
-export ROOT="${GOPATH}/src/github.com/SmartMeshFoundation/Spectrum"
+export ROOT="${GOPATH}/src/github.com/MeshBoxTech/mesh-chain"
 export PATH="${ROOT}/swarm/dev/bin:${PATH}"
 
 cd "${ROOT}/swarm/dev"

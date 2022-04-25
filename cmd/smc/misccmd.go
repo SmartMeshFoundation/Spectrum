@@ -1,18 +1,18 @@
-// Copyright 2016 The Spectrum Authors
-// This file is part of Spectrum.
+// Copyright 2016 The mesh-chain Authors
+// This file is part of mesh-chain.
 //
-// Spectrum is free software: you can redistribute it and/or modify
+// mesh-chain is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// Spectrum is distributed in the hope that it will be useful,
+// mesh-chain is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Spectrum. If not, see <http://www.gnu.org/licenses/>.
+// along with mesh-chain. If not, see <http://www.gnu.org/licenses/>.
 
 package main
 
@@ -22,9 +22,9 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/SmartMeshFoundation/Spectrum/cmd/utils"
-	"github.com/SmartMeshFoundation/Spectrum/eth"
-	"github.com/SmartMeshFoundation/Spectrum/params"
+	"github.com/MeshBoxTech/mesh-chain/cmd/utils"
+	"github.com/MeshBoxTech/mesh-chain/eth"
+	"github.com/MeshBoxTech/mesh-chain/params"
 	"gopkg.in/urfave/cli.v1"
 )
 
@@ -119,24 +119,24 @@ func version(ctx *cli.Context) error {
 	fmt.Println("Operating System:", runtime.GOOS)
 	fmt.Printf("GOPATH=%s\n", os.Getenv("GOPATH"))
 	fmt.Printf("GOROOT=%s\n", runtime.GOROOT())
-	fmt.Println("Based On:", "Spectrum")
+	fmt.Println("Based On:", "mesh-chain")
 	fmt.Println("Email:", "cc14514@icloud.com")
 	return nil
 }
 
 func license(_ *cli.Context) error {
-	fmt.Println(`Spectrum (Ethereum-based) is free software: you can redistribute it and/or modify
+	fmt.Println(`mesh-chain (Ethereum-based) is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-Spectrum is distributed in the hope that it will be useful,
+mesh-chain is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with Spectrum. If not, see <http://www.gnu.org/licenses/>.
+along with mesh-chain. If not, see <http://www.gnu.org/licenses/>.
 `)
 	return nil
 }

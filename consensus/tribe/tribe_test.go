@@ -5,20 +5,12 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"encoding/hex"
-	"math/big"
 	mrand "math/rand"
 	"testing"
 	"time"
 
-	"github.com/SmartMeshFoundation/Spectrum/core/types"
-
-	"github.com/SmartMeshFoundation/Spectrum/core/state"
-	"github.com/SmartMeshFoundation/Spectrum/params"
-
-	"github.com/SmartMeshFoundation/Spectrum/accounts/keystore"
-	"github.com/SmartMeshFoundation/Spectrum/common"
-	"github.com/SmartMeshFoundation/Spectrum/crypto"
-	"github.com/SmartMeshFoundation/Spectrum/ethdb"
+	"github.com/MeshBoxTech/mesh-chain/accounts/keystore"
+	"github.com/MeshBoxTech/mesh-chain/crypto"
 )
 
 func TestNormal(t *testing.T) {
@@ -37,12 +29,12 @@ func TestNormal(t *testing.T) {
 
 func TestDelay(t *testing.T) {
 	for signerLen := 1; signerLen < 11; signerLen += 1 {
-		wiggle := time.Duration(signerLen/2+1) * wiggleTime
+		wiggle := wiggleTime
 		delay := time.Duration(mrand.Int63n(int64(wiggle)))
 		t.Log(signerLen, wiggle, "\t", delay)
 	}
 	for signerLen := 10; signerLen < 110; signerLen += 10 {
-		wiggle := time.Duration(signerLen/2+1) * wiggleTime
+		wiggle := wiggleTime
 		delay := time.Duration(mrand.Int63n(int64(wiggle)))
 		t.Log(signerLen, wiggle, "\t", delay)
 	}
@@ -105,84 +97,4 @@ func TestExtra(t *testing.T) {
 	t.Log(len(extra))
 }
 
-func TestAccumulateRewards(t *testing.T) {
-	db, _ := ethdb.NewMemDatabase()
-	state, _ := state.New(common.Hash{}, state.NewDatabase(db))
-	config := params.DevnetChainConfig
-	header := &types.Header{
-		Coinbase: common.HexToAddress("0x01"),
-	}
-	//noreward
-	expectReward := big.NewInt(0)
-	header.Number = new(big.Int).Set(config.Chief100Block)
-	header.Number.Sub(header.Number, big.NewInt(1))
-	accumulateRewards(config, state, header)
-	if state.GetBalance(header.Coinbase).Cmp(expectReward) != 0 {
-		t.Error("should no reward before chief100Block")
-		return
-	}
 
-	//full reward
-	expectReward.Add(expectReward, Chief100BlockReward)
-	header.Number = new(big.Int).Set(config.Chief100Block)
-	accumulateRewards(config, state, header)
-	if state.GetBalance(header.Coinbase).Cmp(expectReward) != 0 {
-		t.Errorf("should get total reward=%s,but got=%s", expectReward, state.GetBalance(header.Coinbase))
-		return
-	}
-
-	//half reward
-	currentReward := new(big.Int).Set(Chief100BlockReward)
-	currentReward = currentReward.Div(currentReward, big.NewInt(2))
-	expectReward = expectReward.Add(expectReward, currentReward)
-	header.Number = new(big.Int).Set(config.Chief100Block)
-	header.Number = header.Number.Add(header.Number, big.NewInt(int64(BlockRewardReducedInterval)))
-	accumulateRewards(config, state, header)
-	if state.GetBalance(header.Coinbase).Cmp(expectReward) != 0 {
-		t.Errorf("should get total reward=%s,but got=%s", expectReward, state.GetBalance(header.Coinbase))
-		return
-	}
-
-	//1/4 reward
-	currentReward = new(big.Int).Set(Chief100BlockReward)
-	currentReward.Div(currentReward, big.NewInt(4))
-	expectReward.Add(expectReward, currentReward)
-	header.Number = new(big.Int).Set(config.Chief100Block)
-	header.Number = header.Number.Add(header.Number, big.NewInt(int64(BlockRewardReducedInterval*2)))
-	accumulateRewards(config, state, header)
-	if state.GetBalance(header.Coinbase).Cmp(expectReward) != 0 {
-		t.Errorf("should get total reward=%s,but got=%s", expectReward, state.GetBalance(header.Coinbase))
-		return
-	}
-}
-
-func TestTribeStatus_destroySmartMeshFoundation12Balance(t *testing.T) {
-	db, _ := ethdb.NewMemDatabase()
-	state, _ := state.New(common.Hash{}, state.NewDatabase(db))
-	config := params.MainnetChainConfig
-	header := &types.Header{
-		Coinbase: common.HexToAddress("0x01"),
-		Number:   config.Chief100Block,
-	}
-	b := new(big.Int).Set(SmartMeshFoundationAccountDestroyBalance)
-	curBalance := b.Mul(b, big.NewInt(2))
-
-	config.Chief100Block = big.NewInt(300000)
-	header.Number = config.Chief100Block
-	state.AddBalance(SmartMeshFoundationAccount, big.NewInt(3000))
-	destroySmartMeshFoundation12Balance(config, state, header)
-	nb := state.GetBalance(SmartMeshFoundationAccount)
-	if nb.Cmp(big.NewInt(0)) != 0 {
-		t.Error("destroy all inf not enough")
-		return
-	}
-
-	state.AddBalance(SmartMeshFoundationAccount, curBalance)
-	destroySmartMeshFoundation12Balance(config, state, header)
-	nb = state.GetBalance(SmartMeshFoundationAccount)
-	left := curBalance.Div(curBalance, big.NewInt(2))
-	if nb.Cmp(left) != 0 {
-		t.Error("should only half left")
-		return
-	}
-}

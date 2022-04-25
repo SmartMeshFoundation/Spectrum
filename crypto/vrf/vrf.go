@@ -26,7 +26,7 @@ import (
 	"crypto/sha512"
 	"encoding/binary"
 	"errors"
-	"github.com/SmartMeshFoundation/Spectrum/crypto/secp256k1"
+	"github.com/MeshBoxTech/mesh-chain/crypto/secp256k1"
 	"github.com/google/keytransparency/core/crypto/vrf"
 	"math/big"
 )

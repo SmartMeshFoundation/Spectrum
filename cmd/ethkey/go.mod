@@ -3,7 +3,7 @@ module ethkey
 go 1.15
 
 require (
-	github.com/SmartMeshFoundation/Spectrum v0.0.0-20220119020539-a4f593211eb4
+	github.com/MeshBoxTech/mesh-chain v0.0.0-20220119020539-a4f593211eb4
 	github.com/aristanetworks/goarista v0.0.0-20220211174905-526022c8b178 // indirect
 	github.com/btcsuite/btcd v0.22.0-beta // indirect
 	github.com/cespare/cp v1.1.1 // indirect
@@ -35,4 +35,4 @@ require (
 	gopkg.in/urfave/cli.v1 v1.20.0
 )
 
-replace github.com/SmartMeshFoundation/Spectrum => ../../../Spectrum
+replace github.com/MeshBoxTech/mesh-chain => ../../../mesh-chain

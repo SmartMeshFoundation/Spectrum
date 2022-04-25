@@ -3,9 +3,9 @@ package contracts
 import (
 	"time"
 
-	"github.com/SmartMeshFoundation/Spectrum/ethclient"
-	"github.com/SmartMeshFoundation/Spectrum/log"
-	"github.com/SmartMeshFoundation/Spectrum/params"
+	"github.com/MeshBoxTech/mesh-chain/ethclient"
+	"github.com/MeshBoxTech/mesh-chain/log"
+	"github.com/MeshBoxTech/mesh-chain/params"
 )
 
 var client *ethclient.Client

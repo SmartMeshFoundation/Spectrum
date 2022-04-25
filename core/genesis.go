@@ -1,18 +1,18 @@
-// Copyright 2014 The Spectrum Authors
-// This file is part of the Spectrum library.
+// Copyright 2014 The mesh-chain Authors
+// This file is part of the mesh-chain library.
 //
-// The Spectrum library is free software: you can redistribute it and/or modify
+// The mesh-chain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The Spectrum library is distributed in the hope that it will be useful,
+// The mesh-chain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the Spectrum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the mesh-chain library. If not, see <http://www.gnu.org/licenses/>.
 
 package core
 
@@ -25,15 +25,15 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/SmartMeshFoundation/Spectrum/common"
-	"github.com/SmartMeshFoundation/Spectrum/common/hexutil"
-	"github.com/SmartMeshFoundation/Spectrum/common/math"
-	"github.com/SmartMeshFoundation/Spectrum/core/state"
-	"github.com/SmartMeshFoundation/Spectrum/core/types"
-	"github.com/SmartMeshFoundation/Spectrum/ethdb"
-	"github.com/SmartMeshFoundation/Spectrum/log"
-	"github.com/SmartMeshFoundation/Spectrum/params"
-	"github.com/SmartMeshFoundation/Spectrum/rlp"
+	"github.com/MeshBoxTech/mesh-chain/common"
+	"github.com/MeshBoxTech/mesh-chain/common/hexutil"
+	"github.com/MeshBoxTech/mesh-chain/common/math"
+	"github.com/MeshBoxTech/mesh-chain/core/state"
+	"github.com/MeshBoxTech/mesh-chain/core/types"
+	"github.com/MeshBoxTech/mesh-chain/ethdb"
+	"github.com/MeshBoxTech/mesh-chain/log"
+	"github.com/MeshBoxTech/mesh-chain/params"
+	"github.com/MeshBoxTech/mesh-chain/rlp"
 )
 
 //go:generate gencodec -type Genesis -field-override genesisSpecMarshaling -out gen_genesis.go
@@ -164,11 +164,6 @@ func SetupGenesisBlock(db ethdb.Database, genesis *Genesis) (*params.ChainConfig
 			log.Info("Writing custom genesis block")
 		}
 		block, err := genesis.Commit(db)
-		fmt.Println("==genesis==> current\t:", block.Hash().Hex())
-		fmt.Println("==genesis==> main\t:", params.MainnetGenesisHash.Hex())
-		fmt.Println("==genesis==> test\t:", params.TestnetGenesisHash.Hex())
-		fmt.Println("==genesis==> dev\t:", params.DevnetGenesisHash.Hex())
-
 		return genesis.Config, block.Hash(), err
 	}
 
@@ -195,7 +190,11 @@ func SetupGenesisBlock(db ethdb.Database, genesis *Genesis) (*params.ChainConfig
 	// Special case: don't change the existing config of a non-mainnet chain if no new
 	// config is supplied. These chains would get AllProtocolChanges (and a compat error)
 	// if we just continued here.
-	if genesis == nil && stored != params.MainnetGenesisHash {
+	hash := params.MainnetGenesisHash
+	if params.IsTestnet(){
+		hash  = params.TestnetGenesisHash
+	}
+	if genesis == nil && stored != hash {
 		return storedcfg, stored, nil
 	}
 
@@ -220,8 +219,6 @@ func (g *Genesis) configOrDefault(ghash common.Hash) *params.ChainConfig {
 		return params.MainnetChainConfig
 	case ghash == params.TestnetGenesisHash:
 		return params.TestnetChainConfig
-	case ghash == params.DevnetGenesisHash:
-		return params.DevnetChainConfig
 	default:
 		return params.AllEthashProtocolChanges
 	}
@@ -340,18 +337,7 @@ func DefaultTestnetGenesisBlock() *Genesis {
 	}
 }
 
-// DefaultTestnetGenesisBlock returns the Ropsten network genesis block.
-func DeveloperGenesisBlock() *Genesis {
-	genesisSigner := "0x00000000000000000000000000000000000000000000000000000000000000009944D0CC757CD9391EE320FC17d5B6f61693f2c50000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-	return &Genesis{
-		Config:     params.DevnetChainConfig,
-		Nonce:      0,
-		ExtraData:  hexutil.MustDecode(genesisSigner),
-		GasLimit:   16777216,
-		Difficulty: big.NewInt(1),
-		Alloc:      decodePrealloc(devnetAllocData),
-	}
-}
+
 
 /*
 // DeveloperGenesisBlock returns the 'geth --dev' genesis block. Note, this must

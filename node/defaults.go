@@ -1,18 +1,18 @@
-// Copyright 2016 The Spectrum Authors
-// This file is part of the Spectrum library.
+// Copyright 2016 The mesh-chain Authors
+// This file is part of the mesh-chain library.
 //
-// The Spectrum library is free software: you can redistribute it and/or modify
+// The mesh-chain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The Spectrum library is distributed in the hope that it will be useful,
+// The mesh-chain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the Spectrum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the mesh-chain library. If not, see <http://www.gnu.org/licenses/>.
 
 package node
 
@@ -22,8 +22,8 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/SmartMeshFoundation/Spectrum/p2p"
-	"github.com/SmartMeshFoundation/Spectrum/p2p/nat"
+	"github.com/MeshBoxTech/mesh-chain/p2p"
+	"github.com/MeshBoxTech/mesh-chain/p2p/nat"
 )
 
 const (
@@ -53,11 +53,11 @@ func DefaultDataDir() string {
 	home := homeDir()
 	if home != "" {
 		if runtime.GOOS == "darwin" {
-			return filepath.Join(home, "Library", "Spectrum")
+			return filepath.Join(home, "Library", "mesh-chain")
 		} else if runtime.GOOS == "windows" {
-			return filepath.Join(home, "AppData", "Roaming", "Spectrum")
+			return filepath.Join(home, "AppData", "Roaming", "mesh-chain")
 		} else {
-			return filepath.Join(home, ".spectrum")
+			return filepath.Join(home, ".mesh-chain")
 		}
 	}
 	// As we cannot guess a stable location, return empty and handle later
@@ -70,11 +70,11 @@ func TestDataDir() string {
 	if home != "" {
 		testnet := "testnet"
 		if runtime.GOOS == "darwin" {
-			return filepath.Join(home, "Library", "Spectrum", testnet)
+			return filepath.Join(home, "Library", "mesh-chain", testnet)
 		} else if runtime.GOOS == "windows" {
-			return filepath.Join(home, "AppData", "Roaming", "Spectrum", testnet)
+			return filepath.Join(home, "AppData", "Roaming", "mesh-chain", testnet)
 		} else {
-			return filepath.Join(home, ".spectrum", testnet)
+			return filepath.Join(home, ".mesh-chain", testnet)
 		}
 	}
 	return ""
@@ -86,11 +86,11 @@ func DevDataDir() string {
 	if home != "" {
 		devnet := "devnet"
 		if runtime.GOOS == "darwin" {
-			return filepath.Join(home, "Library", "Spectrum", devnet)
+			return filepath.Join(home, "Library", "mesh-chain", devnet)
 		} else if runtime.GOOS == "windows" {
-			return filepath.Join(home, "AppData", "Roaming", "Spectrum", devnet)
+			return filepath.Join(home, "AppData", "Roaming", "mesh-chain", devnet)
 		} else {
-			return filepath.Join(home, ".spectrum", devnet)
+			return filepath.Join(home, ".mesh-chain", devnet)
 		}
 	}
 	return ""

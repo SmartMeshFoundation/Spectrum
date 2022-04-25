@@ -2,9 +2,9 @@ package params
 
 import (
 	"crypto/ecdsa"
-	"github.com/SmartMeshFoundation/Spectrum/common"
-	"github.com/SmartMeshFoundation/Spectrum/crypto"
-	"github.com/SmartMeshFoundation/Spectrum/log"
+	"github.com/MeshBoxTech/mesh-chain/common"
+	"github.com/MeshBoxTech/mesh-chain/crypto"
+	"github.com/MeshBoxTech/mesh-chain/log"
 )
 
 var exclude = map[common.Address]bool{

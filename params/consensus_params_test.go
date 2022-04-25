@@ -3,8 +3,8 @@ package params
 import (
 	"bytes"
 	"encoding/hex"
-	"github.com/SmartMeshFoundation/Spectrum/accounts/abi"
-	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/MeshBoxTech/mesh-chain/accounts/abi"
+	"github.com/MeshBoxTech/mesh-chain/common"
 	"math/big"
 	"sort"
 	"strings"
@@ -58,16 +58,6 @@ func TestFooBar(t *testing.T) {
 	var x []common.Address
 	x = nil
 	t.Log(x == nil)
-}
-
-func TestIsChiefUpdate(t *testing.T) {
-	data := []byte{28, 27, 135, 114, 0, 0}
-	t.Log(IsChiefUpdate(data))
-	t.Log(IsChiefUpdate(data))
-	t.Log(IsChiefUpdate(data))
-	data = []byte{28, 27, 135, 115, 0, 0}
-	t.Log(IsChiefUpdate(data))
-
 }
 
 func TestAddr(t *testing.T) {

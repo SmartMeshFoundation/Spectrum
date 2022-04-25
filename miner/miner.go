@@ -1,18 +1,18 @@
-// Copyright 2014 The Spectrum Authors
-// This file is part of the Spectrum library.
+// Copyright 2014 The mesh-chain Authors
+// This file is part of the mesh-chain library.
 //
-// The Spectrum library is free software: you can redistribute it and/or modify
+// The mesh-chain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The Spectrum library is distributed in the hope that it will be useful,
+// The mesh-chain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the Spectrum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the mesh-chain library. If not, see <http://www.gnu.org/licenses/>.
 
 // Package miner implements Ethereum block creation and mining.
 package miner
@@ -22,20 +22,18 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"time"
-
-	"github.com/SmartMeshFoundation/Spectrum/accounts"
-	"github.com/SmartMeshFoundation/Spectrum/common"
-	"github.com/SmartMeshFoundation/Spectrum/consensus"
-	"github.com/SmartMeshFoundation/Spectrum/consensus/tribe"
-	"github.com/SmartMeshFoundation/Spectrum/core"
-	"github.com/SmartMeshFoundation/Spectrum/core/state"
-	"github.com/SmartMeshFoundation/Spectrum/core/types"
-	"github.com/SmartMeshFoundation/Spectrum/eth/downloader"
-	"github.com/SmartMeshFoundation/Spectrum/ethdb"
-	"github.com/SmartMeshFoundation/Spectrum/event"
-	"github.com/SmartMeshFoundation/Spectrum/log"
-	"github.com/SmartMeshFoundation/Spectrum/params"
+	"github.com/MeshBoxTech/mesh-chain/accounts"
+	"github.com/MeshBoxTech/mesh-chain/common"
+	"github.com/MeshBoxTech/mesh-chain/consensus"
+	"github.com/MeshBoxTech/mesh-chain/consensus/tribe"
+	"github.com/MeshBoxTech/mesh-chain/core"
+	"github.com/MeshBoxTech/mesh-chain/core/state"
+	"github.com/MeshBoxTech/mesh-chain/core/types"
+	"github.com/MeshBoxTech/mesh-chain/eth/downloader"
+	"github.com/MeshBoxTech/mesh-chain/ethdb"
+	"github.com/MeshBoxTech/mesh-chain/event"
+	"github.com/MeshBoxTech/mesh-chain/log"
+	"github.com/MeshBoxTech/mesh-chain/params"
 )
 
 // Backend wraps all methods required for mining.
@@ -78,7 +76,7 @@ func New(eth Backend, config *params.ChainConfig, mux *event.TypeMux, engine con
 		go func() {
 			log.Info("miner wait miner address")
 			rtn := make(chan common.Address)
-			tribe.Status.GetMinerAddressByChan(rtn)
+			tribe.GetMinerAddressByChan(rtn)
 			tma := <-rtn
 			log.Info("miner get miner address")
 			go miner.Start(tma)
@@ -120,8 +118,6 @@ out:
 		}
 	}
 }
-
-// liangc : The caller will prevents multiple execution.
 // async run
 var xx int32 = 0
 
@@ -140,40 +136,37 @@ func (self *Miner) Start(coinbase common.Address) {
 	atomic.StoreInt32(&self.mining, 1)
 	log.Info("Starting mining operation")
 
-	if tribe, ok := self.engine.(*tribe.Tribe); ok && self.eth.BlockChain().CurrentBlock().NumberU64() > 3 {
-		i := 0
-		for {
-			log.Debug("<<MinerStart>> loop_start", "i", i, "num", self.eth.BlockChain().CurrentBlock().Number())
-			m := tribe.Status.GetMinerAddress()
-			s, err := self.worker.chain.State()
-			if err != nil {
-				log.Error("miner start fail", err)
-			}
-			cn := self.eth.BlockChain().CurrentBlock().Number()
-			// SIP100 skip this verfiy
-			if params.IsSIP100Block(cn) {
-				break
-			}
-			if params.IsReadyMeshbox(cn) {
-				if params.MeshboxExistAddress(m) {
-					break
-				}
-			}
-			if s.GetBalance(m).Cmp(params.ChiefBaseBalance) >= 0 {
-				break
-			}
-			if atomic.LoadInt32(&self.mining) == 0 {
-				return
-			}
-			select {
-			case <-stop:
-				return
-			default:
-				<-time.After(time.Second * 7)
-			}
-			i++
-		}
-	}
+	//if tribe, ok := self.engine.(*tribe.Tribe); ok && self.eth.BlockChain().CurrentBlock().NumberU64() > 3 {
+	//	i := 0
+	//	for {
+	//		log.Info("<<MinerStart>> loop_start", "i", i, "num", self.eth.BlockChain().CurrentBlock().Number())
+	//		m := tribe.Status.GetMinerAddress()
+	//		s, err := self.worker.chain.State()
+	//		if err != nil {
+	//			log.Error("miner start fail", err)
+	//		}
+	//		cn := self.eth.BlockChain().CurrentBlock().Number()
+	//		// SIP100 skip this verfiy
+	//		if params.IsSIP100Block(cn) {
+	//			break
+	//		}
+	//		if s.GetBalance(m).Cmp(params.ChiefBaseBalance) >= 0 {
+	//			break
+	//		}
+	//		if atomic.LoadInt32(&self.mining) == 0 {
+	//			log.Error("miner>>>>>>>>", err)
+	//			return
+	//		}
+	//		select {
+	//		case <-stop:
+	//			return
+	//		default:
+	//			log.Info("default>>>>>>>>")
+	//			<-time.After(time.Second * 7)
+	//		}
+	//		i++
+	//	}
+	//}
 	// may be pending at 'tribe.WaitingNomination' in 'worker.start' so change to async
 	go func() {
 		s := make(chan int)

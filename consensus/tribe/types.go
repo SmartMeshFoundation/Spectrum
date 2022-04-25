@@ -3,54 +3,42 @@ package tribe
 import (
 	"crypto/ecdsa"
 	"errors"
-	"fmt"
+	"github.com/MeshBoxTech/mesh-chain/accounts"
+	"github.com/MeshBoxTech/mesh-chain/accounts/abi"
+	"github.com/MeshBoxTech/mesh-chain/common"
+	"github.com/MeshBoxTech/mesh-chain/common/hexutil"
+	"github.com/MeshBoxTech/mesh-chain/consensus"
+	"github.com/MeshBoxTech/mesh-chain/core/types"
+	"github.com/MeshBoxTech/mesh-chain/ethdb"
+	"github.com/MeshBoxTech/mesh-chain/params"
+	lru "github.com/hashicorp/golang-lru"
 	"math/big"
 	"sync"
-	"time"
-
-	"github.com/SmartMeshFoundation/Spectrum/accounts"
-	"github.com/SmartMeshFoundation/Spectrum/common"
-	"github.com/SmartMeshFoundation/Spectrum/common/hexutil"
-	"github.com/SmartMeshFoundation/Spectrum/consensus"
-	"github.com/SmartMeshFoundation/Spectrum/core/types"
-	"github.com/SmartMeshFoundation/Spectrum/params"
-	lru "github.com/hashicorp/golang-lru"
 )
 
 const (
-	// None -> Volunteer -> Signer -> Sinner
-	LevelNone      = "None"
-	LevelVolunteer = "Volunteer"
-	LevelSigner    = "Signer"
-	LevelSinner    = "Sinner" //黑名单
 
 	historyLimit = 2048
-	wiggleTime   = 500 * time.Millisecond // Random delay (per signer) to allow concurrent signers
-	CHIEF_NUMBER = int64(3)               //最早版本chief合约开始生效的块数
+	wiggleTime           = uint64(5)
+	initialBackOffTime   = uint64(5) // second
+	checkpointInterval = 1024 // Number of blocks after which to save the vote snapshot to the database
 )
 
 var (
 	blockPeriod  = uint64(15)                               // Default minimum difference between two consecutive block's timestamps
-	_extraVanity = 32                                       // Fixed number of extra-data prefix bytes reserved for signer vanity
-	_extraVrf    = 161                                      // before SIP100 extra format is bytes[extraVanity+extraSeal], after is bytes[extraVrf+extraSeal]
+	extraVanity = 32                                       // Fixed number of extra-data prefix bytes reserved for signer vanity
+	extraVrf    = 161                                      // before SIP100 extra format is bytes[extraVanity+extraSeal], after is bytes[extraVrf+extraSeal]
 	extraSeal    = 65                                       // Fixed number of extra-data suffix bytes reserved for signer seal
 	nonceSync    = hexutil.MustDecode("0xffffffffffffffff") // TODO Reserved to control behavior
 	nonceAsync   = hexutil.MustDecode("0x0000000000000000") // TODO Reserved to control behavior
 	uncleHash    = types.CalcUncleHash(nil)                 // Always Keccak256(RLP([])) as uncles are meaningless outside of PoW.
-	// less than SIP100 >>>>>>>>>>>>>
-	// new role is in turn 6 ~ 1
+	validatorBytesLength = common.AddressLength
 	diffInTurnMain = big.NewInt(3) // Block difficulty for in-turn Main
 	diffInTurn     = big.NewInt(2) // Block difficulty for in-turn Sub
 	diffNoTurn     = big.NewInt(1) // Block difficulty for out-of-turn Other
 	// less than SIP100 <<<<<<<<<<<<<
 	diff = int64(6) // SIP100 max diff is 6
-
-	extraVanityFn = func(num *big.Int) int {
-		if params.IsSIP100Block(num) {
-			return _extraVrf
-		}
-		return _extraVanity
-	}
+	maxValidators = 21
 )
 
 // Various error messages to mark blocks invalid. These should be private to
@@ -58,6 +46,13 @@ var (
 // codebase, inherently breaking if the engine is swapped out. Please put common
 // error types into the consensus package.
 var (
+	// errInvalidVotingChain is returned if an authorization list is attempted to
+	// be modified via out-of-range or non-contiguous headers.
+	errInvalidVotingChain = errors.New("invalid voting chain")
+	// errUnauthorizedValidator is returned if a header is signed by a non-authorized entity.
+	errUnauthorizedValidator = errors.New("unauthorized validator")
+
+
 	// errUnknownBlock is returned when the list of signers is requested for a block
 	// that is not part of the local blockchain.
 	errUnknownBlock = errors.New("unknown block")
@@ -78,6 +73,9 @@ var (
 	// to contain a 65 byte secp256k1 signature.
 	errMissingSignature = errors.New("extra-data 65 byte suffix signature missing")
 
+	// errInvalidExtraValidators is returned if validator data in extra-data field is invalid.
+	errInvalidExtraValidators = errors.New("Invalid extra validators in extra data field")
+
 	// errExtraSigners is returned if non-checkpoint block contain signer data in
 	// their extra-data fields.
 	errExtraSigners = errors.New("non-checkpoint block contains extra signer list")
@@ -92,6 +90,14 @@ var (
 	// of 1 - 3 , or if the value does not match the turn of the signer.
 	errInvalidDifficulty = errors.New("invalid__difficulty")
 
+	// errExtraValidators is returned if non-sprint-end block contain validator data in
+	// their extra-data fields.
+	errExtraValidators = errors.New("non-sprint-end block contains extra validator list")
+
+	// errInvalidSpanValidators is returned if a block contains an
+	// invalid list of validators (i.e. non divisible by 20 bytes).
+	errInvalidSpanValidators = errors.New("invalid validator list on sprint end block")
+
 	// ErrInvalidTimestamp is returned if the timestamp of a block is lower than
 	// the previous block's timestamp + the minimum block period.
 	ErrInvalidTimestamp       = errors.New("invalid timestamp")
@@ -99,6 +105,12 @@ var (
 
 	// errUnauthorized is returned if a header is signed by a non-authorized entity.
 	errUnauthorized = errors.New("unauthorized")
+
+	// errInvalidCoinbase is returned if the coinbase isn't the validator of the block.
+	errInvalidCoinbase = errors.New("Invalid coin base")
+
+	// errInvalidValidatorLen is returned if validators length is zero or bigger than maxValidators.
+	errInvalidValidatorsLength = errors.New("Invalid validators length")
 
 	// errWaitTransactions is returned if an empty block is attempted to be sealed
 	// on an instant chain (0 second period). It's important to refuse these as the
@@ -113,20 +125,24 @@ var (
 	ErrTribeChiefTxSignerAndBlockSignerNotMatch = errors.New("tribe chief update tx signer and block signer not match")
 	ErrTribeValdateTxSenderCannotInSignerList   = errors.New("tx sender cannot in signerlist")
 
-	Chief100BlockReward, _                      = new(big.Int).SetString("35000000000000000000", 10) //Block reward in wei for successfully mining a block
-	BlockRewardReducedInterval                  = 4505000                                            //half reward about two years
-	SmartMeshFoundationAccount                  = common.HexToAddress("0xe0014a4268ad3d7b131551be47bc6ed72a6937e4")
-	SmartMeshFoundationAccountDestroyBalance, _ = new(big.Int).SetString("376991118360000000000000000", 10)
+	BlockRewardReducedInterval                  = 2102400
+	MeshRewardForValidator, _                   = new(big.Int).SetString("100000000000000000000", 10) //Block reward in wei for successfully mining a block
+	MeshRewardForPom, _                         = new(big.Int).SetString("10000000000000000000000", 10) //Block reward in wei for successfully mining a block
 )
 
 type Tribe struct {
 	accman   *accounts.Manager
 	config   *params.TribeConfig // Consensus engine configuration parameters
 	sigcache *lru.ARCCache       // mapping block.hash -> signer
-	Status   *TribeStatus
+	//Status   *TribeStatus
 	//SealErrorCounter uint32     // less then 3 , retry commit new work
 	isInit bool
 	lock   sync.Mutex
+	stateFn StateFn // Function to get state by state root
+	abi map[string]abi.ABI // Interactive with system contracts
+	recents    *lru.ARCCache // Snapshots for recent block to speed up reorgs
+	db          ethdb.Database         // Database to store and retrieve snapshot checkpoints
+	nodeKey   *ecdsa.PrivateKey  //miner
 }
 
 type API struct {
@@ -135,56 +151,9 @@ type API struct {
 	tribe  *Tribe
 }
 
-// SignerFn is a signer callback function to request a hash to be signed by a
-// backing account.
-type SignerFn func(accounts.Account, []byte) ([]byte, error)
 
-type Signer struct {
-	Address common.Address `json:"address"` // 签名人
-	Score   int64          `json:"score"`   // 分数
-}
-
-// append chief vsn 0.0.6
-type Volunteer struct {
-	Address common.Address `json:"address"` // 候选人
-	Weight  int64          `json:"weight"`  // 权重
-}
-
-func (self *Signer) String() string {
-	return fmt.Sprintf("%s:%d", self.Address.Hex(), self.Score)
-}
-
-type History struct {
-	Number     int64          `json:"number"`
-	Hash       common.Hash    `json:"hash"`
-	Signer     common.Address `json:"signer"`
-	Difficulty *big.Int       `json:"difficulty"`
-	Timestamp  *big.Int       `json:"timestamp"`
-}
-
-type TribeStatus struct {
-	Signers     []*Signer        `json:"signers"`
-	Leaders     []common.Address `json:"leaders"`
-	SignerLevel string           `json:"signerLevel"` // None -> Volunteer -> Signer
-	Number      int64            `json:"number"`      // last block.number
-	// for watch the set method result
-	Epoch       *big.Int `json:"epoch"`
-	LeaderLimit *big.Int `json:"leaderLimit"`
-	SignerLimit *big.Int `json:"signerLimit"`
-	Vsn         string   `json:"version"` // chief version
-
-	blackList []common.Address
-	nodeKey   *ecdsa.PrivateKey
-	tribe     *Tribe
-}
-
-type TribeVolunteers struct {
-	Length     *big.Int     `json:"length"`
-	Volunteers []*Volunteer `json:"volunteers"`
-}
 
 type TribeMiner struct {
 	Address common.Address `json:"address"`
 	Balance *big.Int       `json:"balance"`
-	Level   string         `json:"level"` // None 、 Volunteer 、 Signer
 }

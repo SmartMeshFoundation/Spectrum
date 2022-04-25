@@ -1,18 +1,18 @@
-// Copyright 2014 The Spectrum Authors
-// This file is part of the Spectrum library.
+// Copyright 2014 The mesh-chain Authors
+// This file is part of the mesh-chain library.
 //
-// The Spectrum library is free software: you can redistribute it and/or modify
+// The mesh-chain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The Spectrum library is distributed in the hope that it will be useful,
+// The mesh-chain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the Spectrum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the mesh-chain library. If not, see <http://www.gnu.org/licenses/>.
 
 package core
 
@@ -27,13 +27,13 @@ import (
 
 	"crypto/ecdsa"
 
-	"github.com/SmartMeshFoundation/Spectrum/common"
-	"github.com/SmartMeshFoundation/Spectrum/core/state"
-	"github.com/SmartMeshFoundation/Spectrum/core/types"
-	"github.com/SmartMeshFoundation/Spectrum/event"
-	"github.com/SmartMeshFoundation/Spectrum/log"
-	"github.com/SmartMeshFoundation/Spectrum/metrics"
-	"github.com/SmartMeshFoundation/Spectrum/params"
+	"github.com/MeshBoxTech/mesh-chain/common"
+	"github.com/MeshBoxTech/mesh-chain/core/state"
+	"github.com/MeshBoxTech/mesh-chain/core/types"
+	"github.com/MeshBoxTech/mesh-chain/event"
+	"github.com/MeshBoxTech/mesh-chain/log"
+	"github.com/MeshBoxTech/mesh-chain/metrics"
+	"github.com/MeshBoxTech/mesh-chain/params"
 	"gopkg.in/karalabe/cookiejar.v2/collections/prque"
 )
 
@@ -698,10 +698,6 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	return nil
 }
 
-// add by liangc : chief contract's tx only be one , Keep up with the latest
-func (pool *TxPool) isChiefUpdateTx(tx *types.Transaction) bool {
-	return tx.To() != nil && params.IsChiefAddress(*tx.To()) && params.IsChiefUpdate(tx.Data())
-}
 
 // add validates a transaction and inserts it into the non-executable queue for
 // later pending promotion and execution. If the transaction is a replacement for
@@ -715,9 +711,6 @@ func (pool *TxPool) add(tx *types.Transaction, local bool) (bool, error) {
 	// add by liangc : 18-09-13 : error block : incompatible HomesteadSigner
 	if !tx.Protected() {
 		return false, fmt.Errorf("TxPool incompatible HomesteadSigner tx=%s", tx.Hash().Hex())
-	}
-	if pool.isChiefUpdateTx(tx) {
-		return false, errors.New("can not accept chief update tx")
 	}
 	// If the transaction is already known, discard it
 	hash := tx.Hash()

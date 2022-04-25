@@ -7,8 +7,8 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/SmartMeshFoundation/Spectrum/common"
-	"github.com/SmartMeshFoundation/Spectrum/common/hexutil"
+	"github.com/MeshBoxTech/mesh-chain/common"
+	"github.com/MeshBoxTech/mesh-chain/common/hexutil"
 )
 
 func (t txdata) MarshalJSON() ([]byte, error) {

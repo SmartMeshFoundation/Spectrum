@@ -1,18 +1,18 @@
-// Copyright 2014 The Spectrum Authors
-// This file is part of the Spectrum library.
+// Copyright 2014 The mesh-chain Authors
+// This file is part of the mesh-chain library.
 //
-// The Spectrum library is free software: you can redistribute it and/or modify
+// The mesh-chain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The Spectrum library is distributed in the hope that it will be useful,
+// The mesh-chain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the Spectrum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the mesh-chain library. If not, see <http://www.gnu.org/licenses/>.
 
 package node
 
@@ -26,15 +26,15 @@ import (
 	"strings"
 
 	"encoding/hex"
-	"github.com/SmartMeshFoundation/Spectrum/accounts"
-	"github.com/SmartMeshFoundation/Spectrum/accounts/keystore"
-	"github.com/SmartMeshFoundation/Spectrum/accounts/usbwallet"
-	"github.com/SmartMeshFoundation/Spectrum/common"
-	"github.com/SmartMeshFoundation/Spectrum/crypto"
-	"github.com/SmartMeshFoundation/Spectrum/log"
-	"github.com/SmartMeshFoundation/Spectrum/p2p"
-	"github.com/SmartMeshFoundation/Spectrum/p2p/discover"
-	"github.com/SmartMeshFoundation/Spectrum/params"
+	"github.com/MeshBoxTech/mesh-chain/accounts"
+	"github.com/MeshBoxTech/mesh-chain/accounts/keystore"
+	"github.com/MeshBoxTech/mesh-chain/accounts/usbwallet"
+	"github.com/MeshBoxTech/mesh-chain/common"
+	"github.com/MeshBoxTech/mesh-chain/crypto"
+	"github.com/MeshBoxTech/mesh-chain/log"
+	"github.com/MeshBoxTech/mesh-chain/p2p"
+	"github.com/MeshBoxTech/mesh-chain/p2p/discover"
+	"github.com/MeshBoxTech/mesh-chain/params"
 )
 
 const (
@@ -209,8 +209,6 @@ func DefaultIPCEndpoint(clientIdentifier string) string {
 	datadir := DefaultDataDir()
 	if params.IsTestnet() {
 		datadir = TestDataDir()
-	} else if params.IsDevnet() {
-		datadir = DevDataDir()
 	}
 	config := &Config{DataDir: datadir, IPCPath: clientIdentifier + ".ipc"}
 	path := config.IPCEndpoint()
@@ -221,8 +219,6 @@ func DefaultNodekeyDir() string {
 	home := DefaultDataDir()
 	if params.IsTestnet() {
 		home = TestDataDir()
-	} else if params.IsDevnet() {
-		home = DevDataDir()
 	}
 	return filepath.Join(home, "smc")
 }
@@ -481,7 +477,7 @@ func makeAccountManager(conf *Config) (*accounts.Manager, string, error) {
 	var ephemeral string
 	if keydir == "" {
 		// There is no datadir.
-		keydir, err = ioutil.TempDir("", "Spectrum-keystore")
+		keydir, err = ioutil.TempDir("", "mesh-chain-keystore")
 		ephemeral = keydir
 	}
 

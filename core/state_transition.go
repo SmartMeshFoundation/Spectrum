@@ -1,27 +1,27 @@
-// Copyright 2014 The Spectrum Authors
-// This file is part of the Spectrum library.
+// Copyright 2014 The mesh-chain Authors
+// This file is part of the mesh-chain library.
 //
-// The Spectrum library is free software: you can redistribute it and/or modify
+// The mesh-chain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The Spectrum library is distributed in the hope that it will be useful,
+// The mesh-chain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the Spectrum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the mesh-chain library. If not, see <http://www.gnu.org/licenses/>.
 
 package core
 
 import (
 	"errors"
-	"github.com/SmartMeshFoundation/Spectrum/common"
-	"github.com/SmartMeshFoundation/Spectrum/core/vm"
-	"github.com/SmartMeshFoundation/Spectrum/log"
-	"github.com/SmartMeshFoundation/Spectrum/params"
+	"github.com/MeshBoxTech/mesh-chain/common"
+	"github.com/MeshBoxTech/mesh-chain/core/vm"
+	"github.com/MeshBoxTech/mesh-chain/log"
+	"github.com/MeshBoxTech/mesh-chain/params"
 	"math/big"
 )
 
@@ -177,10 +177,9 @@ func (st *StateTransition) IsChiefSIP100() bool {
 }
 
 func (st *StateTransition) buyGas() error {
-	mgas := big.NewInt(0)
-	if !(params.IsSIP001Block(st.blockNumber) && st.msg.To() != nil && params.IsChiefAddress(*st.msg.To()) && params.IsChiefUpdate(st.msg.Data())) {
-		mgas = st.msg.Gas()
-	}
+
+	mgas := st.msg.Gas()
+
 	if mgas.BitLen() > 64 {
 		return vm.ErrOutOfGas
 	}
@@ -248,10 +247,8 @@ func (st *StateTransition) TransitionDb() (ret []byte, requiredGas, usedGas *big
 	// TODO convert to uint64
 
 	// add by liangc
-	intrinsicGas := big.NewInt(0)
-	if !(params.IsSIP001Block(st.blockNumber) && st.msg.To() != nil && params.IsChiefAddress(*st.msg.To()) && params.IsChiefUpdate(st.msg.Data())) {
-		intrinsicGas = IntrinsicGas(st.data, contractCreation, homestead)
-	}
+	intrinsicGas := IntrinsicGas(st.data, contractCreation, homestead)
+
 	if intrinsicGas.BitLen() > 64 {
 		return nil, nil, nil, false, vm.ErrOutOfGas
 	}

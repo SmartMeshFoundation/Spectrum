@@ -1,20 +1,20 @@
-// Copyright 2016 The Spectrum Authors
-// This file is part of the Spectrum library.
+// Copyright 2016 The mesh-chain Authors
+// This file is part of the mesh-chain library.
 //
-// The Spectrum library is free software: you can redistribute it and/or modify
+// The mesh-chain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The Spectrum library is distributed in the hope that it will be useful,
+// The mesh-chain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the Spectrum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the mesh-chain library. If not, see <http://www.gnu.org/licenses/>.
 
-// Contains all the wrappers from the Spectrum root package.
+// Contains all the wrappers from the mesh-chain root package.
 
 package geth
 
@@ -22,8 +22,8 @@ import (
 	"errors"
 	"math/big"
 
-	ethereum "github.com/SmartMeshFoundation/Spectrum"
-	"github.com/SmartMeshFoundation/Spectrum/common"
+	ethereum "github.com/MeshBoxTech/mesh-chain"
+	"github.com/MeshBoxTech/mesh-chain/common"
 )
 
 // Subscription represents an event subscription where events are

@@ -1,18 +1,18 @@
-// Copyright 2016 The Spectrum Authors
-// This file is part of the Spectrum library.
+// Copyright 2016 The mesh-chain Authors
+// This file is part of the mesh-chain library.
 //
-// The Spectrum library is free software: you can redistribute it and/or modify
+// The mesh-chain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The Spectrum library is distributed in the hope that it will be useful,
+// The mesh-chain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the Spectrum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the mesh-chain library. If not, see <http://www.gnu.org/licenses/>.
 
 // +build none
 
@@ -46,7 +46,7 @@ import (
 	"encoding/base64"
 	"flag"
 	"fmt"
-	"github.com/SmartMeshFoundation/Spectrum/internal/build"
+	"github.com/MeshBoxTech/mesh-chain/internal/build"
 	"go/parser"
 	"go/token"
 	"io/ioutil"
@@ -186,7 +186,7 @@ func doInstall(cmdline []string) {
 	//if runtime.Version() < "go1.7" && !strings.Contains(runtime.Version(), "devel") {
 	if v0 <= 1 && v1 < 9 && !strings.Contains(runtime.Version(), "devel") {
 		log.Println("You have Go version", runtime.Version())
-		log.Println("Spectrum requires at least Go version 1.9 and cannot")
+		log.Println("mesh-chain requires at least Go version 1.9 and cannot")
 		log.Println("be compiled with an earlier version. Please upgrade your Go installation.")
 		os.Exit(1)
 	}
@@ -552,7 +552,7 @@ func isUnstableBuild(env build.Environment) bool {
 type debMetadata struct {
 	Env build.Environment
 
-	// Spectrum version being built. Note that this
+	// mesh-chain version being built. Note that this
 	// is not the debian package version. The package version
 	// is constructed by VersionString.
 	Version string
@@ -569,7 +569,7 @@ type debExecutable struct {
 func newDebMetadata(distro, author string, env build.Environment, t time.Time) debMetadata {
 	if author == "" {
 		// No signing key, use default author.
-		author = "Spectrum Builds <cc14514@icloud.com>"
+		author = "mesh-chain Builds <cc14514@icloud.com>"
 	}
 	return debMetadata{
 		Env:         env,
@@ -585,9 +585,9 @@ func newDebMetadata(distro, author string, env build.Environment, t time.Time) d
 // on all executable packages.
 func (meta debMetadata) Name() string {
 	if isUnstableBuild(meta.Env) {
-		return "Spectrum-unstable"
+		return "mesh-chain-unstable"
 	}
-	return "Spectrum"
+	return "mesh-chain"
 }
 
 // VersionString returns the debian version of the packages.
@@ -631,7 +631,7 @@ func (meta debMetadata) ExeConflicts(exe debExecutable) string {
 		// be preferred and the conflicting files should be handled via
 		// alternates. We might do this eventually but using a conflict is
 		// easier now.
-		return "Spectrum, " + exe.Name
+		return "mesh-chain, " + exe.Name
 	}
 	return ""
 }
@@ -758,7 +758,7 @@ func doAndroidArchive(cmdline []string) {
 	// Build the Android archive and Maven resources
 	build.MustRun(goTool("get", "golang.org/x/mobile/cmd/gomobile"))
 	build.MustRun(gomobileTool("init", "--ndk", os.Getenv("ANDROID_NDK")))
-	build.MustRun(gomobileTool("bind", "--target", "android", "--javapkg", "org.ethereum", "-v", "github.com/SmartMeshFoundation/Spectrum/mobile"))
+	build.MustRun(gomobileTool("bind", "--target", "android", "--javapkg", "org.ethereum", "-v", "github.com/MeshBoxTech/mesh-chain/mobile"))
 
 	if *local {
 		// If we're building locally, copy bundle to build dir and skip Maven
@@ -878,7 +878,7 @@ func doXCodeFramework(cmdline []string) {
 	// Build the iOS XCode framework
 	build.MustRun(goTool("get", "golang.org/x/mobile/cmd/gomobile"))
 	build.MustRun(gomobileTool("init"))
-	bind := gomobileTool("bind", "--target", "ios", "--tags", "ios", "-v", "github.com/SmartMeshFoundation/Spectrum/mobile")
+	bind := gomobileTool("bind", "--target", "ios", "--tags", "ios", "-v", "github.com/MeshBoxTech/mesh-chain/mobile")
 
 	if *local {
 		// If we're building locally, use the build folder and stop afterwards

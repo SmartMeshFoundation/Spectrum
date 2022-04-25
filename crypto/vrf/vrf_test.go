@@ -18,7 +18,7 @@ import (
 	"bytes"
 	"crypto/ecdsa"
 	"crypto/rand"
-	"github.com/SmartMeshFoundation/Spectrum/crypto/secp256k1"
+	"github.com/MeshBoxTech/mesh-chain/crypto/secp256k1"
 	_ "github.com/google/trillian/crypto/keys/der/proto"
 	"math"
 	"testing"

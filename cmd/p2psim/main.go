@@ -29,12 +29,12 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/SmartMeshFoundation/Spectrum/crypto"
-	"github.com/SmartMeshFoundation/Spectrum/p2p"
-	"github.com/SmartMeshFoundation/Spectrum/p2p/discover"
-	"github.com/SmartMeshFoundation/Spectrum/p2p/simulations"
-	"github.com/SmartMeshFoundation/Spectrum/p2p/simulations/adapters"
-	"github.com/SmartMeshFoundation/Spectrum/rpc"
+	"github.com/MeshBoxTech/mesh-chain/crypto"
+	"github.com/MeshBoxTech/mesh-chain/p2p"
+	"github.com/MeshBoxTech/mesh-chain/p2p/discover"
+	"github.com/MeshBoxTech/mesh-chain/p2p/simulations"
+	"github.com/MeshBoxTech/mesh-chain/p2p/simulations/adapters"
+	"github.com/MeshBoxTech/mesh-chain/rpc"
 	"gopkg.in/urfave/cli.v1"
 )
 

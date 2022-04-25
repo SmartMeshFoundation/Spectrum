@@ -1,18 +1,18 @@
-// Copyright 2016 The Spectrum Authors
-// This file is part of the Spectrum library.
+// Copyright 2016 The mesh-chain Authors
+// This file is part of the mesh-chain library.
 //
-// The Spectrum library is free software: you can redistribute it and/or modify
+// The mesh-chain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The Spectrum library is distributed in the hope that it will be useful,
+// The mesh-chain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the Spectrum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the mesh-chain library. If not, see <http://www.gnu.org/licenses/>.
 
 package swarm
 
@@ -23,22 +23,22 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/SmartMeshFoundation/Spectrum/accounts/abi/bind"
-	"github.com/SmartMeshFoundation/Spectrum/common"
-	"github.com/SmartMeshFoundation/Spectrum/contracts/chequebook"
-	"github.com/SmartMeshFoundation/Spectrum/contracts/ens"
-	"github.com/SmartMeshFoundation/Spectrum/crypto"
-	"github.com/SmartMeshFoundation/Spectrum/ethclient"
-	"github.com/SmartMeshFoundation/Spectrum/log"
-	"github.com/SmartMeshFoundation/Spectrum/node"
-	"github.com/SmartMeshFoundation/Spectrum/p2p"
-	"github.com/SmartMeshFoundation/Spectrum/p2p/discover"
-	"github.com/SmartMeshFoundation/Spectrum/rpc"
-	"github.com/SmartMeshFoundation/Spectrum/swarm/api"
-	httpapi "github.com/SmartMeshFoundation/Spectrum/swarm/api/http"
-	"github.com/SmartMeshFoundation/Spectrum/swarm/fuse"
-	"github.com/SmartMeshFoundation/Spectrum/swarm/network"
-	"github.com/SmartMeshFoundation/Spectrum/swarm/storage"
+	"github.com/MeshBoxTech/mesh-chain/accounts/abi/bind"
+	"github.com/MeshBoxTech/mesh-chain/common"
+	"github.com/MeshBoxTech/mesh-chain/contracts/chequebook"
+	"github.com/MeshBoxTech/mesh-chain/contracts/ens"
+	"github.com/MeshBoxTech/mesh-chain/crypto"
+	"github.com/MeshBoxTech/mesh-chain/ethclient"
+	"github.com/MeshBoxTech/mesh-chain/log"
+	"github.com/MeshBoxTech/mesh-chain/node"
+	"github.com/MeshBoxTech/mesh-chain/p2p"
+	"github.com/MeshBoxTech/mesh-chain/p2p/discover"
+	"github.com/MeshBoxTech/mesh-chain/rpc"
+	"github.com/MeshBoxTech/mesh-chain/swarm/api"
+	httpapi "github.com/MeshBoxTech/mesh-chain/swarm/api/http"
+	"github.com/MeshBoxTech/mesh-chain/swarm/fuse"
+	"github.com/MeshBoxTech/mesh-chain/swarm/network"
+	"github.com/MeshBoxTech/mesh-chain/swarm/storage"
 )
 
 // the swarm stack

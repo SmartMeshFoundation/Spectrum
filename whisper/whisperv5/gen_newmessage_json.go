@@ -5,7 +5,7 @@ package whisperv5
 import (
 	"encoding/json"
 
-	"github.com/SmartMeshFoundation/Spectrum/common/hexutil"
+	"github.com/MeshBoxTech/mesh-chain/common/hexutil"
 )
 
 var _ = (*newMessageOverride)(nil)

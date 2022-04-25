@@ -1,18 +1,18 @@
-// Copyright 2014 The Spectrum Authors
-// This file is part of the Spectrum library.
+// Copyright 2014 The mesh-chain Authors
+// This file is part of the mesh-chain library.
 //
-// The Spectrum library is free software: you can redistribute it and/or modify
+// The mesh-chain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The Spectrum library is distributed in the hope that it will be useful,
+// The mesh-chain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the Spectrum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the mesh-chain library. If not, see <http://www.gnu.org/licenses/>.
 
 // Package eth implements the Ethereum protocol.
 package eth
@@ -27,30 +27,30 @@ import (
 
 	"crypto/ecdsa"
 
-	"github.com/SmartMeshFoundation/Spectrum/accounts"
-	"github.com/SmartMeshFoundation/Spectrum/common"
-	"github.com/SmartMeshFoundation/Spectrum/common/hexutil"
-	"github.com/SmartMeshFoundation/Spectrum/consensus"
-	"github.com/SmartMeshFoundation/Spectrum/consensus/clique"
-	"github.com/SmartMeshFoundation/Spectrum/consensus/ethash"
-	"github.com/SmartMeshFoundation/Spectrum/consensus/tribe"
-	"github.com/SmartMeshFoundation/Spectrum/core"
-	"github.com/SmartMeshFoundation/Spectrum/core/bloombits"
-	"github.com/SmartMeshFoundation/Spectrum/core/types"
-	"github.com/SmartMeshFoundation/Spectrum/core/vm"
-	"github.com/SmartMeshFoundation/Spectrum/eth/downloader"
-	"github.com/SmartMeshFoundation/Spectrum/eth/filters"
-	"github.com/SmartMeshFoundation/Spectrum/eth/gasprice"
-	"github.com/SmartMeshFoundation/Spectrum/ethdb"
-	"github.com/SmartMeshFoundation/Spectrum/event"
-	"github.com/SmartMeshFoundation/Spectrum/internal/ethapi"
-	"github.com/SmartMeshFoundation/Spectrum/log"
-	"github.com/SmartMeshFoundation/Spectrum/miner"
-	"github.com/SmartMeshFoundation/Spectrum/node"
-	"github.com/SmartMeshFoundation/Spectrum/p2p"
-	"github.com/SmartMeshFoundation/Spectrum/params"
-	"github.com/SmartMeshFoundation/Spectrum/rlp"
-	"github.com/SmartMeshFoundation/Spectrum/rpc"
+	"github.com/MeshBoxTech/mesh-chain/accounts"
+	"github.com/MeshBoxTech/mesh-chain/common"
+	"github.com/MeshBoxTech/mesh-chain/common/hexutil"
+	"github.com/MeshBoxTech/mesh-chain/consensus"
+	"github.com/MeshBoxTech/mesh-chain/consensus/clique"
+	"github.com/MeshBoxTech/mesh-chain/consensus/ethash"
+	"github.com/MeshBoxTech/mesh-chain/consensus/tribe"
+	"github.com/MeshBoxTech/mesh-chain/core"
+	"github.com/MeshBoxTech/mesh-chain/core/bloombits"
+	"github.com/MeshBoxTech/mesh-chain/core/types"
+	"github.com/MeshBoxTech/mesh-chain/core/vm"
+	"github.com/MeshBoxTech/mesh-chain/eth/downloader"
+	"github.com/MeshBoxTech/mesh-chain/eth/filters"
+	"github.com/MeshBoxTech/mesh-chain/eth/gasprice"
+	"github.com/MeshBoxTech/mesh-chain/ethdb"
+	"github.com/MeshBoxTech/mesh-chain/event"
+	"github.com/MeshBoxTech/mesh-chain/internal/ethapi"
+	"github.com/MeshBoxTech/mesh-chain/log"
+	"github.com/MeshBoxTech/mesh-chain/miner"
+	"github.com/MeshBoxTech/mesh-chain/node"
+	"github.com/MeshBoxTech/mesh-chain/p2p"
+	"github.com/MeshBoxTech/mesh-chain/params"
+	"github.com/MeshBoxTech/mesh-chain/rlp"
+	"github.com/MeshBoxTech/mesh-chain/rpc"
 )
 
 type LesServer interface {
@@ -172,7 +172,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Ethereum, error) {
 	}
 
 	eth.miner = miner.New(eth, eth.chainConfig, eth.EventMux(), eth.engine)
-	//eth.miner.SetExtra(makeExtraData(config.ExtraData))
+
 
 	eth.ApiBackend = &EthApiBackend{eth, nil}
 	gpoParams := config.GPO
@@ -180,10 +180,6 @@ func New(ctx *node.ServiceContext, config *Config) (*Ethereum, error) {
 		gpoParams.Default = config.GasPrice
 	}
 	eth.ApiBackend.gpo = gasprice.NewOracle(eth.ApiBackend, gpoParams)
-	// add by liangc
-	if tribe, ok := eth.engine.(*tribe.Tribe); ok {
-		tribe.Init()
-	}
 	return eth, nil
 }
 
@@ -219,7 +215,6 @@ func CreateDB(ctx *node.ServiceContext, config *Config, name string) (ethdb.Data
 
 // CreateConsensusEngine creates the required type of consensus engine instance for an Ethereum service
 func CreateConsensusEngine(ctx *node.ServiceContext, config *ethash.Config, chainConfig *params.ChainConfig, db ethdb.Database) consensus.Engine {
-	// add by liangc : start tribe engine : POS
 	if chainConfig.Tribe != nil {
 		return tribe.New(ctx.AccountManager, chainConfig.Tribe, db)
 	}
@@ -319,7 +314,7 @@ func (s *Ethereum) Etherbase() (eb common.Address, err error) {
 	s.lock.RUnlock()
 
 	if tribe, ok := s.engine.(*tribe.Tribe); ok {
-		return tribe.Status.GetMinerAddress(), nil
+		return tribe.GetMinerAddress(), nil
 	}
 	if etherbase != (common.Address{}) {
 		return etherbase, nil
@@ -419,6 +414,9 @@ func (s *Ethereum) Start(srvr *p2p.Server) error {
 	s.protocolManager.Start(maxPeers)
 	if s.lesServer != nil {
 		s.lesServer.Start(srvr)
+	}
+	if tribe, ok := s.engine.(*tribe.Tribe); ok {
+		tribe.Init(s.blockchain.StateAt,srvr.PrivateKey)
 	}
 	go s.tribeReadyForAcceptTxs()
 	return nil

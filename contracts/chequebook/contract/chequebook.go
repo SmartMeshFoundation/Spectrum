@@ -7,10 +7,10 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/SmartMeshFoundation/Spectrum/accounts/abi"
-	"github.com/SmartMeshFoundation/Spectrum/accounts/abi/bind"
-	"github.com/SmartMeshFoundation/Spectrum/common"
-	"github.com/SmartMeshFoundation/Spectrum/core/types"
+	"github.com/MeshBoxTech/mesh-chain/accounts/abi"
+	"github.com/MeshBoxTech/mesh-chain/accounts/abi/bind"
+	"github.com/MeshBoxTech/mesh-chain/common"
+	"github.com/MeshBoxTech/mesh-chain/core/types"
 )
 
 // ChequebookABI is the input ABI used to generate the binding from.

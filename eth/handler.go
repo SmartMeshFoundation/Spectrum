@@ -1,18 +1,18 @@
-// Copyright 2015 The Spectrum Authors
-// This file is part of the Spectrum library.
+// Copyright 2015 The mesh-chain Authors
+// This file is part of the mesh-chain library.
 //
-// The Spectrum library is free software: you can redistribute it and/or modify
+// The mesh-chain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The Spectrum library is distributed in the hope that it will be useful,
+// The mesh-chain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the Spectrum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the mesh-chain library. If not, see <http://www.gnu.org/licenses/>.
 
 package eth
 
@@ -26,21 +26,21 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/SmartMeshFoundation/Spectrum/common"
-	"github.com/SmartMeshFoundation/Spectrum/consensus"
-	"github.com/SmartMeshFoundation/Spectrum/consensus/misc"
-	"github.com/SmartMeshFoundation/Spectrum/core"
-	"github.com/SmartMeshFoundation/Spectrum/core/types"
-	"github.com/SmartMeshFoundation/Spectrum/crypto"
-	"github.com/SmartMeshFoundation/Spectrum/eth/downloader"
-	"github.com/SmartMeshFoundation/Spectrum/eth/fetcher"
-	"github.com/SmartMeshFoundation/Spectrum/ethdb"
-	"github.com/SmartMeshFoundation/Spectrum/event"
-	"github.com/SmartMeshFoundation/Spectrum/log"
-	"github.com/SmartMeshFoundation/Spectrum/p2p"
-	"github.com/SmartMeshFoundation/Spectrum/p2p/discover"
-	"github.com/SmartMeshFoundation/Spectrum/params"
-	"github.com/SmartMeshFoundation/Spectrum/rlp"
+	"github.com/MeshBoxTech/mesh-chain/common"
+	"github.com/MeshBoxTech/mesh-chain/consensus"
+	"github.com/MeshBoxTech/mesh-chain/consensus/misc"
+	"github.com/MeshBoxTech/mesh-chain/core"
+	"github.com/MeshBoxTech/mesh-chain/core/types"
+	"github.com/MeshBoxTech/mesh-chain/crypto"
+	"github.com/MeshBoxTech/mesh-chain/eth/downloader"
+	"github.com/MeshBoxTech/mesh-chain/eth/fetcher"
+	"github.com/MeshBoxTech/mesh-chain/ethdb"
+	"github.com/MeshBoxTech/mesh-chain/event"
+	"github.com/MeshBoxTech/mesh-chain/log"
+	"github.com/MeshBoxTech/mesh-chain/p2p"
+	"github.com/MeshBoxTech/mesh-chain/p2p/discover"
+	"github.com/MeshBoxTech/mesh-chain/params"
+	"github.com/MeshBoxTech/mesh-chain/rlp"
 )
 
 const (
@@ -750,6 +750,13 @@ func (self *ProtocolManager) minedBroadcastLoop() {
 	for obj := range self.minedBlockSub.Chan() {
 		switch ev := obj.Data.(type) {
 		case core.NewMinedBlockEvent:
+			if atomic.LoadUint32(&self.fastSync) == 1 {
+				// Disable fast sync if we indeed have something in our chain
+				if self.blockchain.CurrentBlock().NumberU64() > 0 {
+					log.Info("Fast sync complete, auto disabling!!!")
+					atomic.StoreUint32(&self.fastSync, 0)
+				}
+			}
 			self.BroadcastBlock(ev.Block, true)  // First propagate block to peers
 			self.BroadcastBlock(ev.Block, false) // Only then announce to the rest
 		}
@@ -760,11 +767,9 @@ func (self *ProtocolManager) txBroadcastLoop() {
 	for {
 		select {
 		case event := <-self.txCh:
-			// add by liangc
-			if event.Tx.To() == nil || !(params.IsChiefAddress(*event.Tx.To()) && params.IsChiefUpdate(event.Tx.Data())) {
-				self.BroadcastTx(event.Tx.Hash(), event.Tx)
-			}
-			// Err() channel will be closed when unsubscribing.
+			self.BroadcastTx(event.Tx.Hash(), event.Tx)
+
+		// Err() channel will be closed when unsubscribing.
 		case <-self.txSub.Err():
 			return
 		}

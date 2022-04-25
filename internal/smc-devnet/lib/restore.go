@@ -9,7 +9,7 @@ import (
 	"path"
 	"strings"
 
-	_ "github.com/SmartMeshFoundation/Spectrum/internal/smc-devnet/statics/statik"
+	_ "github.com/MeshBoxTech/mesh-chain/internal/smc-devnet/statics/statik"
 	"github.com/rakyll/statik/fs"
 )
 

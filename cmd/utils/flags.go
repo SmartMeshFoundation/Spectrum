@@ -1,20 +1,20 @@
-// Copyright 2015 The Spectrum Authors
-// This file is part of Spectrum.
+// Copyright 2015 The mesh-chain Authors
+// This file is part of mesh-chain.
 //
-// Spectrum is free software: you can redistribute it and/or modify
+// mesh-chain is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// Spectrum is distributed in the hope that it will be useful,
+// mesh-chain is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Spectrum. If not, see <http://www.gnu.org/licenses/>.
+// along with mesh-chain. If not, see <http://www.gnu.org/licenses/>.
 
-// Package utils contains internal helper functions for Spectrum commands.
+// Package utils contains internal helper functions for mesh-chain commands.
 package utils
 
 import (
@@ -27,32 +27,32 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/SmartMeshFoundation/Spectrum/accounts"
-	"github.com/SmartMeshFoundation/Spectrum/accounts/keystore"
-	"github.com/SmartMeshFoundation/Spectrum/common"
-	"github.com/SmartMeshFoundation/Spectrum/consensus"
-	"github.com/SmartMeshFoundation/Spectrum/consensus/clique"
-	"github.com/SmartMeshFoundation/Spectrum/consensus/ethash"
-	"github.com/SmartMeshFoundation/Spectrum/core"
-	"github.com/SmartMeshFoundation/Spectrum/core/state"
-	"github.com/SmartMeshFoundation/Spectrum/core/vm"
-	"github.com/SmartMeshFoundation/Spectrum/dashboard"
-	"github.com/SmartMeshFoundation/Spectrum/eth"
-	"github.com/SmartMeshFoundation/Spectrum/eth/downloader"
-	"github.com/SmartMeshFoundation/Spectrum/eth/gasprice"
-	"github.com/SmartMeshFoundation/Spectrum/ethdb"
-	"github.com/SmartMeshFoundation/Spectrum/ethstats"
-	"github.com/SmartMeshFoundation/Spectrum/les"
-	"github.com/SmartMeshFoundation/Spectrum/log"
-	"github.com/SmartMeshFoundation/Spectrum/metrics"
-	"github.com/SmartMeshFoundation/Spectrum/node"
-	"github.com/SmartMeshFoundation/Spectrum/p2p"
-	"github.com/SmartMeshFoundation/Spectrum/p2p/discover"
-	"github.com/SmartMeshFoundation/Spectrum/p2p/discv5"
-	"github.com/SmartMeshFoundation/Spectrum/p2p/nat"
-	"github.com/SmartMeshFoundation/Spectrum/p2p/netutil"
-	"github.com/SmartMeshFoundation/Spectrum/params"
-	whisper "github.com/SmartMeshFoundation/Spectrum/whisper/whisperv5"
+	"github.com/MeshBoxTech/mesh-chain/accounts"
+	"github.com/MeshBoxTech/mesh-chain/accounts/keystore"
+	"github.com/MeshBoxTech/mesh-chain/common"
+	"github.com/MeshBoxTech/mesh-chain/consensus"
+	"github.com/MeshBoxTech/mesh-chain/consensus/clique"
+	"github.com/MeshBoxTech/mesh-chain/consensus/ethash"
+	"github.com/MeshBoxTech/mesh-chain/core"
+	"github.com/MeshBoxTech/mesh-chain/core/state"
+	"github.com/MeshBoxTech/mesh-chain/core/vm"
+	"github.com/MeshBoxTech/mesh-chain/dashboard"
+	"github.com/MeshBoxTech/mesh-chain/eth"
+	"github.com/MeshBoxTech/mesh-chain/eth/downloader"
+	"github.com/MeshBoxTech/mesh-chain/eth/gasprice"
+	"github.com/MeshBoxTech/mesh-chain/ethdb"
+	"github.com/MeshBoxTech/mesh-chain/ethstats"
+	"github.com/MeshBoxTech/mesh-chain/les"
+	"github.com/MeshBoxTech/mesh-chain/log"
+	"github.com/MeshBoxTech/mesh-chain/metrics"
+	"github.com/MeshBoxTech/mesh-chain/node"
+	"github.com/MeshBoxTech/mesh-chain/p2p"
+	"github.com/MeshBoxTech/mesh-chain/p2p/discover"
+	"github.com/MeshBoxTech/mesh-chain/p2p/discv5"
+	"github.com/MeshBoxTech/mesh-chain/p2p/nat"
+	"github.com/MeshBoxTech/mesh-chain/p2p/netutil"
+	"github.com/MeshBoxTech/mesh-chain/params"
+	whisper "github.com/MeshBoxTech/mesh-chain/whisper/whisperv5"
 	"gopkg.in/urfave/cli.v1"
 )
 
@@ -1057,12 +1057,6 @@ func SetEthConfig(ctx *cli.Context, stack *node.Node, cfg *eth.Config) {
 		if !ctx.GlobalIsSet(NetworkIdFlag.Name) {
 			cfg.NetworkId = 3
 		}
-		cfg.Genesis = core.DefaultTestnetGenesisBlock()
-	case ctx.GlobalBool(DevnetFlag.Name):
-		/*if !ctx.GlobalIsSet(GasPriceFlag.Name) {
-			cfg.GasPrice = big.NewInt(1)
-		}*/
-		cfg.Genesis = core.DeveloperGenesisBlock()
 	}
 	// TODO(fjl): move trie cache generations into config
 	if gen := ctx.GlobalInt(TrieCacheGenFlag.Name); gen > 0 {
@@ -1083,7 +1077,7 @@ func RegisterEthService(stack *node.Node, cfg *eth.Config) {
 	var err error
 	if cfg.SyncMode == downloader.LightSync {
 		err = stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-			return les.New(ctx, cfg)
+			return les.New(ctx, cfg,stack)
 		})
 	} else {
 		err = stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
@@ -1161,8 +1155,6 @@ func MakeGenesis(ctx *cli.Context) *core.Genesis {
 	switch {
 	case ctx.GlobalBool(TestnetFlag.Name):
 		genesis = core.DefaultTestnetGenesisBlock()
-	case ctx.GlobalBool(DevnetFlag.Name):
-		genesis = core.DeveloperGenesisBlock()
 	}
 	return genesis
 }

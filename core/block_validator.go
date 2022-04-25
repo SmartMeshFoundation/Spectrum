@@ -1,18 +1,18 @@
-// Copyright 2015 The Spectrum Authors
-// This file is part of the Spectrum library.
+// Copyright 2015 The mesh-chain Authors
+// This file is part of the mesh-chain library.
 //
-// The Spectrum library is free software: you can redistribute it and/or modify
+// The mesh-chain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The Spectrum library is distributed in the hope that it will be useful,
+// The mesh-chain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the Spectrum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the mesh-chain library. If not, see <http://www.gnu.org/licenses/>.
 
 package core
 
@@ -20,13 +20,11 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/SmartMeshFoundation/Spectrum/common/math"
-	"github.com/SmartMeshFoundation/Spectrum/consensus"
-	"github.com/SmartMeshFoundation/Spectrum/consensus/tribe"
-	"github.com/SmartMeshFoundation/Spectrum/core/state"
-	"github.com/SmartMeshFoundation/Spectrum/core/types"
-	"github.com/SmartMeshFoundation/Spectrum/log"
-	"github.com/SmartMeshFoundation/Spectrum/params"
+	"github.com/MeshBoxTech/mesh-chain/common/math"
+	"github.com/MeshBoxTech/mesh-chain/consensus"
+	"github.com/MeshBoxTech/mesh-chain/core/state"
+	"github.com/MeshBoxTech/mesh-chain/core/types"
+	"github.com/MeshBoxTech/mesh-chain/params"
 )
 
 // BlockValidator is responsible for validating block headers, uncles and
@@ -54,19 +52,6 @@ func NewBlockValidator(config *params.ChainConfig, blockchain *BlockChain, engin
 // validated at this point.
 func (v *BlockValidator) ValidateBody(parent, block *types.Block) error {
 
-	if t, ok := v.engine.(*tribe.Tribe); ok {
-		status := &tribe.TribeStatus{}
-		tribenew := &tribe.Tribe{
-			Status: status,
-		}
-		tribenew.SetConfig(t.GetConfig())
-		status.SetTribe(tribenew)
-		status.SetNodeKey(t.Status.GetNodeKey())
-		if err := status.ValidateBlock(parent, block, true); err != nil {
-			log.Error("BlockValidator.ValidateBody", "number", block.Number().Int64(), "err", err)
-			return err
-		}
-	}
 	// Check whether the block's known, and if not, that it's linkable
 	if v.bc.HasBlockAndState(block.Hash()) {
 		return ErrKnownBlock
@@ -82,14 +67,6 @@ func (v *BlockValidator) ValidateBody(parent, block *types.Block) error {
 	if hash := types.CalcUncleHash(block.Uncles()); hash != header.UncleHash {
 		return fmt.Errorf("uncle root hash mismatch: have %x, want %x", hash, header.UncleHash)
 	}
-	// add by liangc : 18-09-13 : error block : incompatible HomesteadSigner
-	if params.IsSIP003Block(header.Number) {
-		for _, tx := range block.Transactions() {
-			if !tx.Protected() {
-				return fmt.Errorf("Incompatible HomesteadSigner now num=%d tx=%s", header.Number.Int64(), tx.Hash().Hex())
-			}
-		}
-	}
 	if hash := types.DeriveSha(block.Transactions()); hash != header.TxHash {
 		return fmt.Errorf("transaction root hash mismatch: have %x, want %x", hash, header.TxHash)
 	}
@@ -101,7 +78,6 @@ func (v *BlockValidator) ValidateBody(parent, block *types.Block) error {
 // itself. ValidateState returns a database batch if the validation was a success
 // otherwise nil and an error is returned.
 func (v *BlockValidator) ValidateState(block, parent *types.Block, statedb *state.StateDB, receipts types.Receipts, usedGas *big.Int) error {
-	// testnet 176222~192630 block receipt CumulativeGasUsed error
 	// skip this validation for compatibility
 	header := block.Header()
 	if block.GasUsed().Cmp(usedGas) != 0 {
@@ -123,13 +99,6 @@ func (v *BlockValidator) ValidateState(block, parent *types.Block, statedb *stat
 	if root := statedb.IntermediateRoot(v.config.IsEIP158(header.Number)); header.Root != root {
 		return fmt.Errorf("invalid merkle root (remote: %x local: %x)", header.Root, root)
 	}
-	//if t, ok := v.engine.(*tribe.Tribe); ok {
-	//	log.Debug("<<ValidateState>> verify_signer =>", "num", header.Number, "coinbase", header.Coinbase.Hex())
-	//	//if err := tribe.VerifySignerBalance(statedb, header.Coinbase, header); err != nil {
-	//	if err := t.Status.VerifySignerBalance(statedb, common.HexToAddress("0x"), header); err != nil {
-	//		return err
-	//	}
-	//}
 	return nil
 }
 
@@ -157,25 +126,7 @@ func CalcGasLimit(parent *types.Block) *big.Int {
 	gl := new(big.Int).Sub(parent.GasLimit(), decay)
 	gl = gl.Add(gl, contrib)
 
-	minGasLimit := params.MinGasLimit
-	//sip004区块硬分叉开始，提升区块最小的gaslimit
-	if params.IsSIP004Block(new(big.Int).Add(parent.Number(), big.NewInt(1))) {
-		minGasLimit = params.Sip004GasLimit
-	}
-	/*
-		sip004Block := params.MainnetChainConfig.Sip004Block
-		if params.IsTestnet() {
-			sip004Block = params.TestnetChainConfig.Sip004Block
-		} else if params.IsDevnet() {
-			sip004Block = params.DevnetChainConfig.Sip004Block
-		}
-		number := parent.Number().Add(parent.Number(), big.NewInt(1))
-		if number.Cmp(sip004Block) >= 0 {
-			minGasLimit = params.Sip004GasLimit
-		}
-	*/
-
-	gl.Set(math.BigMax(gl, minGasLimit))
+	gl.Set(math.BigMax(gl, params.MinGasLimit))
 
 	// however, if we're now below the target (TargetGasLimit) we increase the
 	// limit as much as we can (parentGasLimit / 1024 -1)

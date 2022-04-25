@@ -6,8 +6,8 @@ import (
 	"encoding/json"
 	"math/big"
 
-	"github.com/SmartMeshFoundation/Spectrum/common/hexutil"
-	"github.com/SmartMeshFoundation/Spectrum/common/math"
+	"github.com/MeshBoxTech/mesh-chain/common/hexutil"
+	"github.com/MeshBoxTech/mesh-chain/common/math"
 )
 
 var _ = (*stTransactionMarshaling)(nil)

@@ -5,8 +5,8 @@ Maintainer: {{.Author}}
 Build-Depends: debhelper (>= 8.0.0), golang-1.9
 Standards-Version: 3.9.5
 Homepage: https://ethereum.org
-Vcs-Git: git://github.com/SmartMeshFoundation/Spectrum.git
-Vcs-Browser: https://github.com/SmartMeshFoundation/Spectrum
+Vcs-Git: git://github.com/MeshBoxTech/mesh-chain.git
+Vcs-Browser: https://github.com/MeshBoxTech/mesh-chain
 
 Package: {{.Name}}
 Architecture: any

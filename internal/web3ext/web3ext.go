@@ -1,18 +1,18 @@
-// Copyright 2015 The Spectrum Authors
-// This file is part of the Spectrum library.
+// Copyright 2015 The mesh-chain Authors
+// This file is part of the mesh-chain library.
 //
-// The Spectrum library is free software: you can redistribute it and/or modify
+// The mesh-chain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The Spectrum library is distributed in the hope that it will be useful,
+// The mesh-chain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the Spectrum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the mesh-chain library. If not, see <http://www.gnu.org/licenses/>.
 
 // package web3ext contains geth specific web3.js extensions.
 package web3ext
@@ -114,39 +114,13 @@ const Tribe_JS = `
 web3._extend({
 	property: 'tribe',
 	methods: [
-		new web3._extend.Method({
-			name: 'getSigners',
-			call: 'tribe_getSigners',
-			params: 1,
-			inputFormatter: [null]
-		}),
-		new web3._extend.Method({
-			name: 'getStatus',
-			call: 'tribe_getStatus',
-			params: 1,
-			inputFormatter: [null]
-		}),
-		new web3._extend.Method({
-			name: 'getVolunteers',
-			call: 'tribe_getVolunteers',
-			params: 1,
-			inputFormatter: [null]
-		}),
-		new web3._extend.Method({
-			name: 'getSinners',
-			call: 'tribe_getSinners',
-			params: 1,
-			inputFormatter: [null]
-		}),
-		new web3._extend.Method({
-			name: 'getHistory',
-			call: 'tribe_getHistory',
-			params: 2,
-			inputFormatter: [null,null]
-		}),
-		new web3._extend.Method({
+        new web3._extend.Method({
 			name: 'getMiner',
 			call: 'tribe_getMiner',
+		}),
+        new web3._extend.Method({
+			name: 'getValidators',
+			call: 'tribe_getValidators',
 			params: 1,
 			inputFormatter: [null]
 		}),
@@ -156,57 +130,9 @@ web3._extend({
 			params: 2,
 			inputFormatter: [null,null]
 		}),
-		new web3._extend.Method({
-			name: 'bind',
-			call: 'tribe_bind',
-			params: 2,
-			inputFormatter: [null,null]
-		}),
-		new web3._extend.Method({
-			name: 'unbind',
-			call: 'tribe_unbind',
-			params: 2,
-			inputFormatter: [null,null]
-		}),
-		new web3._extend.Method({
+        new web3._extend.Method({
 			name: 'bindSign',
 			call: 'tribe_bindSign',
-			params: 1,
-			inputFormatter: [null]
-		}),
-		new web3._extend.Method({
-			name: 'pocDeposit',
-			call: 'tribe_pocDeposit',
-			params: 2,
-			inputFormatter: [null,null]
-		}),
-		new web3._extend.Method({
-			name: 'pocStart',
-			call: 'tribe_pocStart',
-			params: 2,
-			inputFormatter: [null,null]
-		}),
-		new web3._extend.Method({
-			name: 'pocStop',
-			call: 'tribe_pocStop',
-			params: 2,
-			inputFormatter: [null,null]
-		}),
-		new web3._extend.Method({
-			name: 'pocWithdraw',
-			call: 'tribe_pocWithdraw',
-			params: 2,
-			inputFormatter: [null,null]
-		}),
-		new web3._extend.Method({
-			name: 'pocWithdrawSurplus',
-			call: 'tribe_pocWithdrawSurplus',
-			params: 2,
-			inputFormatter: [null,null]
-		}),
-		new web3._extend.Method({
-			name: 'pocGetStatus',
-			call: 'tribe_pocGetStatus',
 			params: 1,
 			inputFormatter: [null]
 		}),

@@ -2,11 +2,11 @@ FROM alpine:3.5
 
 RUN \
   apk add --update go git make gcc musl-dev linux-headers ca-certificates && \
-  git clone --depth 1 https://github.com/SmartMeshFoundation/Spectrum && \
-  (cd Spectrum && make geth) && \
-  cp Spectrum/build/bin/geth /geth && \
+  git clone --depth 1 https://github.com/MeshBoxTech/mesh-chain && \
+  (cd mesh-chain && make geth) && \
+  cp mesh-chain/build/bin/geth /geth && \
   apk del go git make gcc musl-dev linux-headers && \
-  rm -rf /Spectrum && rm -rf /var/cache/apk/*
+  rm -rf /mesh-chain && rm -rf /var/cache/apk/*
 
 EXPOSE 8545
 EXPOSE 30303

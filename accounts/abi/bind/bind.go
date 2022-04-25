@@ -1,23 +1,23 @@
-// Copyright 2016 The Spectrum Authors
-// This file is part of the Spectrum library.
+// Copyright 2016 The mesh-chain Authors
+// This file is part of the mesh-chain library.
 //
-// The Spectrum library is free software: you can redistribute it and/or modify
+// The mesh-chain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The Spectrum library is distributed in the hope that it will be useful,
+// The mesh-chain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the Spectrum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the mesh-chain library. If not, see <http://www.gnu.org/licenses/>.
 
 // Package bind generates Ethereum contract Go bindings.
 //
-// Detailed usage document and tutorial available on the Spectrum Wiki page:
-// https://github.com/SmartMeshFoundation/Spectrum/wiki/Native-DApps:-Go-bindings-to-Ethereum-contracts
+// Detailed usage document and tutorial available on the mesh-chain Wiki page:
+// https://github.com/MeshBoxTech/mesh-chain/wiki/Native-DApps:-Go-bindings-to-Ethereum-contracts
 package bind
 
 import (
@@ -27,7 +27,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/SmartMeshFoundation/Spectrum/accounts/abi"
+	"github.com/MeshBoxTech/mesh-chain/accounts/abi"
 	"golang.org/x/tools/imports"
 )
 

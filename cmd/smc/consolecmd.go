@@ -1,18 +1,18 @@
-// Copyright 2016 The Spectrum Authors
-// This file is part of Spectrum.
+// Copyright 2016 The mesh-chain Authors
+// This file is part of mesh-chain.
 //
-// Spectrum is free software: you can redistribute it and/or modify
+// mesh-chain is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// Spectrum is distributed in the hope that it will be useful,
+// mesh-chain is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Spectrum. If not, see <http://www.gnu.org/licenses/>.
+// along with mesh-chain. If not, see <http://www.gnu.org/licenses/>.
 
 package main
 
@@ -23,10 +23,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/SmartMeshFoundation/Spectrum/cmd/utils"
-	"github.com/SmartMeshFoundation/Spectrum/console"
-	"github.com/SmartMeshFoundation/Spectrum/node"
-	"github.com/SmartMeshFoundation/Spectrum/rpc"
+	"github.com/MeshBoxTech/mesh-chain/cmd/utils"
+	"github.com/MeshBoxTech/mesh-chain/console"
+	"github.com/MeshBoxTech/mesh-chain/node"
+	"github.com/MeshBoxTech/mesh-chain/rpc"
 	"gopkg.in/urfave/cli.v1"
 )
 
@@ -42,7 +42,7 @@ var (
 		Description: `
 The Geth console is an interactive shell for the JavaScript runtime environment
 which exposes a node admin interface as well as the Ðapp JavaScript API.
-See https://github.com/SmartMeshFoundation/Spectrum/wiki/Javascipt-Console.`,
+See https://github.com/MeshBoxTech/mesh-chain/wiki/Javascipt-Console.`,
 	}
 
 	attachCommand = cli.Command{
@@ -55,7 +55,7 @@ See https://github.com/SmartMeshFoundation/Spectrum/wiki/Javascipt-Console.`,
 		Description: `
 The Geth console is an interactive shell for the JavaScript runtime environment
 which exposes a node admin interface as well as the Ðapp JavaScript API.
-See https://github.com/SmartMeshFoundation/Spectrum/wiki/Javascipt-Console.
+See https://github.com/MeshBoxTech/mesh-chain/wiki/Javascipt-Console.
 This command allows to open a console on a running geth node.`,
 	}
 
@@ -68,7 +68,7 @@ This command allows to open a console on a running geth node.`,
 		Category:  "CONSOLE COMMANDS",
 		Description: `
 The JavaScript VM exposes a node admin interface as well as the Ðapp
-JavaScript API. See https://github.com/SmartMeshFoundation/Spectrum/wiki/Javascipt-Console`,
+JavaScript API. See https://github.com/MeshBoxTech/mesh-chain/wiki/Javascipt-Console`,
 	}
 )
 

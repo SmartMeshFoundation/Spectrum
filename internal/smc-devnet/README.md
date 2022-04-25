@@ -1,2 +1,2 @@
 # smc-devnet
-used for spectrum blockchain devnet 
+used for mesh-chain blockchain devnet 

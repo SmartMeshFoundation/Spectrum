@@ -1,18 +1,18 @@
-// Copyright 2016 The Spectrum Authors
-// This file is part of the Spectrum library.
+// Copyright 2016 The mesh-chain Authors
+// This file is part of the mesh-chain library.
 //
-// The Spectrum library is free software: you can redistribute it and/or modify
+// The mesh-chain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The Spectrum library is distributed in the hope that it will be useful,
+// The mesh-chain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the Spectrum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the mesh-chain library. If not, see <http://www.gnu.org/licenses/>.
 
 package params
 
@@ -20,19 +20,24 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/MeshBoxTech/mesh-chain/common"
 )
 
 var (
 	MainnetGenesisHash = common.HexToHash("0xa8ab5ecb308dd061e6baa8c8a04a62b3e35fae7aae1393921f8d52deac2c5712") // enforce below configs on
-	TestnetGenesisHash = common.HexToHash("0x464dfae7a2e140e76376f732c6be542880064d0a9b8350ceb2259b811827e7c6") // Testnet genesis hash to enforce below configs on
-	DevnetGenesisHash  = common.HexToHash("0xe11f21ee330cfb50c3f31d9b792df2fb5e196739d562e642416974f339aa4304")
+	TestnetGenesisHash = common.HexToHash("0x6e1e4742cf597797eae05e18496626fba003cbad887fb62fb6cb34172801ecae") // Testnet genesis hash to enforce below configs on
+	SmartMeshContractAddress                   = common.HexToAddress("0x0000000000000000000000000000000000001000")
+	MeshContractAddress                        = common.HexToAddress("0x0000000000000000000000000000000000002000")
+	ValidatorsContractAddr                     = common.HexToAddress("0x0000000000000000000000000000000000003000")
+	OwnerAddress                               = common.HexToAddress("0x0000000000000000000000000000000000000000")
+	TotalMeshHash                              = common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000001")
+	UsingOVM                                   = true
 )
 
 var (
 	// MainnetChainConfig is the chain parameters to run a node on the main network.
 	MainnetChainConfig = &ChainConfig{
-		ChainId:        big.NewInt(20180430),
+		ChainId:        big.NewInt(20220430),
 		HomesteadBlock: big.NewInt(0),
 		DAOForkBlock:   nil,
 		DAOForkSupport: false,
@@ -41,39 +46,15 @@ var (
 		EIP155Block:    big.NewInt(0),
 		EIP158Block:    big.NewInt(0),
 		ByzantiumBlock: big.NewInt(0),
-		// add by liangc : change default consensus for dev
-		// if skip this vsn please set 0 or nil to block and set common.Address{} to address
-		// 0.0.5 : ready for release
-		Chief005Block:   big.NewInt(2),
-		Chief005Address: common.HexToAddress("0xf0d2ad4e0d25cfea98e9640329993bbc52396abd"),
-		// 0.0.6 : ready for release
-		Chief006Block:   big.NewInt(595888),
-		Chief006Address: common.HexToAddress("0xba7f507d5aab3e931312512c234fbeb85cbd9dce"),
-
-		Meshbox001Block:   big.NewInt(1870333),
-		Meshbox001Address: common.HexToAddress("0xf0ced0b1ce8738eeac06fdca51e0ff398328634b"),
-
-		Anmap001Block:   big.NewInt(2686801),
-		Anmap001Address: common.HexToAddress("0x23fb7fa0f6f88ce56b70ac3d671315f5baf84bb9"),
-
-		SIP001Block: big.NewInt(0), // new rules for chief.tx of gaspool
-		SIP002Block: big.NewInt(588888),
-		SIP003Block: big.NewInt(808888),
-
-		ChiefBaseAddress: common.HexToAddress("0xe1c749f45ee14180853e552d3349cc58972cd082"),
-		// PocBlock must less than Chief100Block
-		PocAddress: common.HexToAddress("0xb9b4ece952c8005f009801e5ec78e116f528c1d0"),
-
-		Chief100Block:   big.NewInt(2823366),
-		Chief100Address: common.HexToAddress("0x890eb8566550e7337c7788ff971a3996860c51b5"),
-		Tribe:           &TribeConfig{},
-
-		Sip004Block: big.NewInt(8654321),
+		Tribe:           &TribeConfig{
+			Period:30,
+			Epoch:21,
+		},
 	}
 
 	// TestnetChainConfig contains the chain parameters to run a node on the Ropsten test network.
 	TestnetChainConfig = &ChainConfig{
-		ChainId:        big.NewInt(2022),
+		ChainId:        big.NewInt(2023),
 		HomesteadBlock: big.NewInt(0),
 		DAOForkBlock:   nil,
 		DAOForkSupport: true,
@@ -82,37 +63,12 @@ var (
 		EIP155Block:    big.NewInt(0),
 		EIP158Block:    big.NewInt(0),
 		ByzantiumBlock: big.NewInt(0),
-		//ByzantiumBlock: big.NewInt(1700000),
-		//Clique: &CliqueConfig{ Period: 15, Epoch:  30000}, //Ethash: new(EthashConfig),
-		// if skip this vsn please set 0 or nil to block and set common.Address{} to address
 		// 0.0.2
-		Chief002Block:   big.NewInt(2),
+		Chief002Block:   big.NewInt(20000),
 		Chief002Address: common.HexToAddress("0x75f7D812142c6f4BB39ad2c70424CF27869EAB33"),
-		// 0.0.3
-		//Chief003Block:   big.NewInt(113772), //hard fork testnet
-		//Chief003Address: common.HexToAddress("0xac28e532b3fac82554fc7b0b8b62549deeeb33a9"),
-		// 0.0.4 : fix bug redeploy
-		//Chief004Block:   big.NewInt(120305), //hard fork testnet : fix bugs and debug chief
-		//Chief004Address: common.HexToAddress("0xe242e2bcf5b0da6518320210fab0a27458bc0674"),
-		// 0.0.5 : ready for release
-		//Chief005Block:   big.NewInt(176244),
-		//Chief005Address: common.HexToAddress("0xe90da8175922925dfb40e6505b508f1042e807aa"),
-		// 0.0.6 : ready for release
-		//Chief006Block:   big.NewInt(595710),
-		//Chief006Address: common.HexToAddress("0x53cb83888e6d28cf7ec168308c65172001f441aa"),
-
-		//Meshbox001Block: big.NewInt(1976666),
-		//Meshbox001Address: common.HexToAddress("0x0f15e1e44322b2946215705d2ed60cba899f0b38"),
-		// Note that : meshbox002 must is superset of meshbox001
-
-		//Anmap001Block:   big.NewInt(1310056),
-		//Anmap001Address: common.HexToAddress("0x7449931e38dd938d2e8558eda9fe225acf4d14e6"),
-
 		// new rules for chief.tx of gaspool
-		SIP001Block: big.NewInt(24),
-		SIP002Block: big.NewInt(24),
-		SIP003Block: big.NewInt(24),
-		Sip004Block: big.NewInt(27),
+		SIP001Block: big.NewInt(24000),
+		SIP002Block: big.NewInt(24000),
 
 		// base block link to Chief100Block
 		ChiefBaseAddress: common.HexToAddress("0xa44B4ff09825f8c21fc4ad7FAA125a0d6238d0fd"),
@@ -122,88 +78,15 @@ var (
 		PocAddress: common.HexToAddress("0x32bcF7d3b48A7Ceaa1b45199CB94098d0b3b3112"),
 		//PocAddress: common.HexToAddress("0xe3d5627f6f854481b23da37cea623411bf090881"),
 
-		Chief100Block:   big.NewInt(26),
+		Chief100Block:   big.NewInt(26000),
 		Chief100Address: common.HexToAddress("0x754FF9bDC93C66ff235b7AaaDcaeECdD63442657"),
 		//Chief100Address: common.HexToAddress("0x695249d987d10bcccda9bcaa3090db8565c317d1"),
 
-		Tribe: &TribeConfig{},
+		Tribe:           &TribeConfig{
+			Period:30,
+			Epoch:21,
+		},
 	}
-
-	// DevnetChainConfig contains the chain parameters to run a node on the Ropsten test network.
-	DevnetChainConfig = &ChainConfig{
-		ChainId:        big.NewInt(4),
-		HomesteadBlock: big.NewInt(0),
-		DAOForkBlock:   nil,
-		DAOForkSupport: false,
-		EIP150Block:    big.NewInt(0),
-		EIP150Hash:     common.Hash{},
-		EIP155Block:    big.NewInt(0),
-		EIP158Block:    big.NewInt(0),
-		ByzantiumBlock: big.NewInt(0),
-
-		// if skip this vsn please set 0 or nil to block and set common.Address{} to address
-		// 0.0.6 : ready for release
-		// before block 2 gas used : 2631756
-		// after gas used : 2892524
-		Chief007Block:   big.NewInt(3),
-		Chief007Address: common.HexToAddress("0x57d2bcd8d702999daf240793919675c90b12a17a"),
-
-		// ############
-		// # DEBUG >>>>
-		// ############
-
-		// Note that : meshbox002 must is superset of meshbox001
-		Meshbox002Block:   big.NewInt(6),
-		Meshbox002Address: common.HexToAddress("0x7880adce4504fd39645aabb3efb53824d9b0c21b"),
-
-		Anmap001Block:   big.NewInt(6),
-		Anmap001Address: common.HexToAddress("0x143084accd6472ad502b59c3197f9ed5f797b966"),
-
-		// base block link to Chief100Block
-		//ChiefBaseAddress: common.HexToAddress("0xad61f1201f592fbf13d2645f9c59d8d5f82a1837"), //liang
-		ChiefBaseAddress: common.HexToAddress("0xf096d7f8ae3cd0a85e593accac5e7bc38a756111"),
-
-		// PocBlock must less than Chief100Block
-		//PocBlock: big.NewInt(35),
-		//PocAddress: common.HexToAddress("0x901c0636c4fc83f353bca2db85e2ace886a9416d"), //liang
-		PocAddress: common.HexToAddress("0x48e0f07faf58bc6e713d5c6373ce4f2a8b5c359a"),
-
-		Chief100Block: big.NewInt(63),
-		//Chief100Address: common.HexToAddress("0x"),
-		//Chief100Address: common.HexToAddress("0x6d05f6aa4e19e20cd781fa3def97bbfd0b980534"), // liang
-		Chief100Address: common.HexToAddress("0x21c5dc409138205291d6a7ef2dbb1701ac02ff96"),
-
-		/*
-			Meshbox002Block:   big.NewInt(6),
-			Meshbox002Address: common.HexToAddress("0xc4a2d182fe92f0eadffbddea9a0977d5b95b31a5"),
-
-			Anmap001Block:   big.NewInt(6),
-			Anmap001Address: common.HexToAddress("0x57d2bcd8d702999daf240793919675c90b12a17a"),
-
-			// base block link to Chief100Block
-			ChiefBaseAddress: common.HexToAddress("0x7880adce4504fd39645aabb3efb53824d9b0c21b"),
-
-			// PocBlock must less than Chief100Block
-			PocBlock:   big.NewInt(20),
-			PocAddress: common.HexToAddress("0xad61f1201f592fbf13d2645f9c59d8d5f82a1837"),
-
-			Chief100Block:   big.NewInt(22),
-			Chief100Address: common.HexToAddress("0x0f91c3f2e10a0b53d6b3b4d6c7b41ab77c7d0674"),
-
-		*/
-		// ############
-		// # DEBUG <<<<
-		// ############
-
-		// new rules for chief.tx of gaspool
-		SIP001Block: big.NewInt(0),
-		SIP002Block: big.NewInt(1),
-		SIP003Block: big.NewInt(3),
-
-		Tribe:       &TribeConfig{Period: 3},
-		Sip004Block: big.NewInt(4),
-	}
-
 	// AllEthashProtocolChanges contains every protocol change (EIPs) introduced
 	// and accepted by the Ethereum core developers into the Ethash consensus.
 	//
@@ -265,6 +148,8 @@ var (
 // ChainConfig is stored in the database on a per block basis. This means
 // that any network, identified by its genesis block, can have its own
 // set of configuration options.
+// CongressConfig is the consensus engine configs for proof-of-stake-authority based sealing.
+
 type ChainConfig struct {
 	ChainId *big.Int `json:"chainId"` // Chain id identifies the current chain and is used for replay protection
 
@@ -307,7 +192,7 @@ type ChainConfig struct {
 	// extends 0.0.6 only for dev and test
 	Chief007Block   *big.Int       `json:"chief007Block,omitempty"`
 	Chief007Address common.Address `json:"chief007Address,omitempty"`
-	// https://github.com/SmartMeshFoundation/Spectrum/wiki/%5BChinese%5D-v1.0.0-Standard
+	// https://github.com/MeshBoxTech/mesh-chain/wiki/%5BChinese%5D-v1.0.0-Standard
 	Chief100Block   *big.Int       `json:"chief100Block,omitempty"`
 	Chief100Address common.Address `json:"chief100Address,omitempty"`
 
@@ -321,19 +206,11 @@ type ChainConfig struct {
 	SIP001Block *big.Int `json:"sip001Block,omitempty"` // SIP001 HF block
 	// add by liangc : new rules for block period
 	SIP002Block *big.Int `json:"sip002Block,omitempty"` // SIP002 HF block
-	// add by liangc : 18-09-13 : incompatible HomesteadSigner begin at this number
-	SIP003Block *big.Int `json:"sip003Block,omitempty"`
-
-	Meshbox001Block   *big.Int       `json:"meshbox001Block,omitempty"`
-	Meshbox001Address common.Address `json:"meshbox001Address,omitempty"`
-	// Note that : meshbox002 must is superset of meshbox001
-	Meshbox002Block   *big.Int       `json:"meshbox002Block,omitempty"`
-	Meshbox002Address common.Address `json:"meshbox002Address,omitempty"`
 
 	Anmap001Block   *big.Int       `json:"anmap001Block,omitempty"`
 	Anmap001Address common.Address `json:"anmap001Address,omitempty"`
 
-	Sip004Block *big.Int `json:"sip004Block,omitempty"`
+	//Sip004Block *big.Int `json:"sip004Block,omitempty"`
 }
 
 // EthashConfig is the consensus engine configs for proof-of-work based sealing.
@@ -358,6 +235,7 @@ func (c *CliqueConfig) String() string {
 // TribeConfig is the consensus engine configs.
 type TribeConfig struct {
 	Period uint64 `json:"period"` // Number of seconds between blocks to enforce
+	Epoch  uint64 `json:"epoch"`  // Epoch length to reset votes and checkpoint
 }
 
 // String implements the stringer interface, returning the consensus engine details.
@@ -416,10 +294,6 @@ func (c *ChainConfig) IsEIP158(num *big.Int) bool {
 func (c *ChainConfig) IsByzantium(num *big.Int) bool {
 	// add by liangc : set default byzantium
 	return isForked(c.ByzantiumBlock, num)
-}
-func (c *ChainConfig) IsSip004(num *big.Int) bool {
-	// add by liangc : set default byzantium
-	return isForked(c.Sip004Block, num)
 }
 
 // GasTable returns the gas table corresponding to the current phase (homestead or homestead reprice).
@@ -549,7 +423,6 @@ type Rules struct {
 	ChainId                                   *big.Int
 	IsHomestead, IsEIP150, IsEIP155, IsEIP158 bool
 	IsByzantium                               bool
-	IsSip004                                  bool
 }
 
 func (c *ChainConfig) Rules(num *big.Int) Rules {
@@ -557,5 +430,5 @@ func (c *ChainConfig) Rules(num *big.Int) Rules {
 	if chainId == nil {
 		chainId = new(big.Int)
 	}
-	return Rules{ChainId: new(big.Int).Set(chainId), IsHomestead: c.IsHomestead(num), IsEIP150: c.IsEIP150(num), IsEIP155: c.IsEIP155(num), IsEIP158: c.IsEIP158(num), IsByzantium: c.IsByzantium(num), IsSip004: c.IsSip004(num)}
+	return Rules{ChainId: new(big.Int).Set(chainId), IsHomestead: c.IsHomestead(num), IsEIP150: c.IsEIP150(num), IsEIP155: c.IsEIP155(num), IsEIP158: c.IsEIP158(num), IsByzantium: c.IsByzantium(num)}
 }

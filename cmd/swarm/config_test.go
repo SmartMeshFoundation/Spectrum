@@ -1,18 +1,18 @@
-// Copyright 2017 The Spectrum Authors
-// This file is part of Spectrum.
+// Copyright 2017 The mesh-chain Authors
+// This file is part of mesh-chain.
 //
-// Spectrum is free software: you can redistribute it and/or modify
+// mesh-chain is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// Spectrum is distributed in the hope that it will be useful,
+// mesh-chain is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Spectrum. If not, see <http://www.gnu.org/licenses/>.
+// along with mesh-chain. If not, see <http://www.gnu.org/licenses/>.
 
 package main
 
@@ -25,9 +25,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/SmartMeshFoundation/Spectrum/rpc"
-	"github.com/SmartMeshFoundation/Spectrum/swarm"
-	"github.com/SmartMeshFoundation/Spectrum/swarm/api"
+	"github.com/MeshBoxTech/mesh-chain/rpc"
+	"github.com/MeshBoxTech/mesh-chain/swarm"
+	"github.com/MeshBoxTech/mesh-chain/swarm/api"
 
 	"github.com/docker/docker/pkg/reexec"
 )

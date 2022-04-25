@@ -34,5 +34,5 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
   
   config.vm.synced_folder ".", "/vagrant", :disabled => true
-  config.vm.synced_folder "../../", "/home/vagrant/go/src/github.com/SmartMeshFoundation/Spectrum"
+  config.vm.synced_folder "../../", "/home/vagrant/go/src/github.com/MeshBoxTech/mesh-chain"
 end

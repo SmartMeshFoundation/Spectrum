@@ -1,34 +1,36 @@
-// Copyright 2014 The Spectrum Authors
-// This file is part of the Spectrum library.
+// Copyright 2014 The mesh-chain Authors
+// This file is part of the mesh-chain library.
 //
-// The Spectrum library is free software: you can redistribute it and/or modify
+// The mesh-chain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The Spectrum library is distributed in the hope that it will be useful,
+// The mesh-chain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the Spectrum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the mesh-chain library. If not, see <http://www.gnu.org/licenses/>.
 
 // Package state provides a caching layer atop the Ethereum state trie.
 package state
 
 import (
 	"fmt"
+	"github.com/MeshBoxTech/mesh-chain/params"
+	"golang.org/x/crypto/sha3"
 	"math/big"
 	"sort"
 	"sync"
 
-	"github.com/SmartMeshFoundation/Spectrum/common"
-	"github.com/SmartMeshFoundation/Spectrum/core/types"
-	"github.com/SmartMeshFoundation/Spectrum/crypto"
-	"github.com/SmartMeshFoundation/Spectrum/log"
-	"github.com/SmartMeshFoundation/Spectrum/rlp"
-	"github.com/SmartMeshFoundation/Spectrum/trie"
+	"github.com/MeshBoxTech/mesh-chain/common"
+	"github.com/MeshBoxTech/mesh-chain/core/types"
+	"github.com/MeshBoxTech/mesh-chain/crypto"
+	"github.com/MeshBoxTech/mesh-chain/log"
+	"github.com/MeshBoxTech/mesh-chain/rlp"
+	"github.com/MeshBoxTech/mesh-chain/trie"
 )
 
 type revision struct {
@@ -86,6 +88,14 @@ func New(root common.Hash, db Database) (*StateDB, error) {
 	}, nil
 }
 
+func GetOVMBalanceKey(addr common.Address) common.Hash {
+	position := common.Big0
+	hasher := sha3.NewLegacyKeccak256()
+	hasher.Write(common.LeftPadBytes(addr.Bytes(), 32))
+	hasher.Write(common.LeftPadBytes(position.Bytes(), 32))
+	digest := hasher.Sum(nil)
+	return common.BytesToHash(digest)
+}
 // setError remembers the first non-nil error it is called with.
 func (self *StateDB) setError(err error) {
 	if self.dbErr == nil {
@@ -186,9 +196,17 @@ func (self *StateDB) Empty(addr common.Address) bool {
 
 // Retrieve the balance from the given address or 0 if object not found
 func (self *StateDB) GetBalance(addr common.Address) *big.Int {
-	stateObject := self.getStateObject(addr)
-	if stateObject != nil {
-		return stateObject.Balance()
+	if params.UsingOVM {
+		// Get balance from the OVM_ETH contract.
+		// NOTE: We may remove this feature in a future release.
+		key := GetOVMBalanceKey(addr)
+		bal := self.GetState(params.SmartMeshContractAddress, key)
+		return bal.Big()
+	} else {
+		stateObject := self.getStateObject(addr)
+		if stateObject != nil {
+			return stateObject.Balance()
+		}
 	}
 	return common.Big0
 }
@@ -266,24 +284,54 @@ func (self *StateDB) HasSuicided(addr common.Address) bool {
 
 // AddBalance adds amount to the account associated with addr
 func (self *StateDB) AddBalance(addr common.Address, amount *big.Int) {
-	stateObject := self.GetOrNewStateObject(addr)
-	if stateObject != nil {
-		stateObject.AddBalance(amount)
+	if params.UsingOVM {
+		// Mutate the storage slot inside of OVM_ETH to change balances.
+		// Note that we don't need to check for overflows or underflows here because the code that
+		// uses this codepath already checks for them. You can follow the original codepath below
+		// (stateObject.AddBalance) to confirm that there are no checks being performed here.
+		key := GetOVMBalanceKey(addr)
+		value := self.GetState(params.SmartMeshContractAddress, key)
+		bal := value.Big()
+		bal = bal.Add(bal, amount)
+		self.SetState(params.SmartMeshContractAddress, key, common.BigToHash(bal))
+	} else {
+		stateObject := self.GetOrNewStateObject(addr)
+		if stateObject != nil {
+			stateObject.AddBalance(amount)
+		}
 	}
 }
 
 // SubBalance subtracts amount from the account associated with addr
 func (self *StateDB) SubBalance(addr common.Address, amount *big.Int) {
-	stateObject := self.GetOrNewStateObject(addr)
-	if stateObject != nil {
-		stateObject.SubBalance(amount)
+	if params.UsingOVM {
+		// Mutate the storage slot inside of OVM_ETH to change balances.
+		// Note that we don't need to check for overflows or underflows here because the code that
+		// uses this codepath already checks for them. You can follow the original codepath below
+		// (stateObject.SubBalance) to confirm that there are no checks being performed here.
+		key := GetOVMBalanceKey(addr)
+		value := self.GetState(params.SmartMeshContractAddress, key)
+		bal := value.Big()
+		bal = bal.Sub(bal, amount)
+		self.SetState(params.SmartMeshContractAddress, key, common.BigToHash(bal))
+	} else {
+		stateObject := self.GetOrNewStateObject(addr)
+		if stateObject != nil {
+			stateObject.SubBalance(amount)
+		}
 	}
 }
 
 func (self *StateDB) SetBalance(addr common.Address, amount *big.Int) {
-	stateObject := self.GetOrNewStateObject(addr)
-	if stateObject != nil {
-		stateObject.SetBalance(amount)
+	if params.UsingOVM {
+		// Mutate the storage slot inside of OVM_ETH to change balances.
+		key := GetOVMBalanceKey(addr)
+		self.SetState(params.SmartMeshContractAddress, key, common.BigToHash(amount))
+	} else {
+		stateObject := self.GetOrNewStateObject(addr)
+		if stateObject != nil {
+			stateObject.SetBalance(amount)
+		}
 	}
 }
 

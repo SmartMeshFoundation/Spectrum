@@ -5,7 +5,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/SmartMeshFoundation/Spectrum/common"
+	"github.com/MeshBoxTech/mesh-chain/common"
 )
 
 // precompiledTest defines the input/output pairs for precompiled contract tests.

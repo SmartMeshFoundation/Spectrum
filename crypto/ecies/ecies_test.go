@@ -40,7 +40,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/SmartMeshFoundation/Spectrum/crypto"
+	"github.com/MeshBoxTech/mesh-chain/crypto"
 )
 
 var dumpEnc bool

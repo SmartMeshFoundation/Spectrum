@@ -1,18 +1,18 @@
-// Copyright 2014 The Spectrum Authors
-// This file is part of Spectrum.
+// Copyright 2014 The mesh-chain Authors
+// This file is part of mesh-chain.
 //
-// Spectrum is free software: you can redistribute it and/or modify
+// mesh-chain is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// Spectrum is distributed in the hope that it will be useful,
+// mesh-chain is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Spectrum. If not, see <http://www.gnu.org/licenses/>.
+// along with mesh-chain. If not, see <http://www.gnu.org/licenses/>.
 
 package main
 
@@ -24,16 +24,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SmartMeshFoundation/Spectrum/accounts"
-	"github.com/SmartMeshFoundation/Spectrum/accounts/keystore"
-	"github.com/SmartMeshFoundation/Spectrum/cmd/utils"
-	"github.com/SmartMeshFoundation/Spectrum/console"
-	"github.com/SmartMeshFoundation/Spectrum/eth"
-	"github.com/SmartMeshFoundation/Spectrum/ethclient"
-	"github.com/SmartMeshFoundation/Spectrum/internal/debug"
-	"github.com/SmartMeshFoundation/Spectrum/log"
-	"github.com/SmartMeshFoundation/Spectrum/metrics"
-	"github.com/SmartMeshFoundation/Spectrum/node"
+	"github.com/MeshBoxTech/mesh-chain/accounts"
+	"github.com/MeshBoxTech/mesh-chain/accounts/keystore"
+	"github.com/MeshBoxTech/mesh-chain/cmd/utils"
+	"github.com/MeshBoxTech/mesh-chain/console"
+	"github.com/MeshBoxTech/mesh-chain/eth"
+	"github.com/MeshBoxTech/mesh-chain/ethclient"
+	"github.com/MeshBoxTech/mesh-chain/internal/debug"
+	"github.com/MeshBoxTech/mesh-chain/log"
+	"github.com/MeshBoxTech/mesh-chain/metrics"
+	"github.com/MeshBoxTech/mesh-chain/node"
 	"gopkg.in/urfave/cli.v1"
 )
 
@@ -47,7 +47,7 @@ var (
 	// Ethereum address of the Geth release oracle.
 	// relOracle = common.HexToAddress("0xfa7b9770ca4cb04296cac84f37736d4041251cdf")
 	// The app that holds all commands and flags.
-	app = utils.NewApp(gitCommit, "the Spectrum command line interface")
+	app = utils.NewApp(gitCommit, "the mesh-chain command line interface")
 	// flags that configure the node
 	nodeFlags = []cli.Flag{
 		utils.IdentityFlag,
@@ -158,7 +158,7 @@ func init() {
 	// Initialize the CLI app and start Geth
 	app.Action = smc
 	app.HideVersion = true // we have a command to print the version
-	app.Copyright = "Copyright 2017-2018 The Spectrum Author"
+	app.Copyright = "Copyright 2017-2018 The mesh-chain Author"
 	app.Commands = []cli.Command{
 		// See chaincmd.go:
 		initCommand,

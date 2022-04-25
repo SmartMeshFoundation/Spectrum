@@ -1,18 +1,18 @@
-// Copyright 2014 The Spectrum Authors
-// This file is part of the Spectrum library.
+// Copyright 2014 The mesh-chain Authors
+// This file is part of the mesh-chain library.
 //
-// The Spectrum library is free software: you can redistribute it and/or modify
+// The mesh-chain library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The Spectrum library is distributed in the hope that it will be useful,
+// The mesh-chain library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the Spectrum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the mesh-chain library. If not, see <http://www.gnu.org/licenses/>.
 
 package types
 
@@ -24,11 +24,10 @@ import (
 	"math/big"
 	"sync/atomic"
 
-	"github.com/SmartMeshFoundation/Spectrum/common"
-	"github.com/SmartMeshFoundation/Spectrum/common/hexutil"
-	"github.com/SmartMeshFoundation/Spectrum/crypto"
-	"github.com/SmartMeshFoundation/Spectrum/params"
-	"github.com/SmartMeshFoundation/Spectrum/rlp"
+	"github.com/MeshBoxTech/mesh-chain/common"
+	"github.com/MeshBoxTech/mesh-chain/common/hexutil"
+	"github.com/MeshBoxTech/mesh-chain/crypto"
+	"github.com/MeshBoxTech/mesh-chain/rlp"
 )
 
 //go:generate gencodec -type txdata -field-override txdataMarshaling -out gen_tx_json.go
@@ -357,16 +356,13 @@ func TxDifference(a, b Transactions) (keep Transactions) {
 	for _, tx := range b {
 		remove[tx.Hash()] = struct{}{}
 	}
+
 	for _, tx := range a {
-		// add by liangc : remove chief tx when reset
-		not_chief := true
-		if tx.To() != nil && params.IsChiefAddress(*tx.To()) && params.IsChiefUpdate(tx.Data()) {
-			not_chief = false
-		}
-		if _, ok := remove[tx.Hash()]; !ok && not_chief {
+		if _, ok := remove[tx.Hash()]; !ok {
 			keep = append(keep, tx)
 		}
 	}
+
 	return keep
 }
 
@@ -383,20 +379,9 @@ func (s TxByNonce) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 // for all at once sorting as well as individually adding and removing elements.
 type TxByPrice Transactions
 
-func (s TxByPrice) Len() int { return len(s) }
-func (s TxByPrice) Less(i, j int) bool {
-	//add by liangc move chief.tx idx to 0
-	iTx := s[i].To()
-	if iTx != nil && params.IsChiefAddress(*iTx) && params.IsChiefUpdate(s[i].Data()) {
-		return true
-	}
-	jTx := s[j].To()
-	if jTx != nil && params.IsChiefAddress(*jTx) && params.IsChiefUpdate(s[j].Data()) {
-		return false
-	}
-	return s[i].data.Price.Cmp(s[j].data.Price) > 0
-}
-func (s TxByPrice) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
+func (s TxByPrice) Len() int           { return len(s) }
+func (s TxByPrice) Less(i, j int) bool { return s[i].data.Price.Cmp(s[j].data.Price) > 0 }
+func (s TxByPrice) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 
 func (s *TxByPrice) Push(x interface{}) {
 	*s = append(*s, x.(*Transaction))
@@ -434,7 +419,7 @@ func NewTransactionsByPriceAndNonce(signer Signer, txs map[common.Address]Transa
 		txs[acc] = accTxs[1:]
 	}
 	heap.Init(&heads)
-	//fmt.Println("=== NewTransactionsByPriceAndNonce XXXXXXXXXXXXXX====> heads ",heads)
+
 	// Assemble and return the transaction set
 	return &TransactionsByPriceAndNonce{
 		txs:    txs,

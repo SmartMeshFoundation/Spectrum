@@ -7,10 +7,10 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/SmartMeshFoundation/Spectrum/common"
-	"github.com/SmartMeshFoundation/Spectrum/common/hexutil"
-	"github.com/SmartMeshFoundation/Spectrum/common/math"
-	"github.com/SmartMeshFoundation/Spectrum/params"
+	"github.com/MeshBoxTech/mesh-chain/common"
+	"github.com/MeshBoxTech/mesh-chain/common/hexutil"
+	"github.com/MeshBoxTech/mesh-chain/common/math"
+	"github.com/MeshBoxTech/mesh-chain/params"
 )
 
 func (g Genesis) MarshalJSON() ([]byte, error) {

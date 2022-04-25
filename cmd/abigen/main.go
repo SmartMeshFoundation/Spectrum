@@ -1,18 +1,18 @@
-// Copyright 2016 The Spectrum Authors
-// This file is part of Spectrum.
+// Copyright 2016 The mesh-chain Authors
+// This file is part of mesh-chain.
 //
-// Spectrum is free software: you can redistribute it and/or modify
+// mesh-chain is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// Spectrum is distributed in the hope that it will be useful,
+// mesh-chain is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Spectrum. If not, see <http://www.gnu.org/licenses/>.
+// along with mesh-chain. If not, see <http://www.gnu.org/licenses/>.
 
 package main
 
@@ -24,8 +24,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/SmartMeshFoundation/Spectrum/accounts/abi/bind"
-	"github.com/SmartMeshFoundation/Spectrum/common/compiler"
+	"github.com/MeshBoxTech/mesh-chain/accounts/abi/bind"
+	"github.com/MeshBoxTech/mesh-chain/common/compiler"
 )
 
 const VSN = "0.0.2"
@@ -50,7 +50,7 @@ func main() {
 	flag.Parse()
 	if *versionFlag {
 		fmt.Println("Version :", VSN)
-		fmt.Println("Copyright 2017-2018 The Spectrum Author (Ethereum-based)")
+		fmt.Println("Copyright 2017-2018 The mesh-chain Author (Ethereum-based)")
 		os.Exit(-1)
 	}
 	if *abiFlag == "" && *solFlag == "" {
