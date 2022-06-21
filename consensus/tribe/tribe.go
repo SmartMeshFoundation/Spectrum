@@ -641,15 +641,16 @@ signers:[0,...,16] 0号对应的是常委会节点,1-16对应的是普通出块�
 假设`header`中的块该signers[0]出,
 如果signers[0]出,则延时14秒,否则只能由其他常委会节点替代
 假设当前signers[0]对应的是常委2,那么常委3出则延时18,常委4出则延时22,...常委1出则延时30
+替补节点最多5个
 */
 func (t *Tribe) GetPeriodChief100(header *types.Header, signers []*Signer) (p uint64) {
 	var (
-		// 14 , 18 , 22
+		// 14 , 18 , 22 , 26 , 30 , 34 , 38(无出块资格的节点)
 		signature               = header.Extra[len(header.Extra)-extraSeal:]
 		err                     error
 		miner                   common.Address
 		empty                   = make([]byte, len(signature))
-		Main, Subs, Other, Else = t.config.Period - 1, t.config.Period + 3, t.config.Period + 7, uint64(86400 * 7)
+		Main, Subs, Other, Else = t.config.Period - 1, t.config.Period + 3, t.config.Period + 7, t.config.Period - 1 + 4*6
 		number                  = header.Number
 	)
 
