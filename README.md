@@ -29,68 +29,80 @@ Building Spectrum requires both a Go (version 1.15 or later) and a C compiler. Y
 
 ## Run node 
 
-    $ ./build/bin/smc console
+```bash
+$ ./build/bin/smc console
+```
     
 ## Create new account
-    Users can create new account:
 
-    > personal.newAccount()
+```bash
+# Users can create new account:
+> personal.newAccount()
+```
 
 ## Get your own miner id
 
-    Every node has it's own miner id, you can run getMiner() function to get that id:
-
-    > tribe.getMiner() 
+```bash
+# Every node has it's own miner id, you can run getMiner() function to get that id:
+> tribe.getMiner() 
+```
     
 ## Bind your own miner id to wallet address
 
-    Users can bind their miner ID to a wallet address:
-
-    > tribe.bind("account","passwd") 
+```bash
+# Users can bind their miner ID to a wallet address:
+> tribe.bind("account","passwd") 
     
-    Or Users can only generate binding signatures at the terminal:
-    
-    > tribe.bindSign("account") 
+# Or Users can only generate binding signatures at the terminal:
+> tribe.bindSign("account") 
+```
 
 ## Deposit smt to POC
 
-    Users can become miner by deposit smt:
-
-    > tribe.pocDeposit("account","passwd") 
-
+```bash
+# Users can become miner by deposit smt:
+> tribe.pocDeposit("account","passwd") 
+```
 
 ## Start mining
 
-    Users can start mining or resume it:
-
-    > tribe.pocStart("account","passwd") 
-
+```bash
+# Users can start mining or resume it:
+> tribe.pocStart("account","passwd") 
+```
 
 ## Stop mining
 
-    Users can stop mining:
+```bash
+Users can stop mining:
+> tribe.pocStop("account","passwd") 
+```
 
-    > tribe.pocStop("account","passwd") 
-    
 ## Withdraw smt
 
-    Users can withdraw smt:
+```bash
+# Users can withdraw smt:
+> tribe.pocWithdraw("account","passwd")   
+```
 
-    > tribe.pocWithdraw("account","passwd")   
-    
 ## More functions
-    Users can input tribe to view:
-    
-    > tribe
+
+```bash
+# Users can input tribe to view:    
+> tribe
+```
     
 ## Security-related 
   
 ### Encrypt your nodekey
 
-     $ ./build/bin/smc security --passwd
+```bash
+$ ./build/bin/smc security --passwd
+```
      
 ### Decrypt your nodekey
 
-     $ ./build/bin/smc security --unlock
-     
+```bash
+$ ./build/bin/smc security --unlock
+```
 
