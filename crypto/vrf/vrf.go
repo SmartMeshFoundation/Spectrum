@@ -258,14 +258,14 @@ func (pk *PublicKey) ProofToHash(m, proof []byte) (index [32]byte, err error) {
 	// [t]G + [s]([k]G) = [t+ks]G
 	tGx, tGy := curve.ScalarBaseMult(t)
 	ksGx, ksGy := curve.ScalarMult(pk.X, pk.Y, s)
-	tksGx, tksGy := params.Add(tGx, tGy, ksGx, ksGy)
+	tksGx, tksGy := curve.Add(tGx, tGy, ksGx, ksGy)
 
 	// H = H1(m)
 	// [t]H + [s]VRF = [t+ks]H
 	Hx, Hy := H1(m)
 	tHx, tHy := curve.ScalarMult(Hx, Hy, t)
 	sHx, sHy := curve.ScalarMult(uHx, uHy, s)
-	tksHx, tksHy := params.Add(tHx, tHy, sHx, sHy)
+	tksHx, tksHy := curve.Add(tHx, tHy, sHx, sHy)
 
 	//   H2(G, H, [k]G, VRF, [t]G + [s]([k]G), [t]H + [s]VRF)
 	// = H2(G, H, [k]G, VRF, [t+ks]G, [t+ks]H)
